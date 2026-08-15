@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 440" width="400" height="440">
+  <defs>
+    <filter id="soft-shadow" x="-50%" y="-50%" width="200%" height="200">
+      <feDropShadow dx="0" dy="6" stdDeviation="10" flood-color="rgba(0,0,0,0.08)"/>
+    </filter>
+    <linearGradient id="person-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#818cf8"/>
+      <stop offset="100%" stop-color="#6366f1"/>
+    </linearGradient>
+    <linearGradient id="laptop-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#334155"/>
+      <stop offset="100%" stop-color="#1e293b"/>
+    </linearGradient>
+    <linearGradient id="screen-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#1e293b"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Pastel purple rounded background shape -->
+  <rect x="30" y="30" width="340" height="380" rx="34" ry="34" fill="#e8e1f5" filter="url(#soft-shadow)"/>
+
+  <!-- Decorative dots -->
+  <circle cx="80" cy="80" r="6" fill="#c2b2f0"/>
+  <circle cx="120" cy="70" r="4" fill="#c2b2f0"/>
+  <circle cx="160" cy="90" r="8" fill="#a899e8"/>
+  <circle cx="300" cy="340" r="7" fill="#f8bbd9"/>
+  <circle cx="330" cy="310" r="5" fill="#f8bbd9"/>
+  <circle cx="280" cy="360" r="6" fill="#f0abff"/>
+
+  <!-- Person giving thumbs-up -->
+  <!-- Head -->
+  <circle cx="150" cy="205" r="24" fill="url(#person-grad)"/>
+  <!-- Body -->
+  <path d="M126 229 L126 292 C126 302 174 302 174 292 L174 229" fill="url(#person-grad)" rx="10"/>
+  <!-- Thumbs-up arm -->
+  <path d="M174 235 L198 205 L208 215 L186 234 Z" fill="url(#person-grad)"/>
+  <!-- Thumbs-up hand -->
+  <path d="M186 215 L212 195 L222 208 L202 222 Z" fill="url(#person-grad)"/>
+  <rect x="206" y="202" width="8" height="22" rx="4" fill="url(#person-grad)"/>
+  <!-- Legs -->
+  <path d="M140 292 L133 318 C133 324 155 323 160 318 L168 292" fill="url(#person-grad)" rx="7"/>
+  <path d="M160 292 L168 318 C168 324 190 323 195 318 L183 292" fill="url(#person-grad)" rx="7"/>
+
+  <!-- Small circular badge with checkmark -->
+  <circle cx="160" cy="160" r="26" fill="#19ad86" stroke="#ffffff" stroke-width="3"/>
+  <path d="M150 168 L159 177 L170 165" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Laptop -->
+  <g transform="translate(230, 240)">
+    <!-- Laptop base -->
+    <rect x="0" y="0" width="130" height="75" rx="10" fill="url(#laptop-grad)"/>
+    <!-- Screen -->
+    <rect x="10" y="8" width="110" height="58" rx="5" fill="url(#screen-grad)"/>
+    <!-- Screen content - simplified UI bars -->
+    <rect x="20" y="18" width="22" height="6" rx="3" fill="#94a3b8"/>
+    <rect x="20" y="30" width="55" height="6" rx="3" fill="#94a3b8"/>
+    <rect x="20" y="42" width="35" height="6" rx="3" fill="#94a3b8"/>
+    <rect x="20" y="54" width="45" height="6" rx="3" fill="#94a3b8"/>
+    <!-- Keyboard area -->
+    <rect x="10" y="72" width="110" height="7" rx="3.5" fill="#475569" opacity="0.5"/>
+  </g>
+</svg>

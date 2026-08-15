@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="180" height="64" viewBox="0 0 180 64" role="img" aria-label="Bajaj General">
+  <rect width="180" height="64" rx="8" fill="#fff"/>
+  <rect x="24" y="14" width="36" height="36" rx="4" fill="#0b67c2"/>
+  <path d="M35 22h16l-8 8 8 8H35l8-8-8-8z" fill="#fff"/>
+  <text x="72" y="30" font-family="Arial, Helvetica, sans-serif" font-size="14" font-weight="800" fill="#0b67c2">BAJAJ</text>
+  <text x="72" y="45" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700" fill="#234">GENERAL</text>
+</svg>
