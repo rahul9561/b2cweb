@@ -70,6 +70,18 @@ export const insuranceMenu: Record<MenuCategory, { title: string; links: { label
       { label: 'Pay As You Drive', to: '/car-insurance' },
     ],
   },
+  creditScore: {
+    title: 'Credit Score',
+    links: [
+      { label: 'Credit Report', to: '/credit-score' },
+      { label: 'Cibil Report', to: '/credit-score' },
+      { label: 'Equifax Report', to: '/credit-score' },
+      { label: 'CRIF Report', to: '/credit-score' },
+      { label: 'CIBIL Score Check by PAN Number', to: '/credit-score' },
+      { label: 'How to increase CIBIL Score', to: '/credit-score' },
+      { label: 'CIBIL Score for Personal Loan/Instant Loan', to: '/credit-score' },
+    ],
+  },
   otherInsurance: {
     title: 'Other Insurance',
     links: [
@@ -100,6 +112,16 @@ export const claimMenu = [
   'Know more about filing claim',
   'Track existing claim',
   'Cashless network',
+]
+
+export const creditScoreMenu = [
+  { label: 'Credit Report', to: '/credit-report' },
+  { label: 'Cibil Report', to: '/cibil-report' },
+  { label: 'Equifax Report', to: '/equifax-report' },
+  { label: 'CRIF Report', to: '/crif-report' },
+  { label: 'CIBIL Score Check by PAN Number', to: '/cibil-score-by-pan' },
+  { label: 'How to increase CIBIL Score', to: '/increase-cibil-score' },
+  { label: 'CIBIL Score for Personal Loan/Instant Loan', to: '/cibil-score-loan' },
 ]
 
 export const supportMenu = {

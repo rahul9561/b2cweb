@@ -119,3 +119,137 @@
     transform: translateX(-50%);
   }
 }
+
+/* ── SIP Calculator custom range slider ── */
+.sip-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 9999px;
+  background: #e2e8f0;
+  outline: none;
+  cursor: pointer;
+}
+
+.sip-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 3px solid #1163d0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.sip-range::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+}
+
+.sip-range::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 3px solid #1163d0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.sip-range::-moz-range-thumb:hover {
+  transform: scale(1.1);
+}
+
+.sip-range::-moz-range-track {
+  height: 6px;
+  border-radius: 9999px;
+  background: #e2e8f0;
+}
+
+/* Filled track (left of thumb) */
+.sip-range-fill {
+  position: relative;
+}
+
+.sip-range-fill::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 6px;
+  border-radius: 9999px;
+  background: #1163d0;
+  pointer-events: none;
+}
+
+/* ── Step-up expand animation ── */
+.step-up-expand {
+  overflow: hidden;
+  transition: max-height 0.25s ease, opacity 0.25s ease;
+  max-height: 0;
+  opacity: 0;
+}
+
+.step-up-expand.open {
+  max-height: 200px;
+  opacity: 1;
+}
+
+/* ── Donut chart hover ── */
+.donut-segment {
+  transition: transform 0.2s ease, opacity 0.2s ease;
+  cursor: pointer;
+}
+
+.donut-segment:hover {
+  transform: scale(1.05);
+  opacity: 0.9;
+}
+
+/* ── Number count-up animation ── */
+@keyframes countUp {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.count-up {
+  animation: countUp 0.3s ease-out;
+}
+
+/* ── Tax calculator pulse animation ── */
+@keyframes taxPulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+.tax-pulse {
+  animation: taxPulse 0.25s ease-in-out 2;
+}
+
+/* ── Expandable section animation (View More Plans, Show More) ── */
+.expandable {
+  overflow: hidden;
+  transition: max-height 0.3s ease, opacity 0.3s ease;
+  max-height: 0;
+  opacity: 0;
+}
+.expandable.open {
+  max-height: 1000px;
+  opacity: 1;
+}

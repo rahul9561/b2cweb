@@ -3,8 +3,8 @@ import { Link } from 'react-router-dom'
 import { Calculator, TrendingUp, Shield, Car, HeartPulse, FileText, IndianRupee } from 'lucide-react'
 
 const calculators = [
-  { icon: TrendingUp, title: 'SIP Calculator', desc: 'Estimate returns on your monthly SIP investments', active: true },
-  { icon: FileText, title: 'Income Tax Calculator', desc: 'Calculate your tax liability under old and new regime', active: false },
+  { icon: TrendingUp, title: 'SIP Calculator', desc: 'Estimate returns on your monthly SIP investments', active: true, to: '/sip-calculator' },
+  { icon: FileText, title: 'Income Tax Calculator', desc: 'Calculate your tax liability under old and new regime', active: false, to: '/income-tax-calculator' },
   { icon: Shield, title: 'Term Insurance Calculator', desc: 'Find out the right life cover for your family', active: false },
   { icon: Car, title: 'Car Loan EMI Calculator', desc: 'Plan your monthly EMI on a car loan', active: false },
   { icon: HeartPulse, title: 'Health Insurance Premium', desc: 'Estimate the premium for your health plan', active: false },
@@ -55,7 +55,13 @@ export default function Calculators() {
             return (
               <button
                 key={c.title}
-                onClick={() => setActiveCalc(i)}
+                onClick={() => {
+                  if (c.to) {
+                    window.location.href = c.to
+                    return
+                  }
+                  setActiveCalc(i)
+                }}
                 className={`flex w-full items-start gap-3 rounded-card p-4 text-left transition-colors ${
                   active ? 'bg-brand text-white shadow-card' : 'bg-blueBGMuted hover:bg-blueBG'
                 }`}

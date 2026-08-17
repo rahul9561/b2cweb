@@ -18,7 +18,7 @@ import {
   Briefcase,
   Home,
 } from 'lucide-react'
-import { insuranceMenu, renewMenu, claimMenu, supportMenu } from '../data/navigation'
+import { insuranceMenu, renewMenu, claimMenu, creditScoreMenu, supportMenu } from '../data/navigation'
 import type { MenuCategory } from '../data/navigation'
 import logo from "../assets/images/av-logon.png";
 const categoryMeta: { key: MenuCategory; label: string; icon: typeof Shield }[] = [
@@ -62,6 +62,28 @@ export default function Header() {
     />
 </Link>
           <nav className="hidden items-center gap-0 lg:flex">
+            <div className="group relative">
+              <button className="flex items-center gap-1 px-3 py-8 text-[14px] font-medium text-white hover:text-orange-400">
+                Credit Score
+                <ChevronDown size={14} />
+              </button>
+              <div className="invisible absolute left-0 top-full z-50 w-72 bg-white opacity-0 shadow-card transition-all duration-150 group-hover:visible group-hover:opacity-100">
+                <ul className="p-2">
+                  {creditScoreMenu.map((item) => (
+                    <li key={item.label}>
+                      <Link
+                        to={item.to}
+                        className="flex items-center gap-3 px-3 py-2.5 text-[12px] text-slate2-secondary hover:bg-blueBG hover:text-brand"
+                      >
+                        <TrendingUp size={16} className="text-brand" />
+                        {item.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
             <div className="group relative">
               <button className="flex items-center gap-1 px-3 py-8 text-[14px] font-medium text-white hover:text-orange-400">
                 Insurance Products
@@ -248,6 +270,7 @@ export default function Header() {
                 Home
               </Link>
               {[
+                { label: 'Credit Score', to: '/credit-score', icon: TrendingUp },
                 { label: 'Health Insurance', to: '/health-insurance', icon: HeartPulse },
                 { label: 'Term Insurance', to: '/term-insurance', icon: Shield },
                 { label: 'Car Insurance', to: '/car-insurance', icon: Car },
@@ -269,6 +292,24 @@ export default function Header() {
                   </Link>
                 )
               })}
+              <div className="mt-3 border-t border-slate2-border pt-3">
+                <p className="mb-2 flex items-center gap-2 text-[13px] font-semibold text-navy">
+                  <TrendingUp size={14} className="text-brand" />
+                  Credit Score
+                </p>
+                <div className="space-y-1.5 pl-5">
+                  {creditScoreMenu.map((item) => (
+                    <Link
+                      key={item.label}
+                      to={item.to}
+                      onClick={() => setMobileOpen(false)}
+                      className="block text-[12px] text-slate2-secondary hover:text-brand"
+                    >
+                      {item.label}
+                    </Link>
+                  ))}
+                </div>
+              </div>
               <div className="mt-3 border-t border-slate2-border pt-3">
                 <p className="mb-2 flex items-center gap-2 text-[13px] font-semibold text-navy">
                   <RefreshCcw size={14} className="text-brand" />

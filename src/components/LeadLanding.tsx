@@ -44,6 +44,7 @@ export default function LeadLanding({ slug, heroImageUrl }: { slug: LandingSlug;
 }
 
 function StandardLanding({ config, heroImageUrl, slug }: { config: LandingConfig; heroImageUrl?: string; slug: LandingSlug }) {
+  const [showModal, setShowModal] = useState(false)
   const [showChildSavingsModal, setShowChildSavingsModal] = useState(false)
   const navigate = useNavigate()
   const { profile, dispatch } = useUserProfile()

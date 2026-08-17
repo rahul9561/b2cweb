@@ -25,6 +25,7 @@ type CalcGroup = {
     iconColor: string
   }
   links: string[]
+  linksTo?: string[]
 }
 
 const calculatorGroups: CalcGroup[] = [
@@ -37,6 +38,7 @@ const calculatorGroups: CalcGroup[] = [
       iconColor: 'text-white',
     },
     links: ['SIP Calculator', 'Income Tax Calculator', 'ULIP Calculator', 'NPS Calculator'],
+    linksTo: ['/sip-calculator', '/calculators', '/calculators', '/calculators'],
   },
   {
     title: 'Health & Wellness calculators',
@@ -139,10 +141,10 @@ export default function PopularCalculators() {
                     </div>
 
                     <ul>
-                      {g.links.map((l) => (
+                      {g.links.map((l, i) => (
                         <li key={l} className="border-b border-slate2-border/60 last:border-0">
                           <Link
-                            to="/calculators"
+                            to={g.linksTo?.[i] ?? '/calculators'}
                             className="group flex items-center justify-between px-5 py-3.5 text-[13px] text-slate2-secondary transition-colors hover:bg-blueBG/60 hover:text-brand"
                           >
                             {l}

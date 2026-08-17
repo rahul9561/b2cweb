@@ -66,6 +66,9 @@ import HomePlanListPage from './pages/HomePlanListPage'
 import OwnerDetailsPage from './pages/OwnerDetailsPage'
 import PropertyAddressPage from './pages/PropertyAddressPage'
 import ReviewPayPage from './pages/ReviewPayPage'
+import SipCalculatorPage from './pages/SipCalculatorPage'
+import IncomeTaxCalculatorPage from './pages/IncomeTaxCalculatorPage'
+import CibilReportPage from './pages/CibilReportPage'
 
 const leadRoute = (slug: LandingSlug) => <LeadLanding slug={slug} />
 
@@ -79,6 +82,8 @@ export default function App() {
   const hideHomeHeader =
     location.pathname.startsWith('/term-insurance-women') ||
     location.pathname.startsWith('/home-insurance') ||
+    location.pathname.startsWith('/sip-calculator') ||
+    location.pathname.startsWith('/income-tax-calculator') ||
     location.pathname.match(/^\/guaranteed-return-plans\/(plans|details|review|payment)/) ||
     location.pathname.match(/^\/child-savings-plans\/(plans|details|review|payment)/) ||
     location.pathname.match(/^\/retirement-plans\/(plans|details|review|payment)/) ||
@@ -126,6 +131,9 @@ export default function App() {
                   <Route path="/investment-plans/review" element={<InvestmentReviewPage />} />
                   <Route path="/investment-plans/payment" element={<InvestmentPaymentPage />} />
                   <Route path="/calculators" element={<Calculators />} />
+                  <Route path="/cibil-report" element={<CibilReportPage />} />
+                  <Route path="/sip-calculator" element={<SipCalculatorPage />} />
+                  <Route path="/income-tax-calculator" element={<IncomeTaxCalculatorPage />} />
                   <Route path="/quotes/plan/:planId" element={<PlanDetailPage />} />
 <Route path="/quotes/plan/:planId/checkout" element={<TermCheckoutPage />} />
 <Route path="/quotes/plan/:planId/payment" element={<TermPaymentPage />} />
@@ -176,7 +184,7 @@ export default function App() {
                   <Route path="/term-insurance-women/*" element={<TermWomenFlow />} />
                 </Routes>
               </main>
-              {!isCustomFlow && !isTermPayment && !location.pathname.match(/^\/guaranteed-return-plans\/(details|review|payment)/) && !location.pathname.match(/^\/child-savings-plans\/(details|review|payment)/) && !location.pathname.match(/^\/retirement-plans\/(details|review|payment)/) && !location.pathname.match(/^\/employee-group-health-insurance\/(plans|thanks)/) && <Footer />}
+              {!isCustomFlow && !isTermPayment && !location.pathname.startsWith('/sip-calculator') && !location.pathname.startsWith('/income-tax-calculator') && !location.pathname.match(/^\/guaranteed-return-plans\/(details|review|payment)/) && !location.pathname.match(/^\/child-savings-plans\/(details|review|payment)/) && !location.pathname.match(/^\/retirement-plans\/(details|review|payment)/) && !location.pathname.match(/^\/employee-group-health-insurance\/(plans|thanks)/) && <Footer />}
             </div>
           </HealthFiltersProvider>
         </HealthProfileProvider>
