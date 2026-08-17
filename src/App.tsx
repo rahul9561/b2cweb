@@ -69,6 +69,7 @@ import ReviewPayPage from './pages/ReviewPayPage'
 import SipCalculatorPage from './pages/SipCalculatorPage'
 import IncomeTaxCalculatorPage from './pages/IncomeTaxCalculatorPage'
 import CibilReportPage from './pages/CibilReportPage'
+import CreditScoreInfoPage from './pages/CreditScoreInfoPage'
 
 const leadRoute = (slug: LandingSlug) => <LeadLanding slug={slug} />
 
@@ -132,6 +133,10 @@ export default function App() {
                   <Route path="/investment-plans/payment" element={<InvestmentPaymentPage />} />
                   <Route path="/calculators" element={<Calculators />} />
                   <Route path="/cibil-report" element={<CibilReportPage />} />
+                  <Route path="/equifax-report" element={<CreditScoreInfoPage kind="equifax" />} />
+                  <Route path="/crif-report" element={<CreditScoreInfoPage kind="crif" />} />
+                  <Route path="/cibil-score-by-pan" element={<CreditScoreInfoPage kind="pan" />} />
+                  <Route path="/increase-cibil-score" element={<CreditScoreInfoPage kind="improve" />} />
                   <Route path="/sip-calculator" element={<SipCalculatorPage />} />
                   <Route path="/income-tax-calculator" element={<IncomeTaxCalculatorPage />} />
                   <Route path="/quotes/plan/:planId" element={<PlanDetailPage />} />

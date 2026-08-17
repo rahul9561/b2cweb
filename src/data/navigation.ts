@@ -74,7 +74,7 @@ export const insuranceMenu: Record<MenuCategory, { title: string; links: { label
     title: 'Credit Score',
     links: [
       { label: 'Credit Report', to: '/credit-score' },
-      { label: 'Cibil Report', to: '/credit-score' },
+      { label: 'Cibil Report', to: '/cibil-report' },
       { label: 'Equifax Report', to: '/credit-score' },
       { label: 'CRIF Report', to: '/credit-score' },
       { label: 'CIBIL Score Check by PAN Number', to: '/credit-score' },
