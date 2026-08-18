@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import { CreditCard, Landmark, Smartphone, Copy, CheckCircle2 } from 'lucide-react'
+import { CreditCard, Landmark, Smartphone, CheckCircle2 } from 'lucide-react'
 import logo from '../assets/images/av-logon.png'
 import type { GuaranteedPlan } from '../data/guaranteedPlans'
 
@@ -26,7 +26,6 @@ export default function GuaranteedReturnPaymentPage() {
   const details = location.state?.details as PurchaseDetails | undefined
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>('netbanking')
   const [showQR, setShowQR] = useState(false)
-  const [paymentComplete, setPaymentComplete] = useState(false)
 
   if (!plan || !details) {
     return (

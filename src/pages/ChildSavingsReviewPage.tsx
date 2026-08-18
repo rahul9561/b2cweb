@@ -24,9 +24,9 @@ function maskMobile(mobile: string): string {
   return '*'.repeat(6) + mobile.slice(-4)
 }
 
-function ReviewBox({ label, value }: { label: string; value: string }) {
+function ReviewBox({ label, value, className = '' }: { label: string; value: string; className?: string }) {
   return (
-    <div className="bg-slate-50 px-4 py-3 rounded-lg border border-slate-200">
+    <div className={`bg-slate-50 px-4 py-3 rounded-lg border border-slate-200 ${className}`}>
       <p className="text-xs text-slate-600 font-medium mb-1">{label}</p>
       <p className="font-bold text-navy text-sm">{value}</p>
     </div>

@@ -70,7 +70,12 @@ import SipCalculatorPage from './pages/SipCalculatorPage'
 import IncomeTaxCalculatorPage from './pages/IncomeTaxCalculatorPage'
 import CibilReportPage from './pages/CibilReportPage'
 import CreditScoreInfoPage from './pages/CreditScoreInfoPage'
-
+import CreditScoreArticlesPage from './pages/CreditScoreArticlesPage'
+import CreditScoreArticleDetailPage from './pages/CreditScoreArticleDetailPage'
+import CibilScoreLoanPage from './pages/CibilScoreLoanPage'
+import CibilScoreForPersonalLoanPage from './pages/CibilScoreForPersonalLoanPage'
+import LoanOffersPage from './pages/LoanOffersPage'
+import { AuthProvider } from './context/AuthContext'   // add near the other context imports
 const leadRoute = (slug: LandingSlug) => <LeadLanding slug={slug} />
 
 export default function App() {
@@ -93,6 +98,7 @@ export default function App() {
   // const hideHomeHeader = location.pathname.startsWith('/term-insurance-women')
 
   return (
+    <AuthProvider>
     <UserProfileProvider>
       <FiltersProvider>
         <HealthProfileProvider>
@@ -137,6 +143,11 @@ export default function App() {
                   <Route path="/crif-report" element={<CreditScoreInfoPage kind="crif" />} />
                   <Route path="/cibil-score-by-pan" element={<CreditScoreInfoPage kind="pan" />} />
                   <Route path="/increase-cibil-score" element={<CreditScoreInfoPage kind="improve" />} />
+                  <Route path="/cibil-score-loan" element={<CibilScoreLoanPage />} />
+                  <Route path="/loan-offers" element={<LoanOffersPage />} />
+                  <Route path="/cibil-score-for-personal-loan" element={<CibilScoreForPersonalLoanPage />} />
+                  <Route path="/category/credit-score" element={<CreditScoreArticlesPage />} />
+                  <Route path="/category/credit-score/:slug" element={<CreditScoreArticleDetailPage />} />
                   <Route path="/sip-calculator" element={<SipCalculatorPage />} />
                   <Route path="/income-tax-calculator" element={<IncomeTaxCalculatorPage />} />
                   <Route path="/quotes/plan/:planId" element={<PlanDetailPage />} />
@@ -195,5 +206,6 @@ export default function App() {
         </HealthProfileProvider>
       </FiltersProvider>
     </UserProfileProvider>
+    </AuthProvider>
   )
 }

@@ -1,6 +1,3 @@
-import { motion } from 'framer-motion'
-import { FiX, FiRefreshCw, FiDownload } from 'react-icons/fi'
-
 export default function CibilPrompt4() {
   return (
     <section className="bg-white">

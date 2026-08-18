@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Check, ChevronDown, Pencil, Phone, User, X } from 'lucide-react'
+import { Check, ChevronDown, Phone, User, X } from 'lucide-react'
 import logo from '../assets/images/av-logon.png'
 import { retirementPlans, type RetirementPlan } from '../data/retirementPlans'
 import RetirementPlanDrawer from '../components/RetirementPlanDrawer'
@@ -40,7 +40,6 @@ const maskMobile = (mobile: string) => {
 }
 
 export default function RetirementPlanListPage() {
-  const navigate = useNavigate()
   const location = useLocation()
   const [user, setUser] = useState<UserChip>(DEFAULT_USER)
   const [profileOpen, setProfileOpen] = useState(false)
@@ -195,10 +194,6 @@ function ResultsFilterBar({
   selectedAge,
   selectedInsurer,
   sortBy,
-  onReturnChange,
-  onAgeChange,
-  onInsurerChange,
-  onSortChange,
   onTalkExpert,
   dark,
 }: {

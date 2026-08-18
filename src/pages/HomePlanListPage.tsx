@@ -1,16 +1,14 @@
 import { useState, useMemo } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { ChevronLeft, ChevronDown, ChevronUp, Info, Star, FileText, Phone } from 'lucide-react'
+import { ChevronDown, ChevronUp, Star, FileText, Phone } from 'lucide-react'
 import HomeInsuranceHeader from '../components/home-insurance/Header'
 import SearchDetailsDrawer from '../components/home-insurance/SearchDetailsDrawer'
-import SummarySidebar from '../components/home-insurance/SummarySidebar'
 import {
   homePlans,
   POLICY_TERMS,
   CONSTRUCTION_YEAR_RANGES,
   ADDONS_CONFIG,
   formatINR,
-  numberToWords,
 } from '../data/homeInsurance'
 
 export default function HomePlanListPage() {

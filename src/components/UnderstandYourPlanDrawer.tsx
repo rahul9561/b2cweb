@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { X, MessageCircle, Sparkles, Coins, Clipboard, Check } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -15,7 +15,6 @@ export default function UnderstandYourPlanDrawer({
   plan,
   isOpen,
   onClose,
-  onProceed,
 }: UnderstandYourPlanDrawerProps) {
   const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState<'benefits' | 'compare'>('benefits')

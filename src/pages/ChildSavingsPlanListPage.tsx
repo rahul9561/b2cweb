@@ -11,7 +11,7 @@ interface ChildDetailsState {
   childAge: number
   investmentAmount: number
   investmentPeriod: number
-  returnPreference: string
+  returnPreference: ChildSavingsFilters['returnType']
 }
 
 export default function ChildSavingsPlanListPage() {

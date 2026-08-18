@@ -1,6 +1,3 @@
-import { motion } from 'framer-motion'
-import { FaEnvelope, FaPhoneAlt, FaHeadphones } from 'react-icons/fa'
-
 export default function CibilScore() {
   return (
     <section className="bg-white py-14">

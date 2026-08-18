@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react'
-import { ChevronRight, MessageCircle, Phone, TrendingUp, TrendingDown, Quote } from 'lucide-react'
+import { useState, useRef } from 'react'
+import { ChevronRight, MessageCircle } from 'lucide-react'
 import type { GuaranteedFilters } from '../context/GuaranteedFiltersContext'
 
 interface ResultsSidebarProps {
@@ -8,15 +8,15 @@ interface ResultsSidebarProps {
   onOpenChat?: () => void
 }
 
-export default function ResultsSidebar({ filters, onFiltersChange, onOpenChat }: ResultsSidebarProps) {
+export default function ResultsSidebar({ onOpenChat }: ResultsSidebarProps) {
   return (
     <div className="sticky top-[200px] space-y-4 lg:block hidden">
       <CompareAndInvestCard />
       <PromoCard />
       <TrustCard />
       <TrustContinuedCard />
-      <ReturnViewToggleCard filters={filters} onFiltersChange={onFiltersChange} />
-      <TestimonialsCard onOpenChat={onOpenChat} />
+      <ReturnViewToggleCard />
+      <TestimonialsCard />
       <FloatingChatBubble onClick={onOpenChat} />
     </div>
   )
@@ -180,12 +180,7 @@ function TrustContinuedCard() {
 /* ─────────────────────────────────────────
    5. Return View Toggle Card
    ───────────────────────────────────────── */
-interface ReturnViewToggleCardProps {
-  filters: GuaranteedFilters
-  onFiltersChange: (filters: Partial<GuaranteedFilters>) => void
-}
-
-function ReturnViewToggleCard({ filters, onFiltersChange }: ReturnViewToggleCardProps) {
+function ReturnViewToggleCard() {
   // Note: These toggles would be added to the filter state in a real implementation
   const [annualized, setAnnualized] = useState(false)
   const [taxAdjusted, setTaxAdjusted] = useState(false)
@@ -222,10 +217,6 @@ function ReturnViewToggleCard({ filters, onFiltersChange }: ReturnViewToggleCard
 /* ─────────────────────────────────────────
    6. Testimonials Carousel
    ───────────────────────────────────────── */
-interface TestimonialsCarouselProps {
-  onOpenChat?: () => void
-}
-
 const testimonials = [
   {
     id: 't1',
@@ -247,17 +238,9 @@ const testimonials = [
   },
 ]
 
-function TestimonialsCard({ onOpenChat }: TestimonialsCarouselProps) {
+function TestimonialsCard() {
   const [showAllTestimonials, setShowAllTestimonials] = useState(false)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
-  const [canScroll, setCanScroll] = useState(false)
-
-  useEffect(() => {
-    const container = scrollContainerRef.current
-    if (container) {
-      setCanScroll(container.scrollWidth > container.clientWidth)
-    }
-  }, [])
 
   return (
     <>

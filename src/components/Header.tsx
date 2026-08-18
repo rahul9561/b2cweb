@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import {
   ChevronDown,
   Menu,
@@ -17,7 +17,10 @@ import {
   RefreshCcw,
   Briefcase,
   Home,
+  LogOut
 } from 'lucide-react'
+import { useAuth } from '../context/AuthContext'          // ← add
+import LogoutConfirmModal from './LogoutConfirmModal'    
 import { insuranceMenu, renewMenu, claimMenu, creditScoreMenu, supportMenu } from '../data/navigation'
 import type { MenuCategory } from '../data/navigation'
 import logo from "../assets/images/av-logon.png";
@@ -39,7 +42,15 @@ const renewIcons: Record<string, typeof Shield> = {
 
 export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false)
-
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)   // ← add
+  const { isAuthenticated, logout } = useAuth()                       // ← add
+  const navigate = useNavigate()    
+   const handleConfirmLogout = () => {
+    logout()
+    setShowLogoutConfirm(false)
+    setMobileOpen(false)
+    navigate('/')
+  }
   return (
     <header className="sticky top-0 z-50 border-b border-gray-800 bg-black shadow-lg">
       <div className="container-pb flex h-[60px] items-center justify-between">
@@ -242,14 +253,30 @@ export default function Header() {
               </ul>
             </div>
           </div>
-
-          <Link
+{isAuthenticated ? (
+  <button
+    onClick={() => setShowLogoutConfirm(true)}
+    className="hidden items-center gap-2 rounded-full border border-brand px-4 py-2 text-[13px] font-medium text-brand transition-colors hover:bg-brand hover:text-white sm:flex"
+  >
+    <LogOut size={14} />
+    Sign out
+  </button>
+) : (
+  <Link
+    to="/login"
+    className="hidden items-center gap-2 rounded-full border border-brand px-4 py-2 text-[13px] font-medium text-brand transition-colors hover:bg-brand hover:text-white sm:flex"
+  >
+    <User size={14} />
+    Sign in
+  </Link>
+)}
+          {/* <Link
             to="/login"
             className="hidden items-center gap-2 rounded-full border border-brand px-4 py-2 text-[13px] font-medium text-brand transition-colors hover:bg-brand hover:text-white sm:flex"
           >
             <User size={14} />
             Sign in
-          </Link>
+          </Link> */}
         </div>
       </div>
 
@@ -329,14 +356,32 @@ export default function Header() {
                 </div>
               </div>
               <div className="flex gap-3 pt-2">
-                <Link
+                {isAuthenticated ? (
+  <button
+    onClick={() => setShowLogoutConfirm(true)}
+    className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-brand py-2.5 text-[13px] font-medium text-brand"
+  >
+    <LogOut size={14} />
+    Sign out
+  </button>
+) : (
+  <Link
+    to="/login"
+    onClick={() => setMobileOpen(false)}
+    className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-brand py-2.5 text-[13px] font-medium text-brand"
+  >
+    <User size={14} />
+    Sign in
+  </Link>
+)}
+                {/* <Link
                   to="/login"
                   onClick={() => setMobileOpen(false)}
                   className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-brand py-2.5 text-[13px] font-medium text-brand"
                 >
                   <User size={14} />
                   Sign in
-                </Link>
+                </Link> */}
                 <button className="flex flex-1 items-center justify-center gap-2 rounded-lg border-2 border-green-cta bg-green-cta py-2.5 text-[13px] font-bold text-white">
                   <Smartphone size={14} />
                   Get App
@@ -346,6 +391,11 @@ export default function Header() {
           </div>
         </div>
       )}
+            <LogoutConfirmModal
+        open={showLogoutConfirm}
+        onCancel={() => setShowLogoutConfirm(false)}
+        onConfirm={handleConfirmLogout}
+      />
     </header>
   )
 }

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { X, ChevronRight, Star, Shield, TrendingUp, Lock, CheckCircle, DollarSign, Calendar, Users, Award, Info } from 'lucide-react'
+import { X, ChevronRight, Star } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { ChildSavingsPlan } from '../data/childSavingsPlans'
 

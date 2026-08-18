@@ -10,7 +10,6 @@ import {
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
 import SipHeader from '../components/sip/SipHeader'
 import Footer from '../components/Footer'
-import DisclaimerAccordion from '../components/common/DisclaimerAccordion'
 import {
   BestMutualFunds,
   IncreaseSipWealth,
