@@ -58,5 +58,5 @@ export default function CreditScoreInfoPage({ kind }: { kind: PageKind }) {
       
       <CreditScoreArticles />
       <CreditScoreDisclaimer />
-    </main>{otp && <OTPModal phoneNumber={data.phone} onClose={() => setOtp(false)} onVerified={() => { setOtp(false); setReport(true) }} />}</div>
+    </main>{otp && <OTPModal phoneNumber={data.phone} onClose={() => setOtp(false)} onVerify={async () => { setOtp(false); setReport(true) }} />}</div>
 }

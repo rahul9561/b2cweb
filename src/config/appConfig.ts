@@ -6,11 +6,17 @@ export const AppEndpoints = {
   customerSendOtp: '/accounts/send-otp/',
   customerVerifyOtp: '/accounts/verify-otp/',
   resendOtp: '/auth/resend-otp/',
-    // Credit bureau report generation (paid — deducts wallet balance).
-  // Same endpoint is used for cibil / equifax / crif; the bureau is
-  // selected by the `report_type` field in the request body.
+  // Credit bureau report generation (paid — deducts wallet balance).
+  // The same endpoint serves all three bureaus; the bureau is selected
+  // by the `report_type` field in the request body:
+  //   report_type: 'cibil'   | 'equifax' | 'crif'
   cibilGenerateReport: '/cibil/generate-report/',
   cibilSendOtp: '/cibil/send-otp/',
+  // Aliases for clarity — same URLs, bureau is chosen by `report_type`.
+  equifaxGenerateReport: '/cibil/generate-report/',
+  crifGenerateReport: '/cibil/generate-report/',
+  equifaxSendOtp: '/cibil/send-otp/',
+  crifSendOtp: '/cibil/send-otp/',
 } as const
 
 export const AppConstants = {

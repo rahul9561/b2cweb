@@ -11,11 +11,20 @@ interface GenerateReportParams {
   gender: string
   reportType: ReportType
   consent: boolean
+  // Equifax-specific fields — only sent for equifax reports so the CIBIL and
+  // CRIF APIs are not affected.
+  dob?: string
+  address?: string
+  stateCode?: string
+  pincode?: string
 }
 
 // Same payload shape used across all three bureaus — only `report_type`
 // changes:
 //   { name, mobile, pan, gender, report_type: 'cibil' | 'equifax' | 'crif', consent: true }
+//
+// For Equifax the payload additionally includes: dob, address, state, pincode
+
 export function useCreditReport() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -27,6 +36,10 @@ export function useCreditReport() {
     gender,
     reportType,
     consent,
+    dob,
+    address,
+    stateCode,
+    pincode,
   }: GenerateReportParams) => {
     setError('')
 
@@ -38,7 +51,7 @@ export function useCreditReport() {
 
     setLoading(true)
     try {
-      const payload = {
+      const payload: Record<string, unknown> = {
         name: name.trim(),
         mobile: mobile.trim(),
         pan: pan.trim().toUpperCase(),
@@ -47,9 +60,24 @@ export function useCreditReport() {
         consent: true,
       }
 
+      // Equifax requires additional personal & address details: DOB, Address,
+      // State, and Pincode. These are only sent for equifax reports so the
+      // CIBIL and CRIF APIs are not affected.
+      if (reportType === 'equifax') {
+        payload.dob = dob
+        payload.address = address
+        payload.state = stateCode
+        payload.pincode = pincode
+      }
+
       // Requires the user to be logged in — the API deducts from
       // their wallet balance, so we send the auth token.
-      const data = await ApiClient.post(AppEndpoints.cibilGenerateReport, payload, {
+      const endpoint =
+        reportType === 'equifax'
+          ? AppEndpoints.equifaxGenerateReport
+          : AppEndpoints.cibilGenerateReport
+
+      const data = await ApiClient.post(endpoint, payload, {
         auth: true,
       })
       return data
