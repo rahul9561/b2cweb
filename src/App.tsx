@@ -73,6 +73,8 @@ import EquifaxReportPage from './pages/EquifaxReportPage'
 import CrifReportPage from './pages/CrifReportPage'
 import CreditScoreInfoPage from './pages/CreditScoreInfoPage'
 import CreditScoreArticlesPage from './pages/CreditScoreArticlesPage'
+import CibilCrossVerifyPage from './components/CibilAnalysisVerificationPage'
+import CibilAnalysisSuccessPage from './components/CibilAnalysisSuccessPage'
 import CreditScoreArticleDetailPage from './pages/CreditScoreArticleDetailPage'
 import CibilScoreLoanPage from './pages/CibilScoreLoanPage'
 import CibilScoreForPersonalLoanPage from './pages/CibilScoreForPersonalLoanPage'
@@ -145,6 +147,8 @@ export default function App() {
                   <Route path="/crif-report" element={<CrifReportPage />} />
                   <Route path="/cibil-score-by-pan" element={<CreditScoreInfoPage kind="pan" />} />
                   <Route path="/increase-cibil-score" element={<CreditScoreInfoPage kind="improve" />} />
+                  <Route path="/increase-cibil-score/verify" element={<CibilCrossVerifyPage />} />
+                  <Route path="/increase-cibil-score/success" element={<CibilAnalysisSuccessPage />} />
                   <Route path="/cibil-score-loan" element={<CibilScoreLoanPage />} />
                   <Route path="/loan-offers" element={<LoanOffersPage />} />
                   <Route path="/cibil-score-for-personal-loan" element={<CibilScoreForPersonalLoanPage />} />

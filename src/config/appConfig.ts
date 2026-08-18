@@ -17,6 +17,9 @@ export const AppEndpoints = {
   crifGenerateReport: '/cibil/generate-report/',
   equifaxSendOtp: '/cibil/send-otp/',
   crifSendOtp: '/cibil/send-otp/',
+  // "How to Increase CIBIL Score" analysis flow.
+  cibilAnalysisGenerateReport: '/analysis/credit-analysis/cibil/',
+  cibilAnalysisUpload: '/analysis/credit-analysis/upload/',
 } as const
 
 export const AppConstants = {
@@ -24,4 +27,7 @@ export const AppConstants = {
   companyName: 'AV Management Pvt Ltd',
   tokenKey: 'av_token',
   userDataKey: 'av_user_data',
+  // Key used to block repeat "Increase CIBIL Score" analysis requests until
+  // the cooling-off window (30 working days) has passed.
+  cibilAnalysisSessionKey: 'cibil_analysis_session',
 } as const
