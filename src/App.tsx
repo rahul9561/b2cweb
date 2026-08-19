@@ -78,6 +78,7 @@ import CibilAnalysisSuccessPage from './components/CibilAnalysisSuccessPage'
 import CreditScoreArticleDetailPage from './pages/CreditScoreArticleDetailPage'
 import CibilScoreLoanPage from './pages/CibilScoreLoanPage'
 import CibilScoreForPersonalLoanPage from './pages/CibilScoreForPersonalLoanPage'
+import CibilScoreResultPage from './pages/CibilScoreResultPage'
 import LoanOffersPage from './pages/LoanOffersPage'
 import { AuthProvider } from './context/AuthContext'   // add near the other context imports
 const leadRoute = (slug: LandingSlug) => <LeadLanding slug={slug} />
@@ -146,6 +147,7 @@ export default function App() {
                   <Route path="/equifax-report" element={<EquifaxReportPage />} />
                   <Route path="/crif-report" element={<CrifReportPage />} />
                   <Route path="/cibil-score-by-pan" element={<CreditScoreInfoPage kind="pan" />} />
+                  <Route path="/cibil-score-by-pan/score" element={<CibilScoreResultPage />} />
                   <Route path="/increase-cibil-score" element={<CreditScoreInfoPage kind="improve" />} />
                   <Route path="/increase-cibil-score/verify" element={<CibilCrossVerifyPage />} />
                   <Route path="/increase-cibil-score/success" element={<CibilAnalysisSuccessPage />} />

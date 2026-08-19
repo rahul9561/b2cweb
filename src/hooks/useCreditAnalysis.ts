@@ -38,6 +38,7 @@ export function useCreditAnalysis() {
         mobile: mobile.trim(),
         pan_card: pan.trim().toUpperCase(),
         gender: gender?.trim() ? gender.trim() : 'male',
+        report_type: 'cibil',
         consent: true,
       }
       const data = await ApiClient.post(AppEndpoints.cibilAnalysisGenerateReport, payload, { auth: true })
@@ -54,13 +55,16 @@ export function useCreditAnalysis() {
 
   /**
    * Submit the user's verification responses.
-   * Endpoint: POST /analysis/credit-analysis/upload/
+   * Endpoint: POST /analysis/credit-analysis/verify/
+   *
+   * The backend expects one request per field with:
+   *   reportId, sectionType, loanId, fieldKey, fieldValue, verified
    */
   const submitVerification = async (payload: Record<string, unknown>) => {
     setError('')
     setLoading(true)
     try {
-      const data = await ApiClient.post(AppEndpoints.cibilAnalysisUpload, payload, { auth: true })
+      const data = await ApiClient.post(AppEndpoints.cibilAnalysisVerify, payload, { auth: true })
       return data
     } catch (err) {
       const message =

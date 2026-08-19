@@ -20,6 +20,9 @@ export const AppEndpoints = {
   // "How to Increase CIBIL Score" analysis flow.
   cibilAnalysisGenerateReport: '/analysis/credit-analysis/cibil/',
   cibilAnalysisUpload: '/analysis/credit-analysis/upload/',
+  cibilAnalysisVerify: '/analysis/credit-analysis/verify/',
+  // CIBIL score check by PAN (no OTP / report download — returns score directly).
+  checkCibilScore: '/loans/score-check/',
 } as const
 
 export const AppConstants = {

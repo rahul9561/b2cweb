@@ -5,9 +5,9 @@ import OTPModal from '../components/OTPModal'
 import PDFViewer from '../components/PDFViewer'
 import { CreditScoreArticles, CreditScoreDisclaimer } from '../components/credit-score/CreditScoreArticles'
 import { useCreditAnalysis } from '../hooks/useCreditAnalysis'
-import { useAuth } from '../context/AuthContext'
-import { useUserProfile } from '../context/UserProfileContext'
 import { formatBlockedDate, getCibilAnalysisBlockedUntil } from '../lib/cibilAnalysisSession'
+import { ApiClient, ApiError } from '../lib/apiClient'
+import { AppEndpoints } from '../config/appConfig'
 
 type PageKind = 'equifax' | 'crif' | 'pan' | 'improve'
 type FormData = { name: string; phone: string; pan: string; gender: string }
@@ -215,22 +215,45 @@ export default function CreditScoreInfoPage({ kind }: { kind: PageKind }) {
   const [openFaq, setOpenFaq] = useState<number | null>(null)
 
   const { generateReport, loading: analysisLoading, error: analysisError } = useCreditAnalysis()
-  const { user } = useAuth()
-  const { profile } = useUserProfile()
   const blockedUntil = isImprove ? getCibilAnalysisBlockedUntil() : null
 
   const errors = {
     name: !data.name.trim() ? 'Please enter your full name.' : '',
     phone: data.phone.length !== 10 ? 'Please enter a valid 10-digit phone number.' : '',
     pan: data.pan.length !== 10 ? 'Please enter a valid PAN number.' : '',
-    gender: !isImprove && !data.gender ? 'Please select your gender.' : '',
+    gender: kind !== 'pan' && !data.gender ? 'Please select your gender.' : '',
   }
 
   const update = (key: keyof FormData, value: string) => setData((current) => ({ ...current, [key]: value }))
 
+  const [scoreLoading, setScoreLoading] = useState(false)
+  const [scoreError, setScoreError] = useState('')
+
   const submit = async (event: React.FormEvent) => {
     event.preventDefault()
     setSubmitted(true)
+
+    // pan kind — only PAN and phone are required; call the score-check API
+    // and navigate straight to the score page (no OTP, no report download).
+    if (kind === 'pan') {
+      if (errors.phone || errors.pan) return
+      setScoreLoading(true)
+      setScoreError('')
+      try {
+        const apiData = await ApiClient.post(AppEndpoints.checkCibilScore, {
+          pan: data.pan,
+          mobile: data.phone,
+        }, { auth: true })
+        navigate('/cibil-score-by-pan/score', { state: { apiData } })
+      } catch (err) {
+        const message =
+          err instanceof ApiError ? err.message : 'Could not fetch your CIBIL score. Please try again.'
+        setScoreError(message)
+      } finally {
+        setScoreLoading(false)
+      }
+      return
+    }
 
     if (!isImprove) {
       if (!Object.values(errors).some(Boolean)) setOtp(true)
@@ -238,7 +261,7 @@ export default function CreditScoreInfoPage({ kind }: { kind: PageKind }) {
     }
 
     // improve kind — validate the required fields and fire the analysis API
-    if (errors.phone || errors.pan) return
+    if (errors.name || errors.phone || errors.pan || errors.gender) return
     if (!consent) return
 
     try {
@@ -246,8 +269,8 @@ export default function CreditScoreInfoPage({ kind }: { kind: PageKind }) {
         pan: data.pan,
         mobile: data.phone,
         consent,
-        name: user?.name ?? profile.name ?? '',
-        gender: user?.gender ?? profile.gender ?? '',
+        name: data.name,
+        gender: data.gender,
       })
       navigate('/increase-cibil-score/verify', { state: { apiData } })
     } catch {
@@ -276,7 +299,9 @@ export default function CreditScoreInfoPage({ kind }: { kind: PageKind }) {
             <div className="mt-7 grid gap-3 sm:max-w-xl">
               {(isImprove
                 ? ['PAN-based CIBIL analysis', 'Detailed credit review', 'Personalised guidance from experts']
-                : ['Secure OTP verification', 'Clear report summary and PDF download', 'Credit education and practical guidance']
+                : kind === 'pan'
+                  ? ['Instant CIBIL score by PAN', 'No OTP required', 'Secure and protected']
+                  : ['Secure OTP verification', 'Clear report summary and PDF download', 'Credit education and practical guidance']
               ).map((item) => (
                 <div key={item} className="flex items-center gap-3 rounded-xl border border-blue-100 bg-white/80 px-4 py-3 text-sm font-medium text-slate-700">
                   <Check className="h-5 w-5 rounded-full bg-emerald-500 p-1 text-white" />
@@ -301,7 +326,7 @@ export default function CreditScoreInfoPage({ kind }: { kind: PageKind }) {
               </div>
             </div>
             <div className="mt-6 space-y-4">
-              {!isImprove && (
+              {kind !== 'pan' && (
                 <Field label="Full Name" error={submitted ? errors.name : ''}>
                   <input value={data.name} onChange={(e) => update('name', e.target.value)} className="mt-1.5 w-full rounded-lg border border-slate-300 px-3 py-3 outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100" placeholder="Enter your full name" />
                 </Field>
@@ -315,7 +340,7 @@ export default function CreditScoreInfoPage({ kind }: { kind: PageKind }) {
                 <input value={data.pan} onChange={(e) => update('pan', e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 10))} className="mt-1.5 w-full rounded-lg border border-slate-300 px-3 py-3 font-mono outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100" placeholder="Enter PAN number" />
               </Field>
 
-              {!isImprove && (
+              {kind !== 'pan' && (
                 <Field label="Gender" error={submitted ? errors.gender : ''}>
                   <div className="mt-2 grid grid-cols-3 gap-2">
                     {['Male', 'Female', 'Other'].map((option) => (
@@ -325,7 +350,7 @@ export default function CreditScoreInfoPage({ kind }: { kind: PageKind }) {
                 </Field>
               )}
 
-              {!isImprove && (
+              {!isImprove && kind !== 'pan' && (
                 <p className="text-xs text-slate-500">An OTP will be sent to your mobile number.</p>
               )}
 
@@ -344,15 +369,21 @@ export default function CreditScoreInfoPage({ kind }: { kind: PageKind }) {
                 <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-medium text-red-600">{analysisError}</p>
               )}
 
+              {scoreError && (
+                <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-medium text-red-600">{scoreError}</p>
+              )}
+
               <button
                 type="submit"
-                disabled={analysisLoading}
+                disabled={analysisLoading || scoreLoading}
                 className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 py-3.5 font-semibold text-white transition hover:bg-blue-700 disabled:opacity-60"
               >
                 {analysisLoading ? (
                   <><Loader2 size={17} className="animate-spin" /> Generating report...</>
+                ) : scoreLoading ? (
+                  <><Loader2 size={17} className="animate-spin" /> Fetching your score...</>
                 ) : (
-                  <>{isImprove ? 'Analyse My Credit Profile' : `Get ${config.report}`} <ArrowRight size={17} /></>
+                  <>{isImprove ? 'Analyse My Credit Profile' : kind === 'pan' ? 'Get CIBIL PAN Report' : `Get ${config.report}`} <ArrowRight size={17} /></>
                 )}
               </button>
             </div>
@@ -409,7 +440,9 @@ export default function CreditScoreInfoPage({ kind }: { kind: PageKind }) {
               <div className="mt-6 space-y-5">
                 {(isImprove
                   ? ['Enter your PAN and phone', 'Verify your details', 'Get expert guidance']
-                  : ['Enter your details', 'Verify your mobile OTP', 'Review your report', 'Download the PDF']
+                  : kind === 'pan'
+                    ? ['Enter PAN & phone number', 'Get your score instantly']
+                    : ['Enter your details', 'Verify your mobile OTP', 'Review your report', 'Download the PDF']
                 ).map((item, index) => (
                   <div key={item} className="flex gap-3 text-sm">
                     <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-green-500 text-xs font-bold text-white">{index + 1}</span>
@@ -417,7 +450,7 @@ export default function CreditScoreInfoPage({ kind }: { kind: PageKind }) {
                   </div>
                 ))}
               </div>
-              <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="mt-7 w-full rounded-lg bg-green-600 py-3 text-sm font-semibold text-white transition hover:bg-green-700">Start Report Request</button>
+              <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="mt-7 w-full rounded-lg bg-green-600 py-3 text-sm font-semibold text-white transition hover:bg-green-700">{kind === 'pan' ? 'Get My Score' : 'Start Report Request'}</button>
             </div>
             <div className="mt-6 rounded-2xl bg-gradient-to-br from-blue-950 to-blue-700 p-6 text-white">
               <TrendingUp className="text-yellow-300" />
