@@ -18,8 +18,28 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { CreditScoreArticles, CreditScoreDisclaimer } from '../components/credit-score/CreditScoreArticles'
 import { ApiClient, ApiError } from '../lib/apiClient'
 import { AppEndpoints } from '../config/appConfig'
+import { fetchLoanCategories, getSavedLoanCategoryList, getSavedPincode, type LoanCategory } from '../lib/loanCategories'
 
-type Details = { firstName: string; lastName: string; pan: string; phone: string; dob: string; pincode: string }
+type Details = {
+  firstName: string
+  lastName: string
+  pan: string
+  phone: string
+  dob: string
+  pincode: string
+}
+
+const MAX_ELIGIBLE_DPD = 29
+const INELIGIBLE_SCORE_MIN = 399
+const INELIGIBLE_SCORE_MAX = 699
+
+const isLoanEligible = (score: number | null, dpd: number | null) => {
+  const hasIneligibleDpd = dpd !== null && dpd > MAX_ELIGIBLE_DPD
+  const hasIneligibleScore =
+    score !== null && score >= INELIGIBLE_SCORE_MIN && score <= INELIGIBLE_SCORE_MAX
+
+  return !hasIneligibleDpd && !hasIneligibleScore
+}
 
 const BulletList = ({ items }: { items: string[] }) => (
   <ul className="space-y-3">
@@ -90,7 +110,7 @@ export default function CibilScoreLoanPage() {
     pan: incoming?.pan ?? '',
     phone: incoming?.phone ?? '',
     dob: incoming?.dob ?? '',
-    pincode: incoming?.pincode ?? '',
+    pincode: incoming?.pincode ?? getSavedPincode(),
   })
   const [errors, setErrors] = useState<Partial<Record<keyof Details, string>>>({})
   const [submitted, setSubmitted] = useState(false)
@@ -124,7 +144,10 @@ export default function CibilScoreLoanPage() {
       if (Array.isArray(item)) return item.forEach(visit)
       if (!item || typeof item !== 'object') return
       Object.entries(item as Record<string, unknown>).forEach(([key, entry]) => {
-        if (/days[_\s-]*past[_\s-]*due|\bdpd\b/i.test(key)) {
+        // Only account-history DPD values describe the customer's actual
+        // repayment record. Do not read API rule metadata such as
+        // `maximum_allowed: 30` or the derived analysis summary.
+        if (/^days[_\s-]*past[_\s-]*due$/i.test(key)) {
           const number = Number(entry)
           if (Number.isFinite(number)) maximum = maximum === null ? number : Math.max(maximum, number)
         }
@@ -151,6 +174,15 @@ export default function CibilScoreLoanPage() {
     return score
   }
 
+  const pickCategoryId = (categories: LoanCategory[]): string => {
+    // Prefer the "Personal Loan" category for this personal-loan flow,
+    // otherwise fall back to the first saved category.
+    const personalLoan = categories.find(
+      (c) => c.shortCode?.toLowerCase() === 'pl' || /personal/i.test(c.name)
+    )
+    return personalLoan?._id ?? categories[0]?._id ?? ''
+  }
+
   const submit = async (event: React.FormEvent) => {
     event.preventDefault()
     setSubmitted(true)
@@ -169,15 +201,26 @@ export default function CibilScoreLoanPage() {
       pincode: details.pincode,
     }
     try {
-      const report = await ApiClient.post<Record<string, unknown>>(AppEndpoints.experianLoanReport, payload, { auth: true })
+      let categories = getSavedLoanCategoryList()
+      if (categories.length === 0) categories = await fetchLoanCategories()
+      const categoryId = pickCategoryId(categories)
+      if (!categoryId) throw new Error('Unable to find the Personal Loan category.')
+
+      // Keep the Personal Loan category fixed from the login-time category
+      // response; use only the form's editable pincode for both live calls.
+      const [report, bankPayload] = await Promise.all([
+        ApiClient.post<Record<string, unknown>>(AppEndpoints.experianLoanReport, payload, { auth: true }),
+        ApiClient.get(
+          `${AppEndpoints.loanBanks}?category_id=${encodeURIComponent(categoryId)}&pincode=${encodeURIComponent(details.pincode)}`,
+          { auth: true }
+        ),
+      ])
       const score = findScore(report)
-      const analysisDpd = Number((report.analysis as Record<string, unknown> | undefined)?.dpd)
-      const dpd = Number.isFinite(analysisDpd) ? analysisDpd : findDpd(report)
-      if ((score !== null && score >= 399 && score <= 699) || (dpd !== null && dpd <= 30)) {
+      const dpd = findDpd(report)
+      if (!isLoanEligible(score, dpd)) {
         navigate('/cibil-score-loan/eligible', { state: { score, ...details } })
         return
       }
-      const bankPayload = await ApiClient.get(AppEndpoints.loanBanks, { auth: true })
       navigate('/loan-offers', { state: { ...details, score, bankPayload } })
     } catch (error) {
       setSubmitError(error instanceof ApiError && error.status === 401 ? 'Your login session has expired. Please sign in again and retry.' : error instanceof Error ? error.message : 'Something went wrong. Please try again.')

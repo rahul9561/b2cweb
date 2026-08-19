@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import { ApiClient, ApiError } from '../lib/apiClient'
 import { AppEndpoints, AppConstants } from '../config/appConfig'
+import { fetchLoanCategories } from '../lib/loanCategories'
 
 export interface AuthUser {
   id?: string | number
@@ -78,6 +79,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const userData: AuthUser = data?.user && typeof data.user === 'object' ? data.user : data
       persistSession(accessToken, userData)
+
+      // Immediately after OTP verification (we now have the Bearer token),
+      // fetch loan categories using the pincode from location permission
+      // (falls back to the static "843123" pincode on any failure).
+      // Non-fatal — the login flow completes even if this request fails.
+      void fetchLoanCategories().catch(() => {
+        // Intentionally ignored — categories are fetched best-effort.
+      })
+
       return userData
     } catch (err) {
       throw normalizeError(err, 'Invalid or expired OTP. Please try again.')

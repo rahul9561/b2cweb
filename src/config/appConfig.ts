@@ -25,6 +25,8 @@ export const AppEndpoints = {
   checkCibilScore: '/loans/score-check/',
   experianLoanReport: '/loans/experian/',
   loanBanks: '/loans/banks/',
+  loanCategories: '/loans/categories/',
+  loanApply: '/loans/sav/apply/',
 } as const
 
 export const AppConstants = {
@@ -35,4 +37,7 @@ export const AppConstants = {
   // Key used to block repeat "Increase CIBIL Score" analysis requests until
   // the cooling-off window (30 working days) has passed.
   cibilAnalysisSessionKey: 'cibil_analysis_session',
+  // Pincode + loan categories fetched after OTP verification.
+  pincodeKey: 'av_pincode',
+  loanCategoriesKey: 'av_loan_categories',
 } as const

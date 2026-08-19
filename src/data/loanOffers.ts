@@ -6,6 +6,8 @@ export interface LoanOffer {
   approvalChance: 'High' | 'Medium' | 'Excellent'
   applyUrl: string
   logoColour: string
+  bankId?: string
+  bankName?: string
 }
 
 export const loanOffers: LoanOffer[] = [
