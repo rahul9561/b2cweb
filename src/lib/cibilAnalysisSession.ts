@@ -28,7 +28,7 @@ function addWorkingDays(start: Date, count: number): Date {
  */
 export function getCibilAnalysisBlockedUntil(): Date | null {
   try {
-    const raw = sessionStorage.getItem(SESSION_KEY)
+    const raw = localStorage.getItem(SESSION_KEY) ?? sessionStorage.getItem(SESSION_KEY)
     if (!raw) return null
     const parsed = JSON.parse(raw) as CibilAnalysisSession
     const blockedUntil = new Date(parsed.blockedUntil)
@@ -48,11 +48,12 @@ export function saveCibilAnalysisSession(): CibilAnalysisSession {
     timestamp: new Date().toISOString(),
     blockedUntil: addWorkingDays(new Date(), 30).toISOString(),
   }
-  sessionStorage.setItem(SESSION_KEY, JSON.stringify(session))
+  localStorage.setItem(SESSION_KEY, JSON.stringify(session))
   return session
 }
 
 export function clearCibilAnalysisSession(): void {
+  localStorage.removeItem(SESSION_KEY)
   sessionStorage.removeItem(SESSION_KEY)
 }
 

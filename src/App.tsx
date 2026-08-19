@@ -77,6 +77,7 @@ import CibilCrossVerifyPage from './components/CibilAnalysisVerificationPage'
 import CibilAnalysisSuccessPage from './components/CibilAnalysisSuccessPage'
 import CreditScoreArticleDetailPage from './pages/CreditScoreArticleDetailPage'
 import CibilScoreLoanPage from './pages/CibilScoreLoanPage'
+import CibilLoanEligibilityPage from './pages/CibilLoanEligibilityPage'
 import CibilScoreForPersonalLoanPage from './pages/CibilScoreForPersonalLoanPage'
 import CibilScoreResultPage from './pages/CibilScoreResultPage'
 import LoanOffersPage from './pages/LoanOffersPage'
@@ -152,6 +153,7 @@ export default function App() {
                   <Route path="/increase-cibil-score/verify" element={<CibilCrossVerifyPage />} />
                   <Route path="/increase-cibil-score/success" element={<CibilAnalysisSuccessPage />} />
                   <Route path="/cibil-score-loan" element={<CibilScoreLoanPage />} />
+                  <Route path="/cibil-score-loan/eligible" element={<CibilLoanEligibilityPage />} />
                   <Route path="/loan-offers" element={<LoanOffersPage />} />
                   <Route path="/cibil-score-for-personal-loan" element={<CibilScoreForPersonalLoanPage />} />
                   <Route path="/category/credit-score" element={<CreditScoreArticlesPage />} />

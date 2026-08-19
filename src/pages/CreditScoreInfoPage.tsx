@@ -272,7 +272,13 @@ export default function CreditScoreInfoPage({ kind }: { kind: PageKind }) {
         name: data.name,
         gender: data.gender,
       })
-      navigate('/increase-cibil-score/verify', { state: { apiData } })
+      navigate('/increase-cibil-score/verify', {
+        state: {
+          apiData,
+          // Kept in navigation state for the verification API; never rendered.
+          reportId: apiData?.report_id ?? apiData?.reportId,
+        },
+      })
     } catch {
       // analysisError already set by the hook
     }

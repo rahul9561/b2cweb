@@ -57,8 +57,8 @@ export function useCreditAnalysis() {
    * Submit the user's verification responses.
    * Endpoint: POST /analysis/credit-analysis/verify/
    *
-   * The backend expects one request per field with:
-   *   reportId, sectionType, loanId, fieldKey, fieldValue, verified
+   * The backend expects one request containing `report_id` and the complete
+   * nested `verification_data` object.
    */
   const submitVerification = async (payload: Record<string, unknown>) => {
     setError('')

@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { CheckCircle2, Clock3, FileText, Home, PhoneCall, RefreshCw, ShieldCheck, Users } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, Clock3, PhoneCall, RefreshCw, ShieldCheck, Users } from 'lucide-react'
 import { formatBlockedDate, getCibilAnalysisBlockedUntil } from '../lib/cibilAnalysisSession'
 
 /**
@@ -13,13 +13,16 @@ export default function CibilAnalysisSuccessPage() {
   const navigate = useNavigate()
   const blockedUntil = getCibilAnalysisBlockedUntil()
 
-  const goHome = () => {
-    navigate('/', { replace: true })
-  }
-
   return (
     <section className="min-h-screen bg-gradient-to-b from-slate-50 via-blue-50/40 to-white py-12 md:py-16">
       <div className="mx-auto max-w-2xl px-4">
+        <button
+          type="button"
+          onClick={() => navigate('/increase-cibil-score', { replace: true })}
+          className="mb-5 inline-flex items-center gap-2 text-sm font-semibold text-slate-600 transition hover:text-blue-700"
+        >
+          <ArrowLeft size={17} /> Back
+        </button>
         {/* ── Success container ── */}
         <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl shadow-blue-950/10">
           {/* Banner */}
@@ -87,18 +90,12 @@ export default function CibilAnalysisSuccessPage() {
               </p>
             </div>
 
-            <div className="mt-8 grid gap-3 sm:grid-cols-2">
+            <div className="mt-8">
               <button
-                onClick={goHome}
-                className="flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white py-3.5 text-sm font-semibold text-slate-700 transition hover:-translate-y-0.5 hover:border-blue-300 hover:text-blue-700"
+                onClick={() => navigate('/', { replace: true })}
+                className="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white py-3.5 text-sm font-semibold text-slate-700 transition hover:-translate-y-0.5 hover:border-blue-300 hover:text-blue-700"
               >
-                <Home size={17} /> Go to Home
-              </button>
-              <button
-                onClick={() => navigate('/cibil-report', { replace: true })}
-                className="flex items-center justify-center gap-2 rounded-xl bg-blue-600 py-3.5 text-sm font-semibold text-white shadow-lg shadow-blue-600/20 transition hover:-translate-y-0.5 hover:bg-blue-700"
-              >
-                <FileText size={17} /> Explore CIBIL Report
+                Back to Home
               </button>
             </div>
           </div>
@@ -109,14 +106,6 @@ export default function CibilAnalysisSuccessPage() {
             </p>
           </footer>
         </div>
-
-        {/* Cooldown reminder */}
-        {blockedUntil && (
-          <div className="mt-6 flex items-center justify-center gap-2 rounded-xl border border-blue-100 bg-blue-50 px-5 py-3.5 text-sm text-slate-600">
-            <RefreshCw size={16} className="text-blue-500" />
-            New analysis will be available from <strong className="text-navy">{formatBlockedDate(blockedUntil)}</strong>
-          </div>
-        )}
       </div>
     </section>
   )

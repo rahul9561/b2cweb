@@ -16,6 +16,8 @@ import {
 } from 'lucide-react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { CreditScoreArticles, CreditScoreDisclaimer } from '../components/credit-score/CreditScoreArticles'
+import { ApiClient, ApiError } from '../lib/apiClient'
+import { AppEndpoints } from '../config/appConfig'
 
 type Details = { firstName: string; lastName: string; pan: string; phone: string; dob: string; pincode: string }
 
@@ -92,6 +94,8 @@ export default function CibilScoreLoanPage() {
   })
   const [errors, setErrors] = useState<Partial<Record<keyof Details, string>>>({})
   const [submitted, setSubmitted] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState('')
   const [openFaq, setOpenFaq] = useState<number | null>(null)
 
   const update = (key: keyof Details, value: string) => setDetails((current) => ({ ...current, [key]: value }))
@@ -114,13 +118,71 @@ export default function CibilScoreLoanPage() {
     return newErrors
   }
 
-  const submit = (event: React.FormEvent) => {
+  const findDpd = (value: unknown): number | null => {
+    let maximum: number | null = null
+    const visit = (item: unknown) => {
+      if (Array.isArray(item)) return item.forEach(visit)
+      if (!item || typeof item !== 'object') return
+      Object.entries(item as Record<string, unknown>).forEach(([key, entry]) => {
+        if (/days[_\s-]*past[_\s-]*due|\bdpd\b/i.test(key)) {
+          const number = Number(entry)
+          if (Number.isFinite(number)) maximum = maximum === null ? number : Math.max(maximum, number)
+        }
+        visit(entry)
+      })
+    }
+    visit(value)
+    return maximum
+  }
+
+  const findScore = (report: Record<string, unknown>): number | null => {
+    const analysisScore = Number((report.analysis as Record<string, unknown> | undefined)?.credit_score)
+    if (Number.isFinite(analysisScore)) return analysisScore
+    let score: number | null = null
+    const visit = (value: unknown) => {
+      if (score !== null || !value || typeof value !== 'object') return
+      if (Array.isArray(value)) return value.forEach(visit)
+      Object.entries(value as Record<string, unknown>).forEach(([key, entry]) => {
+        if (key === 'BureauScore' && Number.isFinite(Number(entry))) score = Number(entry)
+        visit(entry)
+      })
+    }
+    visit(report)
+    return score
+  }
+
+  const submit = async (event: React.FormEvent) => {
     event.preventDefault()
     setSubmitted(true)
+    setSubmitError('')
     const newErrors = validate()
     setErrors(newErrors)
-    if (Object.keys(newErrors).length === 0) {
-      navigate('/loan-offers', { state: { ...details } })
+    if (Object.keys(newErrors).length > 0) return
+
+    setIsSubmitting(true)
+    const payload = {
+      mobile: details.phone,
+      first_name: details.firstName,
+      last_name: details.lastName,
+      date_of_birth: details.dob,
+      pan: details.pan,
+      pincode: details.pincode,
+    }
+    try {
+      const report = await ApiClient.post<Record<string, unknown>>(AppEndpoints.experianLoanReport, payload, { auth: true })
+      const score = findScore(report)
+      const analysisDpd = Number((report.analysis as Record<string, unknown> | undefined)?.dpd)
+      const dpd = Number.isFinite(analysisDpd) ? analysisDpd : findDpd(report)
+      if ((score !== null && score >= 399 && score <= 699) || (dpd !== null && dpd <= 30)) {
+        navigate('/cibil-score-loan/eligible', { state: { score, ...details } })
+        return
+      }
+      const bankPayload = await ApiClient.get(AppEndpoints.loanBanks, { auth: true })
+      navigate('/loan-offers', { state: { ...details, score, bankPayload } })
+    } catch (error) {
+      setSubmitError(error instanceof ApiError && error.status === 401 ? 'Your login session has expired. Please sign in again and retry.' : error instanceof Error ? error.message : 'Something went wrong. Please try again.')
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -196,9 +258,10 @@ export default function CibilScoreLoanPage() {
                 </label>
               ))}
             </div>
-            <button className="mt-5 flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 py-3 font-semibold text-white transition hover:bg-blue-700">
-              Get Free Credit Score <ArrowRight size={17} />
+            <button disabled={isSubmitting} className="mt-5 flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70">
+              {isSubmitting ? 'Checking your credit score...' : 'Get Free Credit Score'} <ArrowRight size={17} />
             </button>
+            {submitError && <p className="mt-3 text-center text-xs text-red-600" role="alert">{submitError}</p>}
             <p className="mt-3 text-center text-[11px] text-slate-500">By continuing, you agree to the terms of use and privacy policy.</p>
           </form>
         </div>
@@ -366,4 +429,3 @@ export default function CibilScoreLoanPage() {
     </main>
   )
 }
-

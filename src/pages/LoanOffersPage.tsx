@@ -12,6 +12,8 @@ type LoanFormData = {
   pincode: string
 }
 
+type ApiOffer = LoanOffer
+
 type SortMode = 'chance' | 'roi'
 
 const chanceScore: Record<LoanOffer['approvalChance'], number> = {
@@ -39,10 +41,37 @@ const parseRoi = (roi: string) => {
 
 const FORM_ROUTE = '/cibil-score-loan'
 
+const field = (item: Record<string, unknown>, keys: string[]) => {
+  const value = Object.entries(item).find(([key]) => keys.includes(key.toLowerCase()))?.[1]
+  return value === undefined || value === null ? '' : String(value)
+}
+
+const apiOffersFrom = (payload: unknown): ApiOffer[] => {
+  const records = Array.isArray(payload) ? payload : Object.values((payload ?? {}) as Record<string, unknown>).find(Array.isArray)
+  if (!Array.isArray(records)) return []
+  return records.map((entry, index) => {
+    const item = entry as Record<string, unknown>
+    const chance = field(item, ['approval_chance', 'approvalchance', 'chance']).toLowerCase()
+    const approvalChance: LoanOffer['approvalChance'] = chance.includes('excellent') || Number(chance) >= 85 ? 'Excellent' : chance.includes('high') || Number(chance) >= 65 ? 'High' : 'Medium'
+    return {
+      name: field(item, ['bank_name', 'bankname', 'name', 'lender_name']) || `Bank ${index + 1}`,
+      city: field(item, ['location', 'city', 'branch_location', 'branch']) || 'India',
+      roiStartingAt: field(item, ['roi_starting_at', 'roi', 'interest_rate', 'rate_of_interest']) || '—',
+      monthlyEmi: field(item, ['monthly_emi', 'emi', 'monthlyemi']) || '—',
+      approvalChance,
+      applyUrl: field(item, ['apply_url', 'apply_link', 'url', 'link']) || '#',
+      logoColour: ['bg-blue-700', 'bg-indigo-700', 'bg-cyan-700', 'bg-violet-700'][index % 4],
+    }
+  })
+}
+
 export default function LoanOffersPage() {
   const location = useLocation()
   const navigate = useNavigate()
   const state = (location.state ?? {}) as Partial<LoanFormData>
+  const routeState = location.state as Record<string, unknown> | null
+  const apiOffers = useMemo(() => apiOffersFrom(routeState?.bankPayload), [routeState?.bankPayload])
+  const score = routeState?.score
 
   const [sortMode, setSortMode] = useState<SortMode>('chance')
   const [ready, setReady] = useState(false)
@@ -66,18 +95,17 @@ export default function LoanOffersPage() {
   }, [hasData, navigate])
 
   const sortedOffers = useMemo(() => {
-    if (sortMode === 'roi') {
-      return [...loanOffers].sort((a, b) => parseRoi(a.roiStartingAt) - parseRoi(b.roiStartingAt))
-    }
-    return [...loanOffers].sort((a, b) => chanceScore[b.approvalChance] - chanceScore[a.approvalChance])
-  }, [sortMode])
+    const offers = apiOffers.length ? apiOffers : loanOffers
+    if (sortMode === 'roi') return [...offers].sort((a, b) => parseRoi(a.roiStartingAt) - parseRoi(b.roiStartingAt))
+    return [...offers].sort((a, b) => chanceScore[b.approvalChance] - chanceScore[a.approvalChance])
+  }, [apiOffers, sortMode])
 
   if (!hasData) return null
 
   const fullName = `${state.firstName} ${state.lastName}`.trim()
 
   const handleOpen = (offer: LoanOffer) => {
-    window.open(offer.applyUrl, '_blank', 'noopener,noreferrer')
+    if (offer.applyUrl && offer.applyUrl !== '#') window.open(offer.applyUrl, '_blank', 'noopener,noreferrer')
   }
 
   const handleEdit = () => {
@@ -110,8 +138,8 @@ export default function LoanOffersPage() {
             <div className="shrink-0 rounded-xl border border-slate-200 bg-white px-3 py-2 text-center shadow-sm">
               <Gauge size={18} className="mx-auto text-blue-600" />
               <p className="mt-1 text-xs font-semibold text-navy">CIBIL</p>
-              <p className="text-[10px] text-slate-400">No Score</p>
-              <p className="font-bold text-navy">N/A</p>
+              <p className="text-[10px] text-slate-400">BureauScore</p>
+              <p className="font-bold text-navy">{typeof score === 'number' ? score : 'N/A'}</p>
             </div>
           </div>
         </section>

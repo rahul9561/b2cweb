@@ -23,6 +23,8 @@ export const AppEndpoints = {
   cibilAnalysisVerify: '/analysis/credit-analysis/verify/',
   // CIBIL score check by PAN (no OTP / report download — returns score directly).
   checkCibilScore: '/loans/score-check/',
+  experianLoanReport: '/loans/experian/',
+  loanBanks: '/loans/banks/',
 } as const
 
 export const AppConstants = {

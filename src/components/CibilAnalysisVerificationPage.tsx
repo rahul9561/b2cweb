@@ -15,9 +15,9 @@ import { saveCibilAnalysisSession } from '../lib/cibilAnalysisSession'
  * Loans are grouped by bank. Each loan is rendered in its own card with a
  * heading such as "Loan 1 from ICICI BANK".
  *
- * On "Submit Verification" each field is POSTed to /analysis/credit-analysis/verify/
- * with the body:
- *   { reportId, sectionType, loanId, fieldKey, fieldValue, verified }
+ * On "Submit Verification" the original verification data is POSTed once to
+ * /analysis/credit-analysis/verify/, with every selected field's `verified`
+ * value updated to a boolean.
  */
 
 interface FieldItem {
@@ -75,13 +75,27 @@ function extractValue(value: unknown): string {
     }
   }
   const text = String(value).trim()
-  if (text === 'null' || text === 'undefined') return ''
+  if (['null', 'none', 'undefined'].includes(text.toLowerCase())) return ''
   return text
 }
 
-function extractSections(data: Record<string, unknown>): VerificationSection[] {
+/** Reads a loan field regardless of whether the API uses snake_case or camelCase. */
+function getLoanField(loan: Record<string, unknown>, key: string): unknown {
+  const aliases: Record<string, string[]> = {
+    bank_name: ['bank_name', 'bankName'],
+    loan_type: ['loan_type', 'loanType'],
+    loan_amount: ['loan_amount', 'loanAmount'],
+    current_balance: ['current_balance', 'currentBalance'],
+  }
+
+  for (const alias of aliases[key] ?? [key]) {
+    if (loan[alias] !== undefined && loan[alias] !== null) return loan[alias]
+  }
+  return undefined
+}
+
+function extractSections(data: Record<string, unknown>, reportId = getReportId(data)): VerificationSection[] {
   const sections: VerificationSection[] = []
-  const reportId = getReportId(data)
 
   // ── Personal Details ──
   const personalFieldKeys: Array<[string, string]> = [
@@ -221,7 +235,8 @@ function extractSections(data: Record<string, unknown>): VerificationSection[] {
     const raw = findLoanRaw(def)
     if (raw === undefined || raw === null) continue
 
-    // Normalize into an array of loan objects
+    // Normalize into an array of loan objects. Some responses group loans under
+    // their bank name, so also unwrap those bank-keyed arrays.
     let loanArray: unknown[] = []
     if (Array.isArray(raw)) {
       loanArray = raw
@@ -230,7 +245,10 @@ function extractSections(data: Record<string, unknown>): VerificationSection[] {
       if (Array.isArray(obj.loans)) loanArray = obj.loans
       else if (Array.isArray(obj.data)) loanArray = obj.data
       else if (Array.isArray(obj.loan)) loanArray = obj.loan
-      else loanArray = [obj]
+      else {
+        const bankGroupedLoans = Object.values(obj).filter(Array.isArray).flat()
+        loanArray = bankGroupedLoans.length > 0 ? bankGroupedLoans : [obj]
+      }
     }
 
     // Group loans by bank name (case-insensitive)
@@ -238,20 +256,22 @@ function extractSections(data: Record<string, unknown>): VerificationSection[] {
     loanArray.forEach((loan) => {
       if (!loan || typeof loan !== 'object') return
       const loanObj = loan as Record<string, unknown>
-      const bank = String(loanObj.bank_name ?? loanObj.bankName ?? 'Bank').trim().toUpperCase()
+      const bank = (extractValue(getLoanField(loanObj, 'bank_name')) || 'Bank').toUpperCase()
       if (!grouped.has(bank)) grouped.set(bank, [])
       grouped.get(bank)!.push(loanObj)
     })
 
     const cards: LoanCard[] = []
+    let loanNumber = 0
     grouped.forEach((loans, bankName) => {
       loans.forEach((loanObj, index) => {
+        loanNumber += 1
         const loanId = String(
           loanObj.loan_id ?? loanObj.loanId ?? loanObj.id ?? `${def.type}_${bankName}_${index}`
         )
         const fields: FieldItem[] = []
         for (const [key, label] of def.fieldDefs) {
-          const text = extractValue(loanObj[key])
+          const text = extractValue(getLoanField(loanObj, key))
           if (text) {
             fields.push({
               uniqueKey: `${def.type}_${loanId}_${key}`,
@@ -264,10 +284,10 @@ function extractSections(data: Record<string, unknown>): VerificationSection[] {
           }
         }
         if (fields.length > 0) {
-          const displayBank = String(loanObj.bank_name ?? loanObj.bankName ?? bankName).trim()
+          const displayBank = extractValue(getLoanField(loanObj, 'bank_name')) || bankName
           cards.push({
             loanId,
-            heading: `Loan ${index + 1} from ${displayBank}`,
+            heading: `Loan ${loanNumber} from ${displayBank}`,
             fields,
           })
         }
@@ -287,12 +307,71 @@ function extractSections(data: Record<string, unknown>): VerificationSection[] {
   return sections
 }
 
+/** Builds the nested payload required by the verification endpoint. */
+function buildVerificationPayload(
+  reportId: string,
+  data: Record<string, unknown>,
+  fields: FieldItem[],
+  answers: Record<string, 'yes' | 'no'>
+): Record<string, unknown> {
+  const personalSource =
+    data.personal_details && typeof data.personal_details === 'object'
+      ? (data.personal_details as Record<string, unknown>)
+      : {}
+  const personalDetails: Record<string, unknown> = { ...personalSource }
+
+  for (const field of fields.filter((item) => item.sectionType === 'personal_details')) {
+    const source = personalSource[field.fieldKey]
+    personalDetails[field.fieldKey] = {
+      ...(source && typeof source === 'object' ? (source as Record<string, unknown>) : { value: field.value }),
+      verified: answers[field.uniqueKey] === 'yes',
+    }
+  }
+
+  const buildLoans = (sourceKey: 'active_loans' | 'closed_loans', sectionType: string) => {
+    const sourceLoans = Array.isArray(data[sourceKey]) ? data[sourceKey] : []
+    return sourceLoans.map((source) => {
+      if (!source || typeof source !== 'object') return source
+      const loan = source as Record<string, unknown>
+      const loanId = String(loan.id ?? loan.loan_id ?? loan.loanId ?? '')
+      const verified =
+        loan.verified && typeof loan.verified === 'object'
+          ? { ...(loan.verified as Record<string, unknown>) }
+          : {}
+
+      for (const field of fields) {
+        if (field.sectionType === sectionType && field.loanId === loanId) {
+          verified[field.fieldKey] = answers[field.uniqueKey] === 'yes'
+        }
+      }
+      return { ...loan, verified }
+    })
+  }
+
+  const numericReportId = Number(reportId)
+  return {
+    report_id: Number.isFinite(numericReportId) ? numericReportId : reportId,
+    verification_data: {
+      personal_details: personalDetails,
+      active_loans: buildLoans('active_loans', 'active_loan'),
+      closed_loans: buildLoans('closed_loans', 'close_loan'),
+    },
+  }
+}
+
 export default function CibilCrossVerifyPage() {
   const location = useLocation()
   const navigate = useNavigate()
 
   const rawData = (location.state?.apiData ?? location.state?.data ?? {}) as Record<string, unknown>
-  const sections = useMemo(() => extractSections(rawData), [rawData])
+  // The analysis endpoint returns the loan and personal values inside
+  // `verification_data`; retain the outer response separately for report_id.
+  const verificationData =
+    rawData.verification_data && typeof rawData.verification_data === 'object'
+      ? (rawData.verification_data as Record<string, unknown>)
+      : rawData
+  const reportId = String(location.state?.reportId ?? getReportId(rawData) ?? '')
+  const sections = useMemo(() => extractSections(verificationData, reportId), [verificationData, reportId])
   const allFields = useMemo(
     () => sections.flatMap((s) => s.cards.flatMap((c) => c.fields)),
     [sections]
@@ -314,20 +393,7 @@ export default function CibilCrossVerifyPage() {
     if (!allAnswered || submitting) return
     setSubmitting(true)
     try {
-      const reportId = getReportId(rawData)
-
-      // Send each field verification as a separate request to the verify endpoint
-      for (const field of allFields) {
-        const body = {
-          reportId,
-          sectionType: field.sectionType,
-          loanId: field.loanId,
-          fieldKey: field.fieldKey,
-          fieldValue: field.value,
-          verified: verification[field.uniqueKey] === 'yes',
-        }
-        await submitVerification(body)
-      }
+      await submitVerification(buildVerificationPayload(reportId, verificationData, allFields, verification))
 
       saveCibilAnalysisSession()
       navigate('/increase-cibil-score/success', { replace: true })
