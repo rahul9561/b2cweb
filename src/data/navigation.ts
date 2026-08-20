@@ -122,9 +122,14 @@ export const creditScoreMenu = [
   { label: 'CRIF Report', to: '/crif-report' },
   { label: 'CIBIL Score Check by PAN Number', to: '/cibil-score-by-pan' },
   { label: 'How to increase CIBIL Score', to: '/increase-cibil-score' },
-  { label: 'CIBIL Score for Personal Loan/Instant Loan', to: '/cibil-score-loan' },
+  // { label: 'CIBIL Score for Personal Loan/Instant Loan', to: '/cibil-score-loan' },
 ]
-
+export const loansMenu = [
+  {
+    label: 'CIBIL Score for Personal Loan/Instant Loan',
+    to: '/cibil-score-loan',
+  },
+]
 export const supportMenu = {
   accountService: [
     'Login with mobile number',

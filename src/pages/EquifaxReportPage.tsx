@@ -121,7 +121,7 @@ const EquifaxReportPage: React.FC = () => {
                 Follow these simple steps to view and download your Equifax credit report after OTP verification.
               </Copy>
               <ol className="mt-5 space-y-4">
-                {['Enter your full name, phone number, PAN number, gender and authorize the ₹299 deduction.', 'We generate your Equifax report and send an OTP to the mobile number provided.', 'Enter the 6-digit OTP in the verification modal to confirm your identity.', 'View your Equifax credit score and detailed report on the screen.', 'Download the PDF copy for your records or to share with lenders.'].map(
+                {['Enter your full name, phone number, PAN number, gender and authorize the live wallet-price deduction.', 'We generate your Equifax report and send an OTP to the mobile number provided.', 'Enter the 6-digit OTP in the verification modal to confirm your identity.', 'View your Equifax credit score and detailed report on the screen.', 'Download the PDF copy for your records or to share with lenders.'].map(
                   (text, i) => (
                     <li key={text} className="flex gap-4">
                       <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-600 text-sm font-bold text-white">
@@ -191,7 +191,7 @@ const EquifaxReportPage: React.FC = () => {
               <div className="mt-6 space-y-5">
                 {[
                   'Enter your full name, phone number, PAN number and gender.',
-                  'Authorize the ₹299 deduction and verify your number using the OTP.',
+                  'Authorize the live wallet-price deduction and verify your number using the OTP.',
                   'View and download your Equifax report after verification.',
                 ].map((text, i) => (
                   <div key={text} className="flex gap-3 text-sm">

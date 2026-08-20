@@ -11,6 +11,8 @@ export const AppEndpoints = {
   // by the `report_type` field in the request body:
   //   report_type: 'cibil'   | 'equifax' | 'crif'
   cibilGenerateReport: '/cibil/generate-report/',
+  cibilOnlyScoreReport: '/cibil/only-score/',
+  cibilAdvancedReport: '/cibil/generate-report/v2/',
   cibilSendOtp: '/cibil/send-otp/',
   // Aliases for clarity — same URLs, bureau is chosen by `report_type`.
   equifaxGenerateReport: '/cibil/generate-report/',
@@ -27,6 +29,10 @@ export const AppEndpoints = {
   loanBanks: '/loans/banks/',
   loanCategories: '/loans/categories/',
   loanApply: '/loans/sav/apply/',
+  walletBalance: '/dashboard/all/balace/summary/',
+  walletTransactions: '/wallet/transactions/',
+  razorpayCreateOrder: '/razorpay/create-order/',
+  customerRechargePlans: '/cibil/customer-recharge-plans/',
 } as const
 
 export const AppConstants = {

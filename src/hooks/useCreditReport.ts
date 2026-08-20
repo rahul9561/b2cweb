@@ -44,7 +44,7 @@ export function useCreditReport() {
     setError('')
 
     if (!consent) {
-      const msg = 'Please authorize the ₹299 deduction to generate this report.'
+      const msg = 'Please authorize the wallet deduction to generate this report.'
       setError(msg)
       throw new Error(msg)
     }
@@ -85,7 +85,7 @@ export function useCreditReport() {
       const message =
         err instanceof ApiError ? err.message : 'Could not generate report. Please try again.'
       setError(message)
-      throw new Error(message)
+      throw err instanceof Error ? err : new Error(message)
     } finally {
       setLoading(false)
     }

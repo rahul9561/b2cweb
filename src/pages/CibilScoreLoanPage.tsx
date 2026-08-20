@@ -29,17 +29,34 @@ type Details = {
   pincode: string
 }
 
-const MAX_ELIGIBLE_DPD = 29
+const MAX_INELIGIBLE_DPD = 30
 const INELIGIBLE_SCORE_MIN = 399
 const INELIGIBLE_SCORE_MAX = 699
 
 const isLoanEligible = (score: number | null, dpd: number | null) => {
-  const hasIneligibleDpd = dpd !== null && dpd > MAX_ELIGIBLE_DPD
+  // DPD <= 30 means NOT eligible
+  const hasIneligibleDpd = dpd !== null && dpd <= MAX_INELIGIBLE_DPD
+
+  // Score between 399 and 699 means NOT eligible
   const hasIneligibleScore =
-    score !== null && score >= INELIGIBLE_SCORE_MIN && score <= INELIGIBLE_SCORE_MAX
+    score !== null &&
+    score >= INELIGIBLE_SCORE_MIN &&
+    score <= INELIGIBLE_SCORE_MAX
 
   return !hasIneligibleDpd && !hasIneligibleScore
 }
+
+// const MAX_ELIGIBLE_DPD = 29
+// const INELIGIBLE_SCORE_MIN = 399
+// const INELIGIBLE_SCORE_MAX = 699
+
+// const isLoanEligible = (score: number | null, dpd: number | null) => {
+//   const hasIneligibleDpd = dpd !== null && dpd > MAX_ELIGIBLE_DPD
+//   const hasIneligibleScore =
+//     score !== null && score >= INELIGIBLE_SCORE_MIN && score <= INELIGIBLE_SCORE_MAX
+
+//   return !hasIneligibleDpd && !hasIneligibleScore
+// }
 
 const BulletList = ({ items }: { items: string[] }) => (
   <ul className="space-y-3">

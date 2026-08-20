@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import { useRef, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowRight, BarChart3, Check, ChevronDown, ChevronUp, CircleAlert, FileText, Gauge, Lightbulb, Loader2, RefreshCw, ShieldCheck, Sparkles, TrendingUp } from 'lucide-react'
 import OTPModal from '../components/OTPModal'
@@ -8,6 +8,8 @@ import { useCreditAnalysis } from '../hooks/useCreditAnalysis'
 import { formatBlockedDate, getCibilAnalysisBlockedUntil } from '../lib/cibilAnalysisSession'
 import { ApiClient, ApiError } from '../lib/apiClient'
 import { AppEndpoints } from '../config/appConfig'
+import InsufficientBalanceModal from '../components/wallet/InsufficientBalanceModal'
+import { formatReportPrice, useReportPurchaseGuard } from '../hooks/useReportPurchaseGuard'
 
 type PageKind = 'equifax' | 'crif' | 'pan' | 'improve'
 type FormData = { name: string; phone: string; pan: string; gender: string }
@@ -213,8 +215,17 @@ export default function CreditScoreInfoPage({ kind }: { kind: PageKind }) {
   const [otp, setOtp] = useState(false)
   const [report, setReport] = useState(false)
   const [openFaq, setOpenFaq] = useState<number | null>(null)
+  const analysisSubmissionLock = useRef(false)
 
-  const { generateReport, loading: analysisLoading, error: analysisError } = useCreditAnalysis()
+  const { generateReport, loading: analysisLoading, error: analysisError, setError: setAnalysisError } = useCreditAnalysis()
+  const {
+    price: analysisPrice,
+    checkingBalance,
+    ensureSufficientBalance,
+    handleInsufficientApiError,
+    reportPurchased,
+    insufficientModalProps,
+  } = useReportPurchaseGuard('advanced_cibil', isImprove)
   const blockedUntil = isImprove ? getCibilAnalysisBlockedUntil() : null
 
   const errors = {
@@ -263,8 +274,11 @@ export default function CreditScoreInfoPage({ kind }: { kind: PageKind }) {
     // improve kind — validate the required fields and fire the analysis API
     if (errors.name || errors.phone || errors.pan || errors.gender) return
     if (!consent) return
+    if (analysisSubmissionLock.current) return
 
+    analysisSubmissionLock.current = true
     try {
+      if (!await ensureSufficientBalance()) return
       const apiData = await generateReport({
         pan: data.pan,
         mobile: data.phone,
@@ -272,6 +286,7 @@ export default function CreditScoreInfoPage({ kind }: { kind: PageKind }) {
         name: data.name,
         gender: data.gender,
       })
+      await reportPurchased()
       navigate('/increase-cibil-score/verify', {
         state: {
           apiData,
@@ -279,8 +294,11 @@ export default function CreditScoreInfoPage({ kind }: { kind: PageKind }) {
           reportId: apiData?.report_id ?? apiData?.reportId,
         },
       })
-    } catch {
-      // analysisError already set by the hook
+    } catch (error) {
+      if (await handleInsufficientApiError(error)) setAnalysisError('')
+      else setAnalysisError(error instanceof Error ? error.message : 'Could not generate the analysis report. Please try again.')
+    } finally {
+      analysisSubmissionLock.current = false
     }
   }
 
@@ -363,7 +381,7 @@ export default function CreditScoreInfoPage({ kind }: { kind: PageKind }) {
               {isImprove && (
                 <label className="flex items-start gap-2.5 rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs leading-5 text-slate-600">
                   <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-300 accent-blue-600" />
-                  I Authorize the deduction of ₹299 from my wallet balance to generate this report.
+                  I authorize the deduction of {formatReportPrice(analysisPrice)} from my wallet balance to generate this report.
                 </label>
               )}
 
@@ -381,7 +399,7 @@ export default function CreditScoreInfoPage({ kind }: { kind: PageKind }) {
 
               <button
                 type="submit"
-                disabled={analysisLoading || scoreLoading}
+                disabled={analysisLoading || scoreLoading || (isImprove && (checkingBalance || analysisPrice === null))}
                 className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 py-3.5 font-semibold text-white transition hover:bg-blue-700 disabled:opacity-60"
               >
                 {analysisLoading ? (
@@ -499,6 +517,7 @@ export default function CreditScoreInfoPage({ kind }: { kind: PageKind }) {
           }}
         />
       )}
+      {isImprove && <InsufficientBalanceModal {...insufficientModalProps} />}
     </div>
   )
 }

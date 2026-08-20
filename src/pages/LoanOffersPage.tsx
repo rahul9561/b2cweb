@@ -4,6 +4,7 @@ import { ArrowUpDown, Gauge, Info, Landmark, Loader2, PencilLine, User } from 'l
 import { ApiClient, ApiError } from '../lib/apiClient'
 import { AppEndpoints } from '../config/appConfig'
 import { getSavedLoanCategoryList } from '../lib/loanCategories'
+import { LoanOffer, loanOffers } from '../data/loanOffers'
 
 type LoanFormData = {
   firstName: string
@@ -19,11 +20,12 @@ type ApiOffer = {
   city: string
   roiStartingAt: string
   monthlyEmi: string
-  approvalChance: string
+  approvalChance: 'High' | 'Medium' | 'Excellent'
   applyUrl: string
   bankId: string
   bankName: string
   logoColour: string
+  logoUrl: string
 }
 
 type SortMode = 'chance' | 'roi'
@@ -55,12 +57,7 @@ const FORM_ROUTE = '/cibil-score-loan'
 
 const field = (item: Record<string, unknown>, keys: string[]) => {
   const value = Object.entries(item).find(([key]) => keys.includes(key.toLowerCase()))?.[1]
-  if (value !== undefined && value !== null) return String(value)
-  const bankName = String((item.bankId as Record<string, unknown> | undefined)?.name ?? '')
-  const variant = bankName.length % 4
-  if (keys.includes('roi_starting_at')) return ['18% p.a.', '20% p.a.', '16% p.a.', '22% p.a.'][variant]
-  if (keys.includes('monthly_emi')) return ['₹12,000', '₹13,499', '₹14,243', '₹15,750'][variant]
-  return ''
+  return value === undefined || value === null ? '' : String(value)
 }
 
 const apiOffersFrom = (payload: unknown): ApiOffer[] => {
@@ -72,18 +69,21 @@ const apiOffersFrom = (payload: unknown): ApiOffer[] => {
     const bank = (item.bankId ?? {}) as Record<string, unknown>
     const roiValues = ['18% p.a.', '20% p.a.', '16% p.a.', '22% p.a.']
     const emiValues = ['₹12,000', '₹13,499', '₹14,243', '₹15,750']
-    const chances = ['Excellent', 'High', 'Medium']
-    const approvalChance = chances[(index + roiValues.length + emiValues.length) % chances.length]
+    const chances: ApiOffer['approvalChance'][] = ['Excellent', 'High', 'Medium']
+    const approvalChance = chances[index % chances.length]
     return {
       name: String(bank.name ?? `Bank ${index + 1}`),
       city: [item.city, item.state].filter(Boolean).join(', ') || 'Location not available',
-      roiStartingAt: field(item, ['roi_starting_at', 'roi', 'interest_rate', 'rate_of_interest']) || '—',
-      monthlyEmi: field(item, ['monthly_emi', 'emi', 'monthlyemi']) || '—',
+      roiStartingAt: roiValues[index % roiValues.length],
+      monthlyEmi: emiValues[index % emiValues.length],
       approvalChance,
       applyUrl: String(bank.bankURL ?? '#'),
       bankId: String(bank._id ?? ''),
       bankName: String(bank.name ?? `Bank ${index + 1}`),
       logoColour: ['bg-blue-700', 'bg-indigo-700', 'bg-cyan-700', 'bg-violet-700'][index % 4],
+      logoUrl:
+        field(bank, ['logo', 'logo_url', 'logourl', 'bank_logo', 'banklogo', 'bank_logo_url', 'banklogourl', 'image', 'image_url']) ||
+        field(item, ['logo', 'logo_url', 'logourl', 'bank_logo', 'banklogo', 'bank_logo_url', 'banklogourl', 'image', 'image_url']),
     }
   })
 }
@@ -120,15 +120,16 @@ export default function LoanOffersPage() {
   }, [hasData, navigate])
 
   const sortedOffers = useMemo(() => {
-    if (sortMode === 'roi') return [...apiOffers].sort((a, b) => parseRoi(a.roiStartingAt) - parseRoi(b.roiStartingAt))
-    return [...apiOffers].sort((a, b) => (chanceScore[b.approvalChance] ?? 0) - (chanceScore[a.approvalChance] ?? 0))
+    const offers = apiOffers.length ? apiOffers : loanOffers
+    if (sortMode === 'roi') return [...offers].sort((a, b) => parseRoi(a.roiStartingAt) - parseRoi(b.roiStartingAt))
+    return [...offers].sort((a, b) => chanceScore[b.approvalChance] - chanceScore[a.approvalChance])
   }, [apiOffers, sortMode])
 
   if (!hasData) return null
 
   const fullName = `${state.firstName} ${state.lastName}`.trim()
 
-  const handleOpen = async (offer: ApiOffer) => {
+  const handleOpen = async (offer: LoanOffer) => {
     setApplyError('')
     setApplyingBank(offer.name)
 
@@ -143,10 +144,6 @@ export default function LoanOffersPage() {
       const payload = {
         name: fullName,
         mobile: state.phone ?? '',
-        loan_amount: '100000',
-        salary: '50000',
-        city: offer.city.split(',')[0]?.trim() ?? '',
-        state: offer.city.split(',')[1]?.trim() ?? '',
         pincode: state.pincode ?? '',
         categoryId: category?._id ?? '',
         categoryCode: category?.shortCode ?? '',
@@ -263,9 +260,22 @@ export default function LoanOffersPage() {
               <div className="flex items-center justify-between gap-4">
                 <div className="flex min-w-0 items-center gap-3">
                   <span
-                    className={`grid h-11 w-11 shrink-0 place-items-center rounded-lg ${offer.logoColour} text-white`}
+                    className={`relative grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-lg ${offer.logoColour} text-white`}
                   >
                     <Landmark size={20} />
+                    {(offer as ApiOffer).logoUrl && (
+                      <img
+                        src={(offer as ApiOffer).logoUrl}
+                        alt={`${offer.name} logo`}
+                        className="absolute inset-0 h-full w-full object-contain"
+                        onLoad={(event) => {
+                          if (event.currentTarget.naturalWidth <= 1 || event.currentTarget.naturalHeight <= 1) {
+                            event.currentTarget.classList.add('hidden')
+                          }
+                        }}
+                        onError={(event) => event.currentTarget.classList.add('hidden')}
+                      />
+                    )}
                   </span>
                   <div className="min-w-0">
                     <h2 className="truncate font-bold text-navy">{offer.name}</h2>

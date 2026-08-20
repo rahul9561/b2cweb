@@ -136,7 +136,7 @@ const CrifReportPage: React.FC = () => {
               </Copy>
               <ol className="mt-5 space-y-4">
                 {[
-                  'Enter your full name, phone number, PAN number, gender and authorize the ₹299 deduction.',
+                  'Enter your full name, phone number, PAN number, gender and authorize the live wallet-price deduction.',
                   'We generate your CRIF report and send an OTP to the mobile number provided.',
                   'Enter the 6-digit OTP in the verification modal to confirm your identity.',
                   'View your CRIF High Mark credit score and detailed report on the screen.',
@@ -210,7 +210,7 @@ const CrifReportPage: React.FC = () => {
               <div className="mt-6 space-y-5">
                 {[
                   'Enter your full name, phone number, PAN number and gender.',
-                  'Authorize the ₹299 deduction and verify your number using the OTP.',
+                  'Authorize the live wallet-price deduction and verify your number using the OTP.',
                   'View and download your CRIF High Mark report after verification.',
                 ].map((text, i) => (
                   <div key={text} className="flex gap-3 text-sm">

@@ -135,7 +135,7 @@ const CibilReportPage: React.FC = () => {
               <Copy>Follow these simple steps to view and download your TransUnion CIBIL report.</Copy>
               <ol className="mt-5 space-y-4">
                 {[
-                  'Enter your full name, phone number, PAN number and gender, and authorize the ₹299 deduction.',
+                  'Enter your full name, phone number, PAN number and gender, and authorize the live wallet-price deduction.',
                   'Verify your mobile number using the OTP sent via SMS.',
                   'Continue to your CIBIL report once verification is complete.',
                   'Download the report PDF for your records.',

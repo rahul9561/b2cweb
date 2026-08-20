@@ -81,7 +81,12 @@ import CibilLoanEligibilityPage from './pages/CibilLoanEligibilityPage'
 import CibilScoreForPersonalLoanPage from './pages/CibilScoreForPersonalLoanPage'
 import CibilScoreResultPage from './pages/CibilScoreResultPage'
 import LoanOffersPage from './pages/LoanOffersPage'
+import WalletPage from './pages/WalletPage'
+import AddMoneyPage from './pages/AddMoneyPage'
+import PaymentStatusPage from './pages/PaymentStatusPage'
 import { AuthProvider } from './context/AuthContext'   // add near the other context imports
+import { WalletProvider } from './context/WalletContext'
+import { ToastProvider } from './context/ToastContext'
 const leadRoute = (slug: LandingSlug) => <LeadLanding slug={slug} />
 
 export default function App() {
@@ -105,6 +110,8 @@ export default function App() {
 
   return (
     <AuthProvider>
+    <WalletProvider>
+    <ToastProvider>
     <UserProfileProvider>
       <FiltersProvider>
         <HealthProfileProvider>
@@ -155,6 +162,9 @@ export default function App() {
                   <Route path="/cibil-score-loan" element={<CibilScoreLoanPage />} />
                   <Route path="/cibil-score-loan/eligible" element={<CibilLoanEligibilityPage />} />
                   <Route path="/loan-offers" element={<LoanOffersPage />} />
+                  <Route path="/wallet" element={<WalletPage />} />
+                  <Route path="/wallet/add-money" element={<AddMoneyPage />} />
+                  <Route path="/wallet/payment-status" element={<PaymentStatusPage />} />
                   <Route path="/cibil-score-for-personal-loan" element={<CibilScoreForPersonalLoanPage />} />
                   <Route path="/category/credit-score" element={<CreditScoreArticlesPage />} />
                   <Route path="/category/credit-score/:slug" element={<CreditScoreArticleDetailPage />} />
@@ -216,6 +226,8 @@ export default function App() {
         </HealthProfileProvider>
       </FiltersProvider>
     </UserProfileProvider>
+    </ToastProvider>
+    </WalletProvider>
     </AuthProvider>
   )
 }

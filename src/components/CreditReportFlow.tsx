@@ -3,6 +3,8 @@ import { ArrowRight, FileText, Loader2, Phone } from 'lucide-react'
 import OTPModal from './OTPModal'
 import PDFViewer from './PDFViewer'
 import { useCreditReport } from '../hooks/useCreditReport'
+import InsufficientBalanceModal from './wallet/InsufficientBalanceModal'
+import { formatReportPrice, useReportPurchaseGuard } from '../hooks/useReportPurchaseGuard'
 
 export type ReportType = 'cibil' | 'equifax' | 'crif'
 
@@ -16,7 +18,7 @@ interface CreditReportFlowProps {
  * Reusable credit-report request flow used by CIBIL, Equifax and CRIF pages.
  *
  * Flow:
- *   1. User fills the form and checks the ₹299 consent checkbox.
+ *   1. User fills the form and authorizes the live report-price deduction.
  *   2. On submit we hit  POST /cibil/generate-report/  (same endpoint for every bureau;
  *      the bureau is selected by the `report_type` field in the body).
  *   3. We extract  `report_id`  from the response and hit  POST /cibil/send-otp/  with
@@ -39,6 +41,7 @@ const CreditReportFlow: React.FC<CreditReportFlowProps> = ({ reportType, reportN
   const [showPDFViewer, setShowPDFViewer] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [reportId, setReportId] = useState<string | null>(null)
+  const submissionLock = React.useRef(false)
 
   const isEquifax = reportType === 'equifax'
   // Equifax-specific fields
@@ -47,7 +50,15 @@ const CreditReportFlow: React.FC<CreditReportFlowProps> = ({ reportType, reportN
   const [stateCode, setStateCode] = useState('')
   const [pincode, setPincode] = useState('')
 
-  const { generateReport, sendOtp, verifyOtp, loading: generating, error: reportError } = useCreditReport()
+  const { generateReport, sendOtp, verifyOtp, loading: generating, error: reportError, setError } = useCreditReport()
+  const {
+    price,
+    checkingBalance,
+    ensureSufficientBalance,
+    handleInsufficientApiError,
+    reportPurchased,
+    insufficientModalProps,
+  } = useReportPurchaseGuard(reportType)
 
   const canSubmit =
     fullName &&
@@ -61,10 +72,13 @@ const CreditReportFlow: React.FC<CreditReportFlowProps> = ({ reportType, reportN
     event.preventDefault()
     setAttempted(true)
     if (!canSubmit) return
-    if (isSubmitting) return
+    if (submissionLock.current) return
 
+    submissionLock.current = true
     setIsSubmitting(true)
     try {
+      if (!await ensureSufficientBalance()) return
+
       // Step 1: Hit /cibil/generate-report/ → get report_id
       const reportData = await generateReport({
         name: fullName,
@@ -78,8 +92,10 @@ const CreditReportFlow: React.FC<CreditReportFlowProps> = ({ reportType, reportN
         stateCode,
         pincode,
       })
+      await reportPurchased()
 
       const id = reportData?.report_id ?? reportData?.reportId ?? reportData?.id ?? null
+      if (!id) throw new Error('The report was created but no report ID was returned.')
       setReportId(id)
 
       // Step 2: Hit /cibil/send-otp/ → sends OTP to mobile
@@ -89,9 +105,11 @@ const CreditReportFlow: React.FC<CreditReportFlowProps> = ({ reportType, reportN
 
       // Step 3: Show OTP modal for user to enter & verify OTP
       setShowOTPModal(true)
-    } catch {
-      // reportError already holds the message; shown in the form below.
+    } catch (error) {
+      if (await handleInsufficientApiError(error)) setError('')
+      else setError(error instanceof Error ? error.message : 'Could not generate report. Please try again.')
     } finally {
+      submissionLock.current = false
       setIsSubmitting(false)
     }
   }
@@ -213,7 +231,7 @@ const CreditReportFlow: React.FC<CreditReportFlowProps> = ({ reportType, reportN
               onChange={(e) => setConsent(e.target.checked)}
               className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-300 accent-blue-600"
             />
-            I authorize the deduction of ₹299 from my wallet balance to generate this report.
+            I authorize the deduction of {formatReportPrice(price)} from my wallet balance to generate this report.
           </label>
           {attempted && !consent && (
             <p className="text-xs font-medium text-red-600">Please provide your consent to continue.</p>
@@ -225,7 +243,7 @@ const CreditReportFlow: React.FC<CreditReportFlowProps> = ({ reportType, reportN
           )}
 
           <button
-            disabled={isSubmitting || generating || !consent || !fullName || !phone || !pan || !gender || (isEquifax && (!dob || !address || !stateCode || !pincode))}
+            disabled={isSubmitting || generating || checkingBalance || price === null || !consent || !fullName || !phone || !pan || !gender || (isEquifax && (!dob || !address || !stateCode || !pincode))}
             className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 py-3.5 font-semibold text-white transition hover:bg-blue-700 disabled:opacity-60"
           >
             {isSubmitting || generating ? (
@@ -239,6 +257,7 @@ const CreditReportFlow: React.FC<CreditReportFlowProps> = ({ reportType, reportN
       </form>
 
       {showOTPModal && <OTPModal phoneNumber={phone} onVerify={handleVerifyOtp} onResendOtp={handleResendOtp} onClose={() => setShowOTPModal(false)} />}
+      <InsufficientBalanceModal {...insufficientModalProps} />
     </>
   )
 }

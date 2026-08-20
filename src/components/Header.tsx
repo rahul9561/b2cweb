@@ -17,11 +17,14 @@ import {
   RefreshCcw,
   Briefcase,
   Home,
-  LogOut
+  LogOut,
+  Wallet,
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'          // ← add
+import { useWallet } from '../context/WalletContext'
+import { getTotalBalance } from '../lib/walletApi'
 import LogoutConfirmModal from './LogoutConfirmModal'    
-import { insuranceMenu, renewMenu, claimMenu, creditScoreMenu, supportMenu } from '../data/navigation'
+import { insuranceMenu, renewMenu, claimMenu, creditScoreMenu, supportMenu, loansMenu } from '../data/navigation'
 import type { MenuCategory } from '../data/navigation'
 import logo from "../assets/images/av-logon.png";
 const categoryMeta: { key: MenuCategory; label: string; icon: typeof Shield }[] = [
@@ -44,7 +47,14 @@ export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)   // ← add
   const { isAuthenticated, logout } = useAuth()                       // ← add
+  const { wallet } = useWallet()
   const navigate = useNavigate()    
+  const walletTotal = wallet ? getTotalBalance(wallet) : 0
+  const formattedWalletTotal = new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+    maximumFractionDigits: 0,
+  }).format(walletTotal)
    const handleConfirmLogout = () => {
     logout()
     setShowLogoutConfirm(false)
@@ -53,7 +63,7 @@ export default function Header() {
   }
   return (
     <header className="sticky top-0 z-50 border-b border-gray-800 bg-black shadow-lg">
-      <div className="container-pb flex h-[60px] items-center justify-between">
+     <div className="container-pb flex h-[72px] items-center justify-between">
         <div className="flex items-center gap-8">
           <button
             className="lg:hidden"
@@ -64,17 +74,17 @@ export default function Header() {
           </button>
 <Link
     to="/"
-    className="flex items-center bg-black rounded-lg px-3 py-2"
+   className="flex items-center bg-black rounded-lg pr-3 py-2 -ml-2"
 >
     <img
         src={logo}
         alt="AV Management"
-        className="h-10 w-auto object-contain"
+        className="h-14 w-auto object-contain"
     />
 </Link>
           <nav className="hidden items-center gap-0 lg:flex">
             <div className="group relative">
-              <button className="flex items-center gap-1 px-3 py-8 text-[14px] font-medium text-white hover:text-orange-400">
+              <button className="flex items-center gap-1 whitespace-nowrap px-3 py-5 text-[14px] font-medium text-white hover:text-orange-400">
                 Credit Score
                 <ChevronDown size={14} />
               </button>
@@ -94,9 +104,30 @@ export default function Header() {
                 </ul>
               </div>
             </div>
+<div className="group relative">
+  <button className="flex items-center gap-1 whitespace-nowrap px-3 py-5 text-[14px] font-medium text-white hover:text-orange-400">
+    Loans
+    <ChevronDown size={14} />
+  </button>
 
+  <div className="invisible absolute left-0 top-full z-50 w-80 bg-white opacity-0 shadow-card transition-all duration-150 group-hover:visible group-hover:opacity-100">
+    <ul className="p-2">
+      {loansMenu.map((item) => (
+        <li key={item.label}>
+          <Link
+            to={item.to}
+            className="flex items-center gap-3 px-3 py-2.5 text-[12px] text-slate2-secondary hover:bg-blueBG hover:text-brand"
+          >
+            <Briefcase size={16} className="text-brand" />
+            {item.label}
+          </Link>
+        </li>
+      ))}
+    </ul>
+  </div>
+</div>
             <div className="group relative">
-              <button className="flex items-center gap-1 px-3 py-8 text-[14px] font-medium text-white hover:text-orange-400">
+              <button className="flex items-center gap-1 whitespace-nowrap px-3 py-5 text-[14px] font-medium text-white hover:text-orange-400">
                 Insurance Products
                 <ChevronDown size={14} />
               </button>
@@ -133,7 +164,7 @@ export default function Header() {
             </div>
 
             <div className="group relative">
-              <button className="flex items-center gap-1 px-3 py-8 text-[14px] font-medium text-white hover:text-orange-400">
+              <button className="flex items-center gap-1 whitespace-nowrap px-3 py-5 text-[14px] font-medium text-white hover:text-orange-400">
                 Renew Your Policy
                 <ChevronDown size={14} />
               </button>
@@ -158,7 +189,7 @@ export default function Header() {
             </div>
 
             <div className="group relative">
-              <button className="flex items-center gap-1 px-3 py-8 text-[14px] font-medium text-white hover:text-orange-400">
+              <button className="flex items-center gap-1 whitespace-nowrap px-3 py-5 text-[14px] font-medium text-white hover:text-orange-400">
                 Claim
                 <ChevronDown size={14} />
               </button>
@@ -180,7 +211,7 @@ export default function Header() {
             </div>
 
             <div className="group relative">
-              <button className="flex items-center gap-1 px-3 py-8 text-[14px] font-medium text-white hover:text-orange-400">
+              <button className="flex items-center gap-1 whitespace-nowrap px-3 py-5 text-[14px] font-medium text-white hover:text-orange-400">
                 Support
                 <ChevronDown size={14} />
               </button>
@@ -226,7 +257,7 @@ export default function Header() {
 
         <div className="flex items-center gap-3">
           <div className="group relative hidden xl:block">
-            <button className="flex items-center gap-2 rounded-full border border-brand px-4 py-2 text-[13px] font-medium text-brand transition-colors hover:bg-brand hover:text-white">
+            <button className="flex items-center gap-2 whitespace-nowrap rounded-full border border-brand px-4 py-2 text-[13px] font-medium text-brand transition-colors hover:bg-brand hover:text-white">
               <Phone size={14} />
               Talk to Expert
             </button>
@@ -256,7 +287,7 @@ export default function Header() {
 {isAuthenticated ? (
   <button
     onClick={() => setShowLogoutConfirm(true)}
-    className="hidden items-center gap-2 rounded-full border border-brand px-4 py-2 text-[13px] font-medium text-brand transition-colors hover:bg-brand hover:text-white sm:flex"
+    className="hidden items-center gap-2 whitespace-nowrap rounded-full border border-brand px-4 py-2 text-[13px] font-medium text-brand transition-colors hover:bg-brand hover:text-white sm:flex"
   >
     <LogOut size={14} />
     Sign out
@@ -264,12 +295,22 @@ export default function Header() {
 ) : (
   <Link
     to="/login"
-    className="hidden items-center gap-2 rounded-full border border-brand px-4 py-2 text-[13px] font-medium text-brand transition-colors hover:bg-brand hover:text-white sm:flex"
+    className="hidden items-center gap-2 whitespace-nowrap rounded-full border border-brand px-4 py-2 text-[13px] font-medium text-brand transition-colors hover:bg-brand hover:text-white sm:flex"
   >
     <User size={14} />
     Sign in
   </Link>
 )}
+          {isAuthenticated && (
+            <button
+              onClick={() => navigate('/wallet')}
+              className="hidden items-center gap-2 whitespace-nowrap rounded-full border border-brand px-4 py-2 text-[13px] font-medium text-brand transition-colors hover:bg-brand hover:text-white sm:flex"
+              aria-label={`Wallet balance ${formattedWalletTotal}`}
+            >
+              <Wallet size={14} />
+              {formattedWalletTotal}
+            </button>
+          )}
           {/* <Link
             to="/login"
             className="hidden items-center gap-2 rounded-full border border-brand px-4 py-2 text-[13px] font-medium text-brand transition-colors hover:bg-brand hover:text-white sm:flex"
@@ -298,6 +339,7 @@ export default function Header() {
               </Link>
               {[
                 { label: 'Credit Score', to: '/credit-score', icon: TrendingUp },
+                { label: 'Loans', to: '/cibil-score-loan', icon: Briefcase },
                 { label: 'Health Insurance', to: '/health-insurance', icon: HeartPulse },
                 { label: 'Term Insurance', to: '/term-insurance', icon: Shield },
                 { label: 'Car Insurance', to: '/car-insurance', icon: Car },
@@ -355,6 +397,16 @@ export default function Header() {
                   ))}
                 </div>
               </div>
+              {isAuthenticated && (
+                <Link
+                  to="/wallet"
+                  onClick={() => setMobileOpen(false)}
+                  className="flex items-center justify-between rounded-lg border border-brand px-3 py-2.5 text-[13px] font-medium text-brand"
+                >
+                  <span className="flex items-center gap-2"><Wallet size={16} /> Wallet</span>
+                  <span>{formattedWalletTotal}</span>
+                </Link>
+              )}
               <div className="flex gap-3 pt-2">
                 {isAuthenticated ? (
   <button
