@@ -8,6 +8,23 @@ import { formatReportPrice, useReportPurchaseGuard } from '../hooks/useReportPur
 
 export type ReportType = 'cibil' | 'equifax' | 'crif'
 
+const friendlyReportError = (error: unknown): string => {
+  const message = error instanceof Error ? error.message.trim() : ''
+  if (!message) return 'Could not generate your report. Please try again.'
+  if (/<(?:!doctype|html|head|body)\b|page not found|\b404\b/i.test(message)) {
+    return 'The report service is currently unavailable. Please try again later.'
+  }
+  return message
+}
+
+const friendlyCibilError = (error: unknown): string => {
+  const message = error instanceof Error ? error.message : ''
+  if (/token.*(?:not valid|invalid|expired)|(?:invalid|expired).*token/i.test(message)) {
+    return 'Your login session has expired. Please sign in again and retry.'
+  }
+  return friendlyReportError(error)
+}
+
 interface CreditReportFlowProps {
   reportType: ReportType
   reportName: string
@@ -40,10 +57,11 @@ const CreditReportFlow: React.FC<CreditReportFlowProps> = ({ reportType, reportN
   const [showOTPModal, setShowOTPModal] = useState(false)
   const [showPDFViewer, setShowPDFViewer] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [reportId, setReportId] = useState<string | null>(null)
+  const [reportId, setReportId] = useState<string | undefined>()
   const submissionLock = React.useRef(false)
 
   const isEquifax = reportType === 'equifax'
+  const generatesBeforeOtp = reportType === 'cibil' || reportType === 'equifax' || reportType === 'crif'
   // Equifax-specific fields
   const [dob, setDob] = useState('')
   const [address, setAddress] = useState('')
@@ -53,8 +71,6 @@ const CreditReportFlow: React.FC<CreditReportFlowProps> = ({ reportType, reportN
   const { generateReport, sendOtp, verifyOtp, loading: generating, error: reportError, setError } = useCreditReport()
   const {
     price,
-    checkingBalance,
-    ensureSufficientBalance,
     handleInsufficientApiError,
     reportPurchased,
     insufficientModalProps,
@@ -77,37 +93,35 @@ const CreditReportFlow: React.FC<CreditReportFlowProps> = ({ reportType, reportN
     submissionLock.current = true
     setIsSubmitting(true)
     try {
-      if (!await ensureSufficientBalance()) return
-
       // Step 1: Hit /cibil/generate-report/ → get report_id
-      const reportData = await generateReport({
-        name: fullName,
-        mobile: phone,
-        pan,
-        gender,
-        reportType,
-        consent,
-        dob,
-        address,
-        stateCode,
-        pincode,
-      })
-      await reportPurchased()
-
-      const id = reportData?.report_id ?? reportData?.reportId ?? reportData?.id ?? null
-      if (!id) throw new Error('The report was created but no report ID was returned.')
-      setReportId(id)
-
       // Step 2: Hit /cibil/send-otp/ → sends OTP to mobile
-      if (id) {
-        await sendOtp(phone, id)
+      if (generatesBeforeOtp) {
+        const reportData = await generateReport({
+          name: fullName,
+          mobile: phone,
+          pan,
+          gender,
+          reportType,
+          consent,
+          dob,
+          address,
+          stateCode,
+          pincode,
+        })
+        const id = reportData?.report_id ?? reportData?.reportId ?? reportData?.id
+        const generatedReportId = id === undefined || id === null ? undefined : String(id)
+        setReportId(generatedReportId)
+        await reportPurchased()
+        await sendOtp(phone, generatedReportId)
+      } else {
+        await sendOtp(phone)
       }
 
       // Step 3: Show OTP modal for user to enter & verify OTP
       setShowOTPModal(true)
     } catch (error) {
       if (await handleInsufficientApiError(error)) setError('')
-      else setError(error instanceof Error ? error.message : 'Could not generate report. Please try again.')
+      else setError(generatesBeforeOtp ? friendlyCibilError(error) : friendlyReportError(error))
     } finally {
       submissionLock.current = false
       setIsSubmitting(false)
@@ -115,20 +129,34 @@ const CreditReportFlow: React.FC<CreditReportFlowProps> = ({ reportType, reportN
   }
 
   const handleVerifyOtp = async (otp: string) => {
-    if (!reportId) return
     try {
-      // Hit /accounts/verify-otp/ to verify the OTP
-      await verifyOtp(phone, reportId, otp)
+      await verifyOtp(phone, generatesBeforeOtp ? reportId : undefined, otp)
+      if (!generatesBeforeOtp) {
+        await generateReport({
+          name: fullName,
+          mobile: phone,
+          pan,
+          gender,
+          reportType,
+          consent,
+          dob,
+          address,
+          stateCode,
+          pincode,
+        })
+        await reportPurchased()
+      }
       setShowOTPModal(false)
       setShowPDFViewer(true)
-    } catch {
-      // reportError already holds the message.
+    } catch (error) {
+      if (await handleInsufficientApiError(error)) setError('')
+      else setError(generatesBeforeOtp ? friendlyCibilError(error) : friendlyReportError(error))
+      setShowOTPModal(false)
     }
   }
 
   const handleResendOtp = async () => {
-    if (!reportId) return
-    await sendOtp(phone, reportId)
+    await sendOtp(phone, generatesBeforeOtp ? reportId : undefined)
   }
 
   if (showPDFViewer) return <PDFViewer onClose={() => setShowPDFViewer(false)} reportName={reportName} bureauName={bureauName} />
@@ -243,7 +271,7 @@ const CreditReportFlow: React.FC<CreditReportFlowProps> = ({ reportType, reportN
           )}
 
           <button
-            disabled={isSubmitting || generating || checkingBalance || price === null || !consent || !fullName || !phone || !pan || !gender || (isEquifax && (!dob || !address || !stateCode || !pincode))}
+            disabled={isSubmitting || generating || price === null || !consent || !fullName || !phone || !pan || !gender || (isEquifax && (!dob || !address || !stateCode || !pincode))}
             className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 py-3.5 font-semibold text-white transition hover:bg-blue-700 disabled:opacity-60"
           >
             {isSubmitting || generating ? (

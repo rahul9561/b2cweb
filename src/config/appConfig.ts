@@ -14,6 +14,7 @@ export const AppEndpoints = {
   cibilOnlyScoreReport: '/cibil/only-score/',
   cibilAdvancedReport: '/cibil/generate-report/v2/',
   cibilSendOtp: '/cibil/send-otp/',
+  cibilVerifyOtp: '/cibil/verify-otp/',
   // Aliases for clarity — same URLs, bureau is chosen by `report_type`.
   equifaxGenerateReport: '/cibil/generate-report/',
   crifGenerateReport: '/cibil/generate-report/',

@@ -63,7 +63,7 @@ export default function Header() {
   }
   return (
     <header className="sticky top-0 z-50 border-b border-gray-800 bg-black shadow-lg">
-     <div className="container-pb flex h-[72px] items-center justify-between">
+     <div className="flex h-[70px] w-full items-center justify-between px-1 lg:px-4">
         <div className="flex items-center gap-8">
           <button
             className="lg:hidden"
@@ -74,7 +74,7 @@ export default function Header() {
           </button>
 <Link
     to="/"
-   className="flex items-center bg-black rounded-lg pr-3 py-2 -ml-2"
+   className="ml-1 flex shrink-0 items-center rounded-lg bg-black py-2 pr-3"
 >
     <img
         src={logo}
@@ -255,7 +255,7 @@ export default function Header() {
           </nav>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="ml-auto flex shrink-0 items-center gap-3">
           <div className="group relative hidden xl:block">
             <button className="flex items-center gap-2 whitespace-nowrap rounded-full border border-brand px-4 py-2 text-[13px] font-medium text-brand transition-colors hover:bg-brand hover:text-white">
               <Phone size={14} />
@@ -311,6 +311,27 @@ export default function Header() {
               {formattedWalletTotal}
             </button>
           )}
+          <a
+            href="https://play.google.com/store/search?q=av%20management&c=apps&hl=en_IN"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Download AV Management App from Google Play"
+            className="ml-3 mr-1 flex max-w-[104px] shrink-0 flex-col items-center gap-0.5 text-center text-white transition-colors hover:text-orange-400"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              className="h-5 w-5"
+              aria-hidden="true"
+            >
+              <path d="M3 2.25v19.5L13.2 12 3 2.25Z" fill="#00D7FE" />
+              <path d="m3 2.25 12.7 7.35-2.5 2.4L3 2.25Z" fill="#00F076" />
+              <path d="m3 21.75 12.7-7.35-2.5-2.4L3 21.75Z" fill="#FFCE00" />
+              <path d="m15.7 9.6 4.15 2.4-4.15 2.4-2.5-2.4 2.5-2.4Z" fill="#FF3A44" />
+            </svg>
+            <span className="text-[10px] font-medium leading-[11px]">
+              Download AV Management App
+            </span>
+          </a>
           {/* <Link
             to="/login"
             className="hidden items-center gap-2 rounded-full border border-brand px-4 py-2 text-[13px] font-medium text-brand transition-colors hover:bg-brand hover:text-white sm:flex"

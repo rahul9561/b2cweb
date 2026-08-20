@@ -12,7 +12,16 @@ import InsufficientBalanceModal from '../components/wallet/InsufficientBalanceMo
 import { formatReportPrice, useReportPurchaseGuard } from '../hooks/useReportPurchaseGuard'
 
 type PageKind = 'equifax' | 'crif' | 'pan' | 'improve'
-type FormData = { name: string; phone: string; pan: string; gender: string }
+type FormData = {
+  name: string
+  firstName: string
+  lastName: string
+  dob: string
+  pincode: string
+  phone: string
+  pan: string
+  gender: string
+}
 
 const configs: Record<PageKind, {
   title: string
@@ -209,7 +218,16 @@ export default function CreditScoreInfoPage({ kind }: { kind: PageKind }) {
   const config = configs[kind]
   const isImprove = kind === 'improve'
 
-  const [data, setData] = useState<FormData>({ name: '', phone: '', pan: '', gender: '' })
+  const [data, setData] = useState<FormData>({
+    name: '',
+    firstName: '',
+    lastName: '',
+    dob: '',
+    pincode: '',
+    phone: '',
+    pan: '',
+    gender: '',
+  })
   const [submitted, setSubmitted] = useState(false)
   const [consent, setConsent] = useState(false)
   const [otp, setOtp] = useState(false)
@@ -230,6 +248,10 @@ export default function CreditScoreInfoPage({ kind }: { kind: PageKind }) {
 
   const errors = {
     name: !data.name.trim() ? 'Please enter your full name.' : '',
+    firstName: kind === 'pan' && !data.firstName.trim() ? 'Please enter your first name.' : '',
+    lastName: kind === 'pan' && !data.lastName.trim() ? 'Please enter your last name.' : '',
+    dob: kind === 'pan' && !data.dob ? 'Please enter your date of birth.' : '',
+    pincode: kind === 'pan' && !/^\d{6}$/.test(data.pincode) ? 'Please enter a valid 6-digit pin code.' : '',
     phone: data.phone.length !== 10 ? 'Please enter a valid 10-digit phone number.' : '',
     pan: data.pan.length !== 10 ? 'Please enter a valid PAN number.' : '',
     gender: kind !== 'pan' && !data.gender ? 'Please select your gender.' : '',
@@ -244,18 +266,25 @@ export default function CreditScoreInfoPage({ kind }: { kind: PageKind }) {
     event.preventDefault()
     setSubmitted(true)
 
-    // pan kind — only PAN and phone are required; call the score-check API
+    // pan kind — send the requested identity fields to the Experian API
     // and navigate straight to the score page (no OTP, no report download).
     if (kind === 'pan') {
-      if (errors.phone || errors.pan) return
+      if (errors.firstName || errors.lastName || errors.dob || errors.pincode || errors.phone || errors.pan) return
       setScoreLoading(true)
       setScoreError('')
       try {
-        const apiData = await ApiClient.post(AppEndpoints.checkCibilScore, {
-          pan: data.pan,
+        const apiData = await ApiClient.post<Record<string, unknown>>(AppEndpoints.experianLoanReport, {
           mobile: data.phone,
+          first_name: data.firstName,
+          last_name: data.lastName,
+          date_of_birth: data.dob,
+          pan: data.pan,
+          pincode: data.pincode,
         }, { auth: true })
-        navigate('/cibil-score-by-pan/score', { state: { apiData } })
+        const creditScore = (apiData.analysis as Record<string, unknown> | undefined)?.credit_score
+        navigate('/cibil-score-by-pan/score', {
+          state: { apiData: { ...apiData, credit_score: creditScore } },
+        })
       } catch (err) {
         const message =
           err instanceof ApiError ? err.message : 'Could not fetch your CIBIL score. Please try again.'
@@ -350,6 +379,26 @@ export default function CreditScoreInfoPage({ kind }: { kind: PageKind }) {
               </div>
             </div>
             <div className="mt-6 space-y-4">
+              {kind === 'pan' && (
+                <>
+                  <Field label="First Name" error={submitted ? errors.firstName : ''}>
+                    <input value={data.firstName} onChange={(e) => update('firstName', e.target.value)} className="mt-1.5 w-full rounded-lg border border-slate-300 px-3 py-3 outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100" placeholder="Enter your first name" />
+                  </Field>
+
+                  <Field label="Last Name" error={submitted ? errors.lastName : ''}>
+                    <input value={data.lastName} onChange={(e) => update('lastName', e.target.value)} className="mt-1.5 w-full rounded-lg border border-slate-300 px-3 py-3 outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100" placeholder="Enter your last name" />
+                  </Field>
+
+                  <Field label="DOB" error={submitted ? errors.dob : ''}>
+                    <input type="date" value={data.dob} onChange={(e) => update('dob', e.target.value)} className="mt-1.5 w-full rounded-lg border border-slate-300 px-3 py-3 outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100" />
+                  </Field>
+
+                  <Field label="Pin Code" error={submitted ? errors.pincode : ''}>
+                    <input value={data.pincode} onChange={(e) => update('pincode', e.target.value.replace(/\D/g, '').slice(0, 6))} inputMode="numeric" className="mt-1.5 w-full rounded-lg border border-slate-300 px-3 py-3 outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100" placeholder="Enter 6-digit pin code" />
+                  </Field>
+                </>
+              )}
+
               {kind !== 'pan' && (
                 <Field label="Full Name" error={submitted ? errors.name : ''}>
                   <input value={data.name} onChange={(e) => update('name', e.target.value)} className="mt-1.5 w-full rounded-lg border border-slate-300 px-3 py-3 outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100" placeholder="Enter your full name" />

@@ -124,8 +124,8 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       return
     }
 
-    void Promise.allSettled([refreshBalance(), refreshPlans()])
-  }, [isAuthenticated, refreshBalance, refreshPlans])
+    void refreshBalance().catch(() => undefined)
+  }, [isAuthenticated, refreshBalance])
 
   return (
     <WalletContext.Provider

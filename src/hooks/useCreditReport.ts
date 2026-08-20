@@ -72,10 +72,11 @@ export function useCreditReport() {
 
       // Requires the user to be logged in — the API deducts from
       // their wallet balance, so we send the auth token.
-      const endpoint =
-        reportType === 'equifax'
-          ? AppEndpoints.equifaxGenerateReport
-          : AppEndpoints.cibilGenerateReport
+      const endpoint = {
+        cibil: AppEndpoints.cibilGenerateReport,
+        crif: AppEndpoints.crifGenerateReport,
+        equifax: AppEndpoints.equifaxGenerateReport,
+      }[reportType]
 
       const data = await ApiClient.post(endpoint, payload, {
         auth: true,
@@ -91,40 +92,42 @@ export function useCreditReport() {
     }
   }
 
-  const sendOtp = async (mobile: string, reportId: string) => {
+  const sendOtp = async (mobile: string, reportId?: string) => {
     setError('')
     setLoading(true)
     try {
-      const data = await ApiClient.post(AppEndpoints.cibilSendOtp, {
+      const payload: Record<string, unknown> = {
         mobile: mobile.trim(),
-        report_id: reportId,
-      }, { auth: true })
+      }
+      if (reportId) payload.report_id = reportId
+      const data = await ApiClient.post(AppEndpoints.cibilSendOtp, payload, { auth: true })
       return data
     } catch (err) {
       const message =
         err instanceof ApiError ? err.message : 'Could not send OTP. Please try again.'
       setError(message)
-      throw new Error(message)
+      throw err instanceof Error ? err : new Error(message)
     } finally {
       setLoading(false)
     }
   }
 
-  const verifyOtp = async (mobile: string, reportId: string, otp: string) => {
+  const verifyOtp = async (mobile: string, reportId: string | undefined, otp: string) => {
     setError('')
     setLoading(true)
     try {
-      const data = await ApiClient.post(AppEndpoints.customerVerifyOtp, {
+      const payload: Record<string, unknown> = {
         mobile: mobile.trim(),
-        report_id: reportId,
         otp,
-      }, { auth: true })
+      }
+      if (reportId) payload.report_id = reportId
+      const data = await ApiClient.post(AppEndpoints.cibilVerifyOtp, payload, { auth: true })
       return data
     } catch (err) {
       const message =
         err instanceof ApiError ? err.message : 'OTP verification failed. Please try again.'
       setError(message)
-      throw new Error(message)
+      throw err instanceof Error ? err : new Error(message)
     } finally {
       setLoading(false)
     }
