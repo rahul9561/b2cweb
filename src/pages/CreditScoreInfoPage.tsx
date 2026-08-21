@@ -109,13 +109,13 @@ const configs: Record<PageKind, {
     ],
   },
   pan: {
-    title: 'Check Your CIBIL Score by PAN Card',
+    title: 'Check Your CIBIL Score',
     eyebrow: 'PAN-based credit check',
     intro: 'A PAN helps credit bureaus match your credit information. Use it with your verified mobile number to access your CIBIL credit profile.',
     report: 'CIBIL PAN Report',
     sections: [
       {
-        heading: 'Check CIBIL Score by PAN Card',
+        heading: 'Check CIBIL Score',
         text: 'Your PAN is a unique identification number used to access credit information connected with your active credit profile.',
         points: [
           'Enter your PAN and basic personal details.',
@@ -282,7 +282,7 @@ export default function CreditScoreInfoPage({ kind }: { kind: PageKind }) {
           pincode: data.pincode,
         }, { auth: true })
         const creditScore = (apiData.analysis as Record<string, unknown> | undefined)?.credit_score
-        navigate('/cibil-score-by-pan/score', {
+        navigate('/cibil-score/score', {
           state: { apiData: { ...apiData, credit_score: creditScore } },
         })
       } catch (err) {

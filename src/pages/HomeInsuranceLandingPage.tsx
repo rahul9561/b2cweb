@@ -187,7 +187,7 @@ export default function HomeInsuranceLandingPage() {
           <div className="rounded-lg bg-yellow-50 border border-yellow-200 px-4 py-3 mb-4">
             <p className="text-[12px] text-slate-700 flex items-start gap-2">
               <span>📋</span>
-              <span>Only Policybazaar certified experts will assist you</span>
+              <span>Only AV Management certified experts will assist you</span>
             </p>
           </div>
 

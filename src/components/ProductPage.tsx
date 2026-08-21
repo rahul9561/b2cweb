@@ -101,7 +101,7 @@ function UspStrip({ usps }: { usps: ProductPageData['usps'] }) {
 function Features({ features }: { features: ProductPageData['features'] }) {
   return (
     <section className="container-pb py-14">
-      <h2 className="section-title">Why buy {features[0] && 'it'} from Policybazaar?</h2>
+      <h2 className="section-title">Why buy {features[0] && 'it'} from AV Management?</h2>
       <span className="heading-accent" />
       <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {features.map((f) => (
@@ -245,7 +245,7 @@ function CtaBanner({ data }: { data: ProductPageData }) {
         </div>
         <div className="flex gap-3">
           <button className="btn-primary bg-brand">Get Started</button>
-          <a href="tel:18002088787" className="btn-green">Call 1800-208-8787</a>
+          <a href="tel:9917500023" className="btn-green">Call 9917500023</a>
         </div>
       </div>
     </section>

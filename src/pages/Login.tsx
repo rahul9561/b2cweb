@@ -24,7 +24,7 @@
 //               <span className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-blueBG">
 //                 <Shield size={28} className="text-brand" />
 //               </span>
-//               <h1 className="text-2xl font-medium text-navy">Welcome to Policybazaar</h1>
+//               <h1 className="text-2xl font-medium text-navy">Welcome to AV Management</h1>
 //               <p className="mt-2 text-[13px] text-slate2-secondary">
 //                 {sent ? 'Enter the 4-digit OTP sent to your mobile' : 'Sign in to manage your policies'}
 //               </p>
@@ -166,6 +166,7 @@ export default function Login() {
   const [verifying, setVerifying] = useState(false)
   const [resending, setResending] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
+const [showAppStorePopup, setShowAppStorePopup] = useState(false)
 
   const [cooldown, setCooldown] = useState(0)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -253,7 +254,7 @@ export default function Login() {
               <span className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-blueBG">
                 <Shield size={28} className="text-brand" />
               </span>
-              <h1 className="text-2xl font-medium text-navy">Welcome to Policybazaar</h1>
+              <h1 className="text-2xl font-medium text-navy">Welcome to AV Management</h1>
               <p className="mt-2 text-[13px] text-slate2-secondary">
                 {sent ? `Enter the 6-digit OTP sent to +91 ${phone}` : 'Sign in to manage your policies'}
               </p>
@@ -354,18 +355,104 @@ export default function Login() {
               <p className="mb-3 flex items-center justify-center gap-2 text-[13px] text-slate2-secondary">
                 <Smartphone size={14} className="text-brand" /> Or continue with the app
               </p>
-              <div className="grid grid-cols-2 gap-3">
-                <button className="flex items-center justify-center gap-2 rounded-lg border border-slate2-border py-2.5 text-[13px] font-medium text-navy hover:border-brand">
-                  Google Play
-                </button>
-                <button className="flex items-center justify-center gap-2 rounded-lg border border-slate2-border py-2.5 text-[13px] font-medium text-navy hover:border-brand">
-                  App Store
-                </button>
-              </div>
+             <div className="grid grid-cols-2 gap-3">
+  {/* Google Play */}
+  <a
+    href="https://play.google.com/store/search?q=av%20management&c=apps&hl=en_IN"
+    target="_blank"
+    rel="noopener noreferrer"
+    className="flex items-center justify-center gap-2 rounded-lg border border-slate2-border py-2.5 text-[13px] font-medium text-navy transition-all hover:border-brand hover:bg-blueBG"
+  >
+    <svg
+      viewBox="0 0 24 24"
+      className="h-5 w-5"
+      aria-hidden="true"
+    >
+      <path d="M3 2.25v19.5L13.2 12 3 2.25Z" fill="#00D7FE" />
+      <path d="m3 2.25 12.7 7.35-2.5 2.4L3 2.25Z" fill="#00F076" />
+      <path d="m3 21.75 12.7-7.35-2.5-2.4L3 21.75Z" fill="#FFCE00" />
+      <path d="m15.7 9.6 4.15 2.4-4.15 2.4-2.5-2.4 2.5-2.4Z" fill="#FF3A44" />
+    </svg>
+
+    Google Play
+  </a>
+
+  {/* App Store */}
+  <button
+    type="button"
+    onClick={() => setShowAppStorePopup(true)}
+    className="flex items-center justify-center gap-2 rounded-lg border border-slate2-border py-2.5 text-[13px] font-medium text-navy transition-all hover:border-brand hover:bg-blueBG"
+  >
+    <svg
+      viewBox="0 0 24 24"
+      className="h-5 w-5"
+      fill="currentColor"
+      aria-hidden="true"
+    >
+      <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.79 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.53 4.09ZM12.03 7.25C11.88 5.02 13.69 3.18 15.77 3c.29 2.58-2.34 4.5-3.74 4.25Z" />
+    </svg>
+
+    App Store
+  </button>
+</div>
             </div>
           </div>
         </div>
       </div>
+      {showAppStorePopup && (
+  <div
+    className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm"
+    onClick={() => setShowAppStorePopup(false)}
+  >
+    <div
+      className="relative w-full max-w-sm overflow-hidden rounded-3xl bg-white p-7 text-center shadow-2xl"
+      onClick={(e) => e.stopPropagation()}
+    >
+      {/* Close */}
+      <button
+        type="button"
+        onClick={() => setShowAppStorePopup(false)}
+        className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition hover:bg-slate-200 hover:text-navy"
+        aria-label="Close"
+      >
+        ✕
+      </button>
+
+      {/* Apple icon */}
+      <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-black text-white shadow-lg">
+        <svg
+          viewBox="0 0 24 24"
+          className="h-9 w-9"
+          fill="currentColor"
+          aria-hidden="true"
+        >
+          <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.79 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.53 4.09ZM12.03 7.25C11.88 5.02 13.69 3.18 15.77 3c.29 2.58-2.34 4.5-3.74 4.25Z" />
+        </svg>
+      </div>
+
+      <span className="mb-2 inline-block rounded-full bg-orange-50 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-orange-500">
+        Coming Soon
+      </span>
+
+      <h2 className="mt-2 text-xl font-bold text-navy">
+        AV Management for iOS
+      </h2>
+
+      <p className="mx-auto mt-3 max-w-[280px] text-[13px] leading-6 text-slate2-secondary">
+        We're working on bringing the AV Management app to the App Store.
+        Stay tuned — it's coming soon!
+      </p>
+
+      <button
+        type="button"
+        onClick={() => setShowAppStorePopup(false)}
+        className="mt-6 w-full rounded-xl bg-brand py-3 text-sm font-semibold text-white transition-all hover:bg-brand-dark"
+      >
+        Got it
+      </button>
+    </div>
+  </div>
+)}
     </section>
   )
 }

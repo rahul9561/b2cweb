@@ -78,7 +78,7 @@ export const insuranceMenu: Record<MenuCategory, { title: string; links: { label
       { label: 'Cibil Report', to: '/cibil-report' },
       { label: 'Equifax Report', to: '/equifax-report' },
       { label: 'CRIF Report', to: '/crif-report' },
-      { label: 'CIBIL Score Check by PAN Number', to: '/cibil-score-by-pan' },
+      { label: 'CIBIL Score', to: '/cibil-score' },
       { label: 'How to increase CIBIL Score', to: '/increase-cibil-score' },
       { label: 'CIBIL Score for Personal Loan/Instant Loan', to: '/cibil-score-loan' },
     ],
@@ -120,7 +120,7 @@ export const creditScoreMenu = [
   { label: 'Cibil Report', to: '/cibil-report' },
   { label: 'Equifax Report', to: '/equifax-report' },
   { label: 'CRIF Report', to: '/crif-report' },
-  { label: 'CIBIL Score Check by PAN Number', to: '/cibil-score-by-pan' },
+  { label: 'CIBIL Score', to: '/cibil-score' },
   { label: 'How to increase CIBIL Score', to: '/increase-cibil-score' },
   // { label: 'CIBIL Score for Personal Loan/Instant Loan', to: '/cibil-score-loan' },
 ]
@@ -128,6 +128,10 @@ export const loansMenu = [
   {
     label: 'CIBIL Score for Personal Loan/Instant Loan',
     to: '/cibil-score-loan',
+  },
+  {
+    label: 'Education Loan',
+    to: '/education-loan',
   },
 ]
 export const supportMenu = {

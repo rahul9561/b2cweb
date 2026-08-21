@@ -104,7 +104,7 @@ export default function CibilScoreResultPage() {
     setChecking(true)
     // Simulate a brief moment then navigate back to the form
     setTimeout(() => {
-      navigate('/cibil-score-by-pan', { replace: true })
+      navigate('/cibil-score', { replace: true })
     }, 400)
   }
 

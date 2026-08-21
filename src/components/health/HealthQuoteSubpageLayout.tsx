@@ -121,7 +121,7 @@ function LegalFooter() {
         <p>* Age analysis of number of claims paid as per IRDAI Annual Report 2021-22.</p>
         <p>
           AV Management claim support is provided for reasonable assistance in pursuance of the claim. For details,
-          our 24x7 support can be reached at 1800-258-581. Settlement of the claim remains the responsibility of the
+          our support team can be reached at 9217010023. Settlement of the claim remains the responsibility of the
           insurance company in accordance with policy terms and conditions.
         </p>
         <p className="text-center">

@@ -84,6 +84,7 @@ import LoanOffersPage from './pages/LoanOffersPage'
 import WalletPage from './pages/WalletPage'
 import AddMoneyPage from './pages/AddMoneyPage'
 import PaymentStatusPage from './pages/PaymentStatusPage'
+import EducationLoanPage from './pages/EducationLoanPage'
 import { AuthProvider } from './context/AuthContext'   // add near the other context imports
 import { WalletProvider } from './context/WalletContext'
 import { ToastProvider } from './context/ToastContext'
@@ -101,6 +102,7 @@ export default function App() {
     location.pathname.startsWith('/home-insurance') ||
     location.pathname.startsWith('/sip-calculator') ||
     location.pathname.startsWith('/income-tax-calculator') ||
+    location.pathname.startsWith('/education-loan') ||
     location.pathname.match(/^\/guaranteed-return-plans\/(plans|details|review|payment)/) ||
     location.pathname.match(/^\/child-savings-plans\/(plans|details|review|payment)/) ||
     location.pathname.match(/^\/retirement-plans\/(plans|details|review|payment)/) ||
@@ -154,8 +156,8 @@ export default function App() {
                   <Route path="/cibil-report" element={<CibilReportPage />} />
                   <Route path="/equifax-report" element={<EquifaxReportPage />} />
                   <Route path="/crif-report" element={<CrifReportPage />} />
-                  <Route path="/cibil-score-by-pan" element={<CreditScoreInfoPage kind="pan" />} />
-                  <Route path="/cibil-score-by-pan/score" element={<CibilScoreResultPage />} />
+                  <Route path="/cibil-score" element={<CreditScoreInfoPage kind="pan" />} />
+                  <Route path="/cibil-score/score" element={<CibilScoreResultPage />} />
                   <Route path="/increase-cibil-score" element={<CreditScoreInfoPage kind="improve" />} />
                   <Route path="/increase-cibil-score/verify" element={<CibilCrossVerifyPage />} />
                   <Route path="/increase-cibil-score/success" element={<CibilAnalysisSuccessPage />} />
@@ -166,6 +168,7 @@ export default function App() {
                   <Route path="/wallet/add-money" element={<AddMoneyPage />} />
                   <Route path="/wallet/payment-status" element={<PaymentStatusPage />} />
                   <Route path="/cibil-score-for-personal-loan" element={<CibilScoreForPersonalLoanPage />} />
+                  <Route path="/education-loan" element={<EducationLoanPage />} />
                   <Route path="/category/credit-score" element={<CreditScoreArticlesPage />} />
                   <Route path="/category/credit-score/:slug" element={<CreditScoreArticleDetailPage />} />
                   <Route path="/sip-calculator" element={<SipCalculatorPage />} />
@@ -220,7 +223,7 @@ export default function App() {
                   <Route path="/term-insurance-women/*" element={<TermWomenFlow />} />
                 </Routes>
               </main>
-              {!isCustomFlow && !isTermPayment && !location.pathname.startsWith('/sip-calculator') && !location.pathname.startsWith('/income-tax-calculator') && !location.pathname.match(/^\/guaranteed-return-plans\/(details|review|payment)/) && !location.pathname.match(/^\/child-savings-plans\/(details|review|payment)/) && !location.pathname.match(/^\/retirement-plans\/(details|review|payment)/) && !location.pathname.match(/^\/employee-group-health-insurance\/(plans|thanks)/) && <Footer />}
+              {!isCustomFlow && !isTermPayment && !location.pathname.startsWith('/sip-calculator') && !location.pathname.startsWith('/income-tax-calculator') && !location.pathname.startsWith('/education-loan') && !location.pathname.match(/^\/guaranteed-return-plans\/(details|review|payment)/) && !location.pathname.match(/^\/child-savings-plans\/(details|review|payment)/) && !location.pathname.match(/^\/retirement-plans\/(details|review|payment)/) && !location.pathname.match(/^\/employee-group-health-insurance\/(plans|thanks)/) && <Footer />}
             </div>
           </HealthFiltersProvider>
         </HealthProfileProvider>

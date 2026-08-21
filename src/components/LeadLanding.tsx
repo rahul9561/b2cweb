@@ -331,37 +331,37 @@ function HealthInfoContent() {
         </li>
         <li>
           A health insurance policy ensures that you can avail cashless treatment at a network hospital, typically covering 30 days and 60 days pre and post hospitalization, respectively, in most{' '}
-          <a href="https://www.policybazaar.com/health-insurance/health-insurance-india/" className="text-brand underline" target="_blank" rel="noopener noreferrer">
+          <a href="/health-insurance" className="text-brand underline">
             Health Insurance plans
           </a>.
         </li>
         <li>
           You can add value to a base health plan with additional benefits such as Personal Accident (PA) Cover or{' '}
-          <a href="https://www.policybazaar.com/health-insurance/critical-illness-insurance/" className="text-brand underline" target="_blank" rel="noopener noreferrer">
+          <a href="/health-insurance" className="text-brand underline">
             Critical Illness (CI) Cover
           </a>, available at a nominal added cost for benefits not part of the base plan — for example, a PA plan covers disability without any waiting period or medical checkups.
         </li>
         <li>
           You can also invest in a{' '}
-          <a href="https://www.policybazaar.com/health-insurance/senior-citizen-health-insurance/" className="text-brand underline" target="_blank" rel="noopener noreferrer">
+          <a href="/health-insurance" className="text-brand underline">
             senior citizen health insurance
           </a>{' '}
           policy for comprehensive security for elderly parents or your own old age.
         </li>
         <li>
           Almost all health insurance plans include Coronavirus treatment cover, and insurers have launched COVID-19 specific{' '}
-          <a href="https://www.policybazaar.com/health-insurance/individual-health-insurance/articles/best-health-insurance-plans-in-india/" className="text-brand underline" target="_blank" rel="noopener noreferrer">
+          <a href="/health-insurance" className="text-brand underline">
             best health insurance
           </a>{' '}
           options as per IRDAI guidelines.
         </li>
         <li>
           Two special COVID health policies —{' '}
-          <a href="https://www.policybazaar.com/health-insurance/corona-rakshak-policy/" className="text-brand underline" target="_blank" rel="noopener noreferrer">
+          <a href="/health-insurance" className="text-brand underline">
             Corona Rakshak
           </a>{' '}
           and{' '}
-          <a href="https://www.policybazaar.com/health-insurance/corona-kavach-policy/" className="text-brand underline" target="_blank" rel="noopener noreferrer">
+          <a href="/health-insurance" className="text-brand underline">
             Corona Kavach
           </a>{' '}
           — provide a lump sum payment on diagnosis and cover consumables like PPE kits, masks and gloves.

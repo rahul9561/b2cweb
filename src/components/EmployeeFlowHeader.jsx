@@ -16,7 +16,7 @@ export default function EmployeeFlowHeader() {
         <div className="flex items-center gap-3">
           <button
             type="button"
-            onClick={() => (window.location.href = 'tel:18002088787')}
+            onClick={() => (window.location.href = 'tel:9917500023')}
             className="flex items-center gap-2 rounded-full border border-white/20 px-4 py-1.5 text-[12px] font-medium text-white transition-colors hover:border-brand hover:text-brand"
           >
             <Phone size={14} className="text-brand" />

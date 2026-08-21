@@ -1,5 +1,14 @@
 import { Link } from 'react-router-dom'
-import { Facebook, Twitter, Linkedin, Youtube, Lock, ShieldCheck, Instagram } from 'lucide-react'
+import {
+  Facebook,
+  Linkedin,
+  Youtube,
+  Lock,
+  ShieldCheck,
+  Instagram,
+} from 'lucide-react'
+
+import { FaXTwitter, FaPinterestP } from 'react-icons/fa6'
 import { footerColumns } from '../data/navigation'
 import rupayLogo from '../assets/images/rupay.png'
 import paytmLogo from '../assets/images/paytm.svg'
@@ -8,7 +17,38 @@ import amexLogo from '../assets/images/american_express.svg'
 import visaLogo from '../assets/images/visa.png'
 
 const importantLinks = ['IRDAI', 'IRDAI Customer Education Website', 'Bima Bharosa']
-
+const socialLinks = [
+  {
+    name: 'Facebook',
+    icon: Facebook,
+    url: 'https://www.facebook.com/avmanagement23',
+  },
+  {
+    name: 'X',
+    icon: FaXTwitter,
+    url: 'https://x.com/anandvardh71092',
+  },
+  {
+    name: 'LinkedIn',
+    icon: Linkedin,
+    url: 'https://www.linkedin.com/in/anand-vardhan-3a6964134/',
+  },
+  {
+    name: 'YouTube',
+    icon: Youtube,
+    url: 'https://www.youtube.com/@avmanagement8133/',
+  },
+  {
+    name: 'Instagram',
+    icon: Instagram,
+    url: 'https://www.instagram.com/av_management23',
+  },
+  {
+    name: 'Pinterest',
+    icon: FaPinterestP,
+    url: 'https://pin.it/4p2MV2Cna',
+  },
+]
 const paymentLogos = [
   { name: 'Amex', src: amexLogo },
   { name: 'Visa', src: visaLogo },
@@ -102,19 +142,25 @@ export default function Footer() {
       Regulated by IRDAI
     </div>
 
-    <div className="md:justify-self-end">
-      <p className="mb-3 text-sm font-semibold">Follow us on</p>
-      <div className="flex gap-3">
-        {[Facebook, Twitter, Linkedin, Youtube, Instagram].map((Icon, i) => (
-          <span
-            key={i}
-            className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-white/10 hover:bg-brand"
-          >
-            <Icon size={16} />
-          </span>
-        ))}
-      </div>
-    </div>
+ <div className="md:justify-self-end">
+  <p className="mb-3 text-sm font-semibold">Follow us on</p>
+
+  <div className="flex flex-wrap gap-3">
+    {socialLinks.map(({ name, icon: Icon, url }) => (
+      <a
+        key={name}
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label={`Follow AV Management on ${name}`}
+        title={name}
+        className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 transition-all duration-200 hover:bg-brand"
+      >
+        <Icon size={16} />
+      </a>
+    ))}
+  </div>
+</div>
   </div>
 </div>
       <div className="border-t border-white/10">
@@ -130,10 +176,8 @@ export default function Footer() {
       <div className="border-t border-white/10">
         <div className="container-pb py-8 text-[12px] leading-6 text-white/50">
           <p>
-            Company: Policybazaar Insurance Brokers Private Limited | CIN: U74999HR2014PTC053454 |
-            Registered office: Plot No. 119, Sector - 44, Gurugram, Haryana - 122003 | Composite
-            Broker reg. no. 742 | Regd. ID: IRDA/DB 797/19 | Motilal Oswal &amp; PB Fintech Ltd -
-            policybazaar.com
+            Company: AV Management | Email: info@help.com | Sales: 9917500023 | Service &amp;
+            Claims: 9217010023
           </p>
           <p className="mt-3 font-medium text-white/70">
             BEWARE OF SPURIOUS PHONE CALLS AND FICTITIOUS/FRAUDULENT OFFERS - IRDAI is not involved
@@ -141,7 +185,7 @@ export default function Footer() {
             premiums. Public receiving such phone calls are requested to lodge a police complaint.
           </p>
           <p className="mt-4">
-            © Copyright 2008-2026 policybazaar.com. All Rights Reserved. | Privacy Policy | Terms
+            © Copyright 2026 AV Management. All Rights Reserved. | Privacy Policy | Terms
             &amp; Conditions | Disclosure
           </p>
         </div>

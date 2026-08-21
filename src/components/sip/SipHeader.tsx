@@ -139,9 +139,9 @@ const utilityLinks = [
   { label: 'Claim' },
   { label: 'Get The App', icon: Smartphone },
   { label: 'Language', icon: Globe, dropdown: true },
-  { label: 'Sales: 1800-208-8787', phone: true },
-  { label: 'Service: 1800-258-5970', phone: true },
-  { label: 'Claims: 1800-258-5881', phone: true },
+  { label: 'Sales: 9917500023', phone: true },
+  { label: 'Service: 9217010023', phone: true },
+  { label: 'Claims: 9217010023', phone: true },
   { label: 'Contact Us' },
 ]
 

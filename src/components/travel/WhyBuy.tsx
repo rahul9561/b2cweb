@@ -4,7 +4,7 @@ export default function WhyBuy() {
   return (
     <section className="grid gap-6 md:grid-cols-2">
       <div className="rounded-cardlg bg-white p-6 shadow-card">
-        <h3 className="text-[16px] font-bold text-navy">Why buy from Policybazaar</h3>
+        <h3 className="text-[16px] font-bold text-navy">Why buy from AV Management</h3>
         <ul className="mt-4 space-y-3 text-[13px] text-slate-700">
           <li className="flex items-start gap-3"><Headphones className="mt-1 text-brand"/> Claim assistance anytime, anywhere!</li>
           <li className="flex items-start gap-3"><ShieldCheck className="mt-1 text-brand"/> Compare and choose best plan as per your requirements</li>

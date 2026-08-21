@@ -45,7 +45,7 @@ export default function WhyChooseUs() {
           <div className="flex-1 pt-4">
             <h2 className="text-[26px] font-medium leading-snug text-navy lg:text-[30px]">
               What makes{' '}
-              <span className="font-bold">Policybazaar</span> one of India's
+              <span className="font-bold">AV Management</span> one of India's
               favourite places
               <br />
               to buy insurance?

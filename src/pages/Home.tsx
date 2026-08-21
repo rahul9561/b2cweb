@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { ArrowRight, ChevronLeft, ChevronRight, CheckCircle2, Zap } from 'lucide-react'
 import { productTiles } from '../data/home'
 
-/* ── New PolicyBazaar-style sections ── */
+/* ── AV Management home sections ── */
 import QuickBuy from '../components/QuickBuy'
 import PromoCards from '../components/PromoCards'
 import WhyChooseUs from '../components/WhyChooseUs'
@@ -13,7 +13,7 @@ import DownloadApp from '../components/DownloadApp'
 import Testimonials from '../components/Testimonials'
 import Partners from '../components/Partners'
 import HelpCenter from '../components/HelpCenter'
-import GroupBrands from '../components/GroupBrands'
+// import GroupBrands from '../components/GroupBrands'
 import ProductModal from '../components/ProductModal'
 /* ── Hero banners ── */
 const heroBanners = [
@@ -72,7 +72,7 @@ export default function Home() {
       <Testimonials />
       <Partners />
       <HelpCenter />
-      <GroupBrands />
+      {/* <GroupBrands /> */}
     </div>
   )
 }

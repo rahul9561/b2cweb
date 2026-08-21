@@ -56,11 +56,11 @@ export default function SiteFooter() {
             <div className="space-y-3">
               <div className="flex items-center gap-3">
                 <Phone className="h-4 w-4 text-brand" />
-                <span className="text-sm text-gray-400">1800-123-4567 (Toll Free)</span>
+                <span className="text-sm text-gray-400">9917500023 / 9217010023</span>
               </div>
               <div className="flex items-center gap-3">
                 <Mail className="h-4 w-4 text-brand" />
-                <span className="text-sm text-gray-400">support@avmanagement.com</span>
+                <span className="text-sm text-gray-400">info@help.com</span>
               </div>
               <div className="flex items-start gap-3">
                 <MapPin className="h-4 w-4 text-brand mt-0.5" />

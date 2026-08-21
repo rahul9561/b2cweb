@@ -256,7 +256,7 @@ export default function ClaimSupportPage() {
               <h3 className="font-black">In case of emergency we are just a call away.</h3>
               <ul className="mt-3 space-y-2 text-sm text-slate2-secondary">
                 <li>Inform your Dedicated Relationship Manager</li>
-                <li>Or, call us on the 24x7 helpline <b className="text-green-cta">1800-258-5881</b></li>
+                <li>Or, call us on the support helpline <b className="text-green-cta">9217010023</b></li>
               </ul>
             </div>
             <div>

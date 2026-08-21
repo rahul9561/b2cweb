@@ -1,4 +1,4 @@
-/* ──────────────── Local PB icon images (extracted from PolicyBazaar CDN sprites) ──────────────── */
+/* ──────────────── Local product icon images ──────────────── */
 const ICON = '/images/icons'
 
 /* ──────────────── Product tiles (main grid) with real PB icons ──────────────── */
@@ -212,9 +212,9 @@ export const pbAdvantages = [
 
 /* ──────────────── Testimonials ──────────────── */
 export const testimonials = [
-  { name: 'Bhaaskar Lokhande', copy: 'Thanks for constant push in time and really appreciate your help. Thanks to PolicyBazaar, it is life with you guys.' },
+  { name: 'Bhaaskar Lokhande', copy: 'Thanks for constant push in time and really appreciate your help. Thanks to AV Management, it is life with you guys.' },
   { name: 'Shraddha Sharma', copy: 'Very apt to use, friendly website.' },
-  { name: 'Ananth Narayan', copy: 'Thank you for followup, following up on the policy. It has been a very pleasant experience with you folks at Policybazaar.' },
+  { name: 'Ananth Narayan', copy: 'Thank you for followup, following up on the policy. It has been a very pleasant experience with you folks at AV Management.' },
   { name: 'Urvashi Solanki', copy: 'My mother is 64 and we finally found an affordable senior citizen health plan. Great support.' },
   { name: 'Neha Jain', copy: 'Bought a family health policy with maternity cover. The process was completely online.' },
   { name: 'Prabhat Yadav', copy: 'Claims support was excellent. My bike claim was settled in record time.' },
@@ -244,8 +244,8 @@ export const educationSteps = [
 /* ──────────────── Group Brands ──────────────── */
 export const groupBrands = [
   { name: 'PB', label: 'PB' },
-  { name: 'policybazaar', label: 'policybazaar' },
+  { name: 'AV Management', label: 'AV Management' },
   { name: 'investopolicy', label: 'investopolicy' },
   { name: 'planbazaar', label: 'planbazaar' },
-  { name: 'policybazaar insurance brokers', label: 'policybazaar insurance brokers' },
+  { name: 'AV Management services', label: 'AV Management services' },
 ]

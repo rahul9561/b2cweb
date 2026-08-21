@@ -264,9 +264,9 @@ export default function Header() {
             <div className="invisible absolute right-0 top-full z-50 w-80 bg-white opacity-0 shadow-card transition-all duration-150 group-hover:visible group-hover:opacity-100">
               <ul className="p-3">
                 {[
-                  { t: 'Helpline for buying a new policy', n: '1800-208-8787' },
-                  { t: 'Helpline for existing policy', n: '1800-266-6644' },
-                  { t: 'Helpline for claim', n: '1800-208-8787' },
+                  { t: 'Helpline for buying a new policy', n: '9917500023' },
+                  { t: 'Helpline for existing policy', n: '9217010023' },
+                  { t: 'Helpline for claim', n: '9217010023' },
                 ].map((p) => (
                   <li key={p.t}>
                     <a
@@ -346,20 +346,28 @@ export default function Header() {
         <div className="fixed inset-0 z-50 lg:hidden">
           <div className="absolute inset-0 bg-black/50" onClick={() => setMobileOpen(false)} />
           <div className="absolute left-0 top-0 h-full w-80 overflow-y-auto bg-white p-5">
-            <div className="mb-6 flex items-center justify-between">
-              <span className="text-xl font-bold text-brand">
-                policy<span className="text-navy">bazaar</span>
-              </span>
-              <button onClick={() => setMobileOpen(false)} aria-label="Close menu">
-                <X size={22} className="text-navy" />
-              </button>
-            </div>
+                   <div className="-mx-5 -mt-5 mb-6 flex items-center justify-between bg-black px-5 py-4">
+  <Link to="/" onClick={() => setMobileOpen(false)}>
+    <img
+      src={logo}
+      alt="AV Management"
+      className="h-12 w-auto object-contain"
+    />
+  </Link>
+
+  <button
+    onClick={() => setMobileOpen(false)}
+    aria-label="Close menu"
+  >
+    <X size={22} className="text-white" />
+  </button>
+</div>
             <nav className="space-y-3">
               <Link to="/" onClick={() => setMobileOpen(false)} className="block font-medium text-navy">
                 Home
               </Link>
               {[
-                { label: 'Credit Score', to: '/credit-score', icon: TrendingUp },
+                { label: 'Credit Score', to: '/cibil-score', icon: TrendingUp },
                 { label: 'Loans', to: '/cibil-score-loan', icon: Briefcase },
                 { label: 'Health Insurance', to: '/health-insurance', icon: HeartPulse },
                 { label: 'Term Insurance', to: '/term-insurance', icon: Shield },
@@ -389,6 +397,24 @@ export default function Header() {
                 </p>
                 <div className="space-y-1.5 pl-5">
                   {creditScoreMenu.map((item) => (
+                    <Link
+                      key={item.label}
+                      to={item.to}
+                      onClick={() => setMobileOpen(false)}
+                      className="block text-[12px] text-slate2-secondary hover:text-brand"
+                    >
+                      {item.label}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+              <div className="mt-3 border-t border-slate2-border pt-3">
+                <p className="mb-2 flex items-center gap-2 text-[13px] font-semibold text-navy">
+                  <Briefcase size={14} className="text-brand" />
+                  Loans
+                </p>
+                <div className="space-y-1.5 pl-5">
+                  {loansMenu.map((item) => (
                     <Link
                       key={item.label}
                       to={item.to}

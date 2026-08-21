@@ -776,7 +776,7 @@ function TermPaymentPage() {
               <b>✓</b>
               <h2>Payment Successful!</h2>
               <p>Your policy proposal has been submitted successfully. Our advisor will call you shortly for verification.</p>
-              <button onClick={() => window.open('https://policybazaar.com', '_blank')}>Download Receipt</button>
+              <button onClick={() => window.print()}>Download Receipt</button>
             </div>
           ) : (
             <div className="tw-pay-box">

@@ -58,17 +58,17 @@ export default function HomeInsuranceHeader() {
               <ul className="p-3">
                 <li className="mb-2 flex items-center gap-2 text-[13px] font-semibold text-navy">
                   <Phone size={14} className="text-brand" />
-                  Helpline for buying a new policy: 1800-208-8787
+                  Helpline for buying a new policy: 9917500023
                 </li>
 
                 <li className="mb-2 flex items-center gap-2 text-[13px] font-semibold text-navy">
                   <Phone size={14} className="text-brand" />
-                  Helpline for existing policy: 1800-266-6644
+                  Helpline for existing policy: 9217010023
                 </li>
 
                 <li className="flex items-center gap-2 text-[13px] font-semibold text-navy">
                   <Phone size={14} className="text-brand" />
-                  Helpline for claim: 1800-208-8787
+                  Helpline for claim: 9217010023
                 </li>
               </ul>
             </div>
@@ -147,7 +147,7 @@ export default function HomeInsuranceHeader() {
                 className="flex w-full items-center justify-start text-left text-[13px] text-slate-600 transition-colors hover:text-brand"
               >
                 <Phone size={20} className="mr-2 text-brand" />
-                Helpline for buying a new policy: 1800-208-8787
+                Helpline for buying a new policy: 9917500023
               </button>
 
               <button
@@ -155,7 +155,7 @@ export default function HomeInsuranceHeader() {
                 className="flex w-full items-center justify-start text-left text-[13px] text-slate-600 transition-colors hover:text-brand"
               >
                 <Phone size={20} className="mr-2 text-brand" />
-                Helpline for existing policy: 1800-266-6644
+                Helpline for existing policy: 9217010023
               </button>
 
               <button
@@ -163,7 +163,7 @@ export default function HomeInsuranceHeader() {
                 className="flex w-full items-center justify-start text-left text-[13px] text-slate-600 transition-colors hover:text-brand"
               >
                 <Phone size={20} className="mr-2 text-brand" />
-                Helpline for claim: 1800-208-8787
+                Helpline for claim: 9217010023
               </button>
             </div>
           </div>

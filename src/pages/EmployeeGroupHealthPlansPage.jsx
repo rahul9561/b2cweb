@@ -836,8 +836,8 @@ export default function EmployeeGroupHealthPlansPage() {
           <StubModal title="Talk to expert" onClose={() => setStubModal(null)}>
             <p className="text-[13px] text-slate2-secondary">
               Our expert will call you shortly. For immediate assistance, call{' '}
-              <a href="tel:18002088787" className="font-semibold text-brand">
-                1800-208-8787
+              <a href="tel:9917500023" className="font-semibold text-brand">
+                9917500023
               </a>
               .
             </p>

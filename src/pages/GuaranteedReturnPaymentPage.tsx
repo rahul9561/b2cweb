@@ -217,12 +217,12 @@ export default function GuaranteedReturnPaymentPage() {
             <a href="#" className="text-blue-600 hover:underline">FAQ</a>
           </p>
           <div className="mt-3 text-center text-xs text-slate-600">
-            <p>Policybazaar is registered as a composite broker</p>
+            <p>AV Management provides insurance and financial service assistance.</p>
             <p>Registration No. 742, Registration Code No. IRDA / DB 797 / 19, Valid till 09/08/2027, License category - Composite Broker</p>
             <p>CIN: U74999HK2014PTC053454 | Registered Office - Plot No.19, Sector - 44, Gurgaon, Haryana — 122001</p>
             <p>Visitors are hereby informed that their information submitted on the website may be shared with insurers.</p>
             <p>Product information is authentic and solely based on the information received from the insurers.</p>
-            <p>© Copyright 2008-2026 policybazaar.com. All Rights Reserved.</p>
+            <p>© Copyright 2026 AV Management. All Rights Reserved.</p>
           </div>
         </div>
       </footer>

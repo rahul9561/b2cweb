@@ -38,7 +38,7 @@ export default function InvestmentLeadPage() {
         <a href="/" className="flex items-center">
           <img src={logo} alt="AV Management" className="h-12 w-auto object-contain" />
         </a>
-        <a href="tel:18002088787" className="rounded-lg bg-green-cta px-5 py-3 text-sm font-black text-white">
+        <a href="tel:9917500023" className="rounded-lg bg-green-cta px-5 py-3 text-sm font-black text-white">
           Talk to Expert
         </a>
         </div>

@@ -623,7 +623,7 @@ function Disclaimer() {
             <a href="#" className="text-brand hover:underline">Contact Us</a> | <a href="#" className="text-brand hover:underline">Legal and Admin Policies</a>
           </p>
           <p>
-            Policybazaar is a registered Insurance Broker | Registration No. 742, Registration Code No. IRDA/ DB 797/ 19, Valid till 09/06/2027, License category- Composite Broker | Visitors are hereby informed that information submitted on the website may be shared with insurers and third-party administrators.
+            AV Management is an insurance services platform. Visitors are hereby informed that information submitted on the website may be shared with insurers and third-party administrators for service fulfilment.
           </p>
           <p>
             <strong>*Disclaimer:</strong> We, at AV Management, are committed to offering unbiased product comparison and neutral editorial content. Our partnership with various insurers does not impact our editorial content or product comparisons.

@@ -23,7 +23,7 @@ export default function HelpCenter() {
                 </span>
                 <div>
                   <p className="text-[10px] text-slate2-muted">General Enquiries</p>
-                  <p className="text-[12px] font-medium text-brand">care@policybazaar.com</p>
+                  <a href="mailto:info@help.com" className="text-[12px] font-medium text-brand">info@help.com</a>
                 </div>
               </div>
               <div className="flex items-center gap-3 rounded-xl border border-slate2-border bg-white px-4 py-3">
@@ -32,7 +32,7 @@ export default function HelpCenter() {
                 </span>
                 <div>
                   <p className="text-[10px] text-slate2-muted">Customer Sales Enquiries</p>
-                  <p className="text-[12px] font-medium text-brand">1800-208-8787</p>
+                  <a href="tel:9917500023" className="text-[12px] font-medium text-brand">9917500023</a>
                 </div>
               </div>
             </div>
