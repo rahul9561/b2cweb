@@ -36,7 +36,7 @@ const socialLinks = [
   {
     name: 'YouTube',
     icon: Youtube,
-    url: 'https://www.youtube.com/',
+    url: 'https://www.youtube.com/@avmanagement8133/',
   },
   {
     name: 'Instagram',
