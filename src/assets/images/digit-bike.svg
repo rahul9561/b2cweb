@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="180" height="64" viewBox="0 0 180 64" role="img" aria-label="Digit">
+  <rect width="180" height="64" rx="8" fill="#050505"/>
+  <text x="90" y="40" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="800" fill="#fff">digit</text>
+  <circle cx="134" cy="21" r="4" fill="#ffd94d"/>
+</svg>

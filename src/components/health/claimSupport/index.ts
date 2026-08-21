@@ -1,0 +1,5 @@
+export { default as ClaimHighlightModal } from './ClaimHighlightModal'
+export { default as ClaimHighlightHeader } from './ClaimHighlightHeader'
+export { default as ClaimHighlightSocialEmbed } from './ClaimHighlightSocialEmbed'
+export { default as ClaimHighlightSummary } from './ClaimHighlightSummary'
+export { default as ClaimHighlightDetails } from './ClaimHighlightDetails'

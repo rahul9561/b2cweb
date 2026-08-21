@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="48" viewBox="0 0 128 48" role="img" aria-label="Mobikwik">
+  <rect width="128" height="48" rx="10" fill="#ffffff"/>
+  <path d="M14 33l10-18h10l-4 18H18" fill="#0065ff"/>
+  <text x="40" y="30" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="800" fill="#0065ff">MobiKwik</text>
+</svg>

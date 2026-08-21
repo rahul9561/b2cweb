@@ -1,0 +1,328 @@
+/* The education-loan redesign begins below the trust strip. Nothing above the
+   application workspace is styled here. */
+.el-application-workspace {
+  display: grid;
+  grid-template-columns: 255px minmax(0, 1fr);
+  align-items: start;
+  gap: 56px;
+  margin-top: 42px;
+}
+
+.el-journey-nav {
+  position: sticky;
+  top: 108px;
+  overflow: hidden;
+  border: 1px solid #e2e7f0;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 18px 45px rgba(26, 39, 73, .08);
+}
+
+.el-journey-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 23px 22px 19px;
+  border-bottom: 1px solid #edf0f5;
+}
+
+.el-journey-heading span {
+  color: #14213d;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.el-journey-heading strong {
+  color: #69758b;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.el-journey-list { padding: 10px; }
+
+.el-journey-item {
+  position: relative;
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 12px;
+  border: 0;
+  border-radius: 13px;
+  padding: 13px 11px;
+  color: #9aa4b5;
+  text-align: left;
+  transition: background-color .2s ease, color .2s ease, transform .2s ease;
+}
+
+.el-journey-item + .el-journey-item::before {
+  position: absolute;
+  left: 26px;
+  bottom: calc(100% - 5px);
+  width: 1px;
+  height: 10px;
+  background: #dfe4ed;
+  content: '';
+}
+
+.el-journey-item.is-active {
+  background: #eef2ff;
+  color: #243fca;
+}
+
+.el-journey-item.is-complete {
+  color: #526078;
+  cursor: pointer;
+}
+
+.el-journey-item.is-complete:hover {
+  background: #f7f8fb;
+  transform: translateX(2px);
+}
+
+.el-journey-number {
+  display: flex;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #dce2ec;
+  border-radius: 10px;
+  background: #fff;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.el-journey-item.is-active .el-journey-number {
+  border-color: #3157e8;
+  background: #3157e8;
+  color: #fff;
+  box-shadow: 0 7px 16px rgba(49, 87, 232, .24);
+}
+
+.el-journey-item.is-complete .el-journey-number {
+  border-color: #cfe9de;
+  background: #eaf8f1;
+  color: #168055;
+}
+
+.el-journey-copy { display: flex; min-width: 0; flex: 1; flex-direction: column; gap: 2px; }
+.el-journey-copy strong { overflow: hidden; font-size: 13px; font-weight: 750; text-overflow: ellipsis; white-space: nowrap; }
+.el-journey-copy small { font-size: 10px; font-weight: 500; opacity: .72; }
+.el-journey-arrow { flex: 0 0 auto; }
+
+.el-journey-help {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 5px 10px 10px;
+  border-radius: 12px;
+  padding: 13px;
+  background: #f8fafc;
+  color: #718096;
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.el-journey-help svg { flex: 0 0 auto; color: #168055; }
+.el-journey-help span { display: flex; flex-direction: column; }
+.el-journey-help strong { color: #364152; font-size: 11px; }
+
+.el-step-content {
+  min-width: 0;
+  padding: 2px 0 30px;
+}
+
+.el-step-content form { min-width: 0; }
+
+.el-step-header {
+  margin-bottom: 30px;
+  padding: 0 0 25px;
+  border-bottom: 1px solid #dfe4ec;
+}
+
+.el-step-header > button {
+  display: none;
+}
+
+.el-step-eyebrow {
+  margin-bottom: 7px;
+  color: #3157e8;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+}
+
+.el-step-header h2 {
+  color: #111c35;
+  font-size: clamp(1.8rem, 3vw, 2.35rem);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -.035em;
+}
+
+.el-step-description {
+  margin-top: 9px;
+  color: #6c778b;
+  font-size: 14px;
+}
+
+.el-step-content form > div[class*='p-5']:not(.el-footer-actions),
+.el-step-content form > div[class*='space-y-7'] {
+  padding: 0 !important;
+}
+
+.el-basic-grid { column-gap: 26px; row-gap: 25px; }
+
+.el-field label,
+.el-upload-field > label:first-child {
+  margin-bottom: 8px;
+  color: #364152;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .075em;
+}
+
+.el-field input,
+.el-field select {
+  height: 56px;
+  border: 1px solid #d9dfE9;
+  border-radius: 12px;
+  background: #fff;
+  color: #172033;
+  box-shadow: 0 2px 0 rgba(23, 32, 51, .02);
+}
+
+.el-field input:hover,
+.el-field select:hover { border-color: #aeb9cb; }
+
+.el-field input:focus,
+.el-field select:focus {
+  transform: none;
+  border-color: #3157e8;
+  box-shadow: 0 0 0 4px rgba(49, 87, 232, .10);
+}
+
+.el-step-content form section {
+  margin: 0 !important;
+  padding: 28px 0 !important;
+  border: 0 !important;
+  border-top: 1px solid #e2e6ed !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.el-step-content form section:first-child { padding-top: 0 !important; border-top: 0 !important; }
+
+.el-step-content form section h3 {
+  margin-bottom: 18px;
+  color: #27334a;
+}
+
+.el-step-content form section h3 > span,
+.el-step-content form section > div:first-child span[class*='h-10'] {
+  border-radius: 9px;
+  background: #eef2ff !important;
+  color: #3157e8 !important;
+  box-shadow: none !important;
+}
+
+.el-upload-field label[for] {
+  min-height: 74px;
+  border: 1px dashed #bfc8d7;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.el-upload-field label[for]:hover {
+  transform: translateY(-2px);
+  border-color: #3157e8;
+  background: #f7f9ff;
+  box-shadow: 0 8px 20px rgba(49, 87, 232, .08);
+}
+
+.el-upload-field label[for] > span:first-child {
+  background: #eef2ff;
+  color: #3157e8;
+  box-shadow: none;
+}
+
+.el-loan-options { grid-template-columns: 1fr; }
+
+.el-loan-choice {
+  min-height: 0 !important;
+  flex-direction: row !important;
+  justify-content: flex-start !important;
+  gap: 18px;
+  border: 1px solid #dce2ec !important;
+  border-radius: 16px !important;
+  padding: 22px !important;
+  background: #fff !important;
+  text-align: left !important;
+  box-shadow: none !important;
+}
+
+.el-loan-choice:hover {
+  transform: translateX(5px) !important;
+  border-color: #98aaf0 !important;
+  box-shadow: 0 12px 30px rgba(28, 48, 100, .08) !important;
+}
+
+.el-loan-choice.is-selected { border-color: #3157e8 !important; background: #f6f8ff !important; }
+.el-loan-choice > span:first-child { display: none; }
+.el-loan-choice > span[class*='mb-4'] { margin: 0; flex: 0 0 58px; }
+.el-loan-choice > strong { min-width: 215px; font-size: 15px; }
+.el-loan-choice > span:last-child { margin: 0 42px 0 auto; }
+
+.el-footer-actions {
+  margin-top: 32px;
+  padding: 22px 0 0 !important;
+  border-top: 1px solid #dfe4ec !important;
+  background: transparent !important;
+}
+
+.el-footer-actions button {
+  border-radius: 999px !important;
+  box-shadow: none !important;
+}
+
+.el-footer-actions button[type='submit'] {
+  background: #3157e8 !important;
+  box-shadow: 0 9px 20px rgba(49, 87, 232, .20) !important;
+}
+
+.el-footer-actions button[type='submit']:hover { box-shadow: 0 12px 25px rgba(49, 87, 232, .28) !important; }
+
+@media (max-width: 900px) {
+  .el-application-workspace { grid-template-columns: 215px minmax(0, 1fr); gap: 30px; }
+  .el-loan-choice > strong { min-width: 0; }
+  .el-loan-choice > span:last-child { display: none; }
+}
+
+@media (max-width: 700px) {
+  .el-application-workspace { display: block; margin-top: 26px; }
+  .el-journey-nav { position: static; margin-bottom: 30px; border-radius: 16px; }
+  .el-journey-heading, .el-journey-help { display: none; }
+  .el-journey-list { display: flex; gap: 6px; overflow-x: auto; padding: 9px; scrollbar-width: none; }
+  .el-journey-list::-webkit-scrollbar { display: none; }
+  .el-journey-item { width: auto; min-width: max-content; padding: 9px 11px; }
+  .el-journey-item + .el-journey-item::before, .el-journey-copy small, .el-journey-arrow { display: none; }
+  .el-journey-copy strong { font-size: 11px; }
+  .el-journey-number { width: 27px; height: 27px; flex-basis: 27px; border-radius: 8px; font-size: 10px; }
+  .el-step-content { padding: 0 2px 24px; }
+  .el-step-header { margin-bottom: 24px; }
+  .el-step-description { font-size: 13px; }
+  .el-loan-choice { align-items: flex-start !important; }
+  .el-loan-choice > span[class*='mb-4'] { width: 48px; height: 48px; flex-basis: 48px; }
+  .el-loan-choice > strong { padding-top: 12px; }
+  .el-footer-actions { position: sticky; bottom: 0; z-index: 10; margin-inline: -16px; padding: 14px 16px !important; background: rgba(255,255,255,.96) !important; backdrop-filter: blur(12px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .el-application-workspace *, .el-application-workspace *::before, .el-application-workspace *::after {
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
+  }
+}

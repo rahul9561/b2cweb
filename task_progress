@@ -1,0 +1,9 @@
+- [x] Analyze existing Part 3 codebase against spec
+- [x] Identify critical issues (corrupted guaranteedPlans.ts, broken logo path, missing plan-list route)
+- [ ] Restore guaranteedPlans.ts with correct interface and data
+- [ ] Fix Header.tsx logo path (import from assets instead of public path)
+- [ ] Add home insurance plans data to homeInsurance.ts
+- [ ] Create HomePlanListPage and add route to App.tsx
+- [ ] Build/compile and verify no errors
+- [ ] Verify all spec requirements met across all 3 pages
+- [ ] Verify final result
