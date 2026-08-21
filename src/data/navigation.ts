@@ -183,7 +183,7 @@ export const footerColumns = {
   },
   resources: {
     title: 'Resources',
-    links: ['Articles', 'Customer reviews', 'Insurance companies', 'Awards', 'Consumer Insights'],
+    links: ['Articles', 'Customer reviews', 'Insurance companies'],
   },
   company: {
     title: 'Company',

@@ -13,7 +13,7 @@ export default function Testimonials() {
   const nextRef = useRef<HTMLButtonElement>(null)
 
   return (
-    <section className="bg-blueBGMuted py-14">
+    <section id="customer-reviews" className="scroll-mt-24 bg-blueBGMuted py-14">
       <div className="container-pb">
         <div className="flex items-center justify-between">
           <div>

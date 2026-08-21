@@ -85,6 +85,11 @@ import WalletPage from './pages/WalletPage'
 import AddMoneyPage from './pages/AddMoneyPage'
 import PaymentStatusPage from './pages/PaymentStatusPage'
 import EducationLoanPage from './pages/EducationLoanPage'
+import CareersPage from './pages/company/CareersPage'
+import AboutUsPage from './pages/company/AboutUsPage'
+import ContactUsPage from './pages/company/ContactUsPage'
+import LegalAdminPoliciesPage from './pages/company/LegalAdminPoliciesPage'
+import { DisclosurePage, PrivacyPolicyPage, TermsConditionsPage } from './pages/company/LegalPages'
 import { AuthProvider } from './context/AuthContext'   // add near the other context imports
 import { WalletProvider } from './context/WalletContext'
 import { ToastProvider } from './context/ToastContext'
@@ -169,6 +174,13 @@ export default function App() {
                   <Route path="/wallet/payment-status" element={<PaymentStatusPage />} />
                   <Route path="/cibil-score-for-personal-loan" element={<CibilScoreForPersonalLoanPage />} />
                   <Route path="/education-loan" element={<EducationLoanPage />} />
+                  <Route path="/careers" element={<CareersPage />} />
+                  <Route path="/about-us" element={<AboutUsPage />} />
+                  <Route path="/contact-us" element={<ContactUsPage />} />
+                  <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+                  <Route path="/terms-and-conditions" element={<TermsConditionsPage />} />
+                  <Route path="/disclosure" element={<DisclosurePage />} />
+                  <Route path="/legal-and-admin-policies" element={<LegalAdminPoliciesPage />} />
                   <Route path="/category/credit-score" element={<CreditScoreArticlesPage />} />
                   <Route path="/category/credit-score/:slug" element={<CreditScoreArticleDetailPage />} />
                   <Route path="/sip-calculator" element={<SipCalculatorPage />} />

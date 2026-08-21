@@ -252,10 +252,13 @@
 .el-loan-options { grid-template-columns: 1fr; }
 
 .el-loan-choice {
+  display: grid !important;
+  grid-template-columns: 58px minmax(0, 1fr);
+  grid-template-rows: auto auto;
   min-height: 0 !important;
-  flex-direction: row !important;
-  justify-content: flex-start !important;
-  gap: 18px;
+  column-gap: 18px;
+  row-gap: 5px;
+  align-items: center;
   border: 1px solid #dce2ec !important;
   border-radius: 16px !important;
   padding: 22px !important;
@@ -272,9 +275,9 @@
 
 .el-loan-choice.is-selected { border-color: #3157e8 !important; background: #f6f8ff !important; }
 .el-loan-choice > span:first-child { display: none; }
-.el-loan-choice > span[class*='mb-4'] { margin: 0; flex: 0 0 58px; }
-.el-loan-choice > strong { min-width: 215px; font-size: 15px; }
-.el-loan-choice > span:last-child { margin: 0 42px 0 auto; }
+.el-loan-choice > span[class*='mb-4'] { grid-row: 1 / 3; width: 58px; margin: 0; }
+.el-loan-choice > strong { grid-column: 2; align-self: end; min-width: 0; font-size: 15px; }
+.el-loan-choice > span:last-child { grid-column: 2; align-self: start; margin: 0; }
 
 .el-footer-actions {
   margin-top: 32px;
@@ -298,7 +301,7 @@
 @media (max-width: 900px) {
   .el-application-workspace { grid-template-columns: 215px minmax(0, 1fr); gap: 30px; }
   .el-loan-choice > strong { min-width: 0; }
-  .el-loan-choice > span:last-child { display: none; }
+  .el-loan-choice > span:last-child { display: block; }
 }
 
 @media (max-width: 700px) {
@@ -314,9 +317,8 @@
   .el-step-content { padding: 0 2px 24px; }
   .el-step-header { margin-bottom: 24px; }
   .el-step-description { font-size: 13px; }
-  .el-loan-choice { align-items: flex-start !important; }
-  .el-loan-choice > span[class*='mb-4'] { width: 48px; height: 48px; flex-basis: 48px; }
-  .el-loan-choice > strong { padding-top: 12px; }
+  .el-loan-choice { grid-template-columns: 48px minmax(0, 1fr); }
+  .el-loan-choice > span[class*='mb-4'] { width: 48px; height: 48px; }
   .el-footer-actions { position: sticky; bottom: 0; z-index: 10; margin-inline: -16px; padding: 14px 16px !important; background: rgba(255,255,255,.96) !important; backdrop-filter: blur(12px); }
 }
 

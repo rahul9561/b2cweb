@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { ArrowRight, ChevronLeft, ChevronRight, CheckCircle2, Zap } from 'lucide-react'
+import { useLocation } from 'react-router-dom'
 import { productTiles } from '../data/home'
 
 /* ── AV Management home sections ── */
@@ -48,6 +49,12 @@ const heroBanners = [
 
 export default function Home() {
   const [modalOpen, setModalOpen] = useState(false)
+  const location = useLocation()
+
+  useEffect(() => {
+    if (location.hash !== '#customer-reviews') return
+    window.requestAnimationFrame(() => document.getElementById('customer-reviews')?.scrollIntoView({ behavior: 'smooth' }))
+  }, [location.hash])
 
   return (
     <div>

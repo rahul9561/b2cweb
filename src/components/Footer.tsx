@@ -57,6 +57,18 @@ const paymentLogos = [
   { name: 'Mastercard', src: mastercardLogo },
 ]
 
+const companyRoutes: Record<string, string> = {
+  'About Us': '/about-us',
+  Careers: '/careers',
+  'Legal & Admin policies': '/legal-and-admin-policies',
+  'Contact us': '/contact-us',
+}
+
+const resourceRoutes: Record<string, string> = {
+  Articles: '/category/credit-score',
+  'Customer reviews': '/#customer-reviews',
+}
+
 export default function Footer() {
   return (
     <footer className="bg-navy text-white">
@@ -97,7 +109,7 @@ export default function Footer() {
           <ul className="space-y-2.5">
             {footerColumns.resources.links.map((l) => (
               <li key={l}>
-                <Link to="/calculators" className="text-[13px] text-white/60 hover:text-white">
+                <Link to={resourceRoutes[l] ?? '/calculators'} className="text-[13px] text-white/60 hover:text-white">
                   {l}
                 </Link>
               </li>
@@ -110,7 +122,7 @@ export default function Footer() {
           <ul className="space-y-2.5">
             {footerColumns.company.links.map((l) => (
               <li key={l}>
-                <Link to="/" className="text-[13px] text-white/60 hover:text-white">
+                <Link to={companyRoutes[l] ?? '/'} className="text-[13px] text-white/60 hover:text-white">
                   {l}
                 </Link>
               </li>
@@ -184,9 +196,11 @@ export default function Footer() {
             in activities like selling insurance policies, announcing bonus or investment of
             premiums. Public receiving such phone calls are requested to lodge a police complaint.
           </p>
-          <p className="mt-4">
-            © Copyright 2026 AV Management. All Rights Reserved. | Privacy Policy | Terms
-            &amp; Conditions | Disclosure
+          <p className="mt-4 flex flex-wrap items-center gap-x-2">
+            <span>© Copyright 2026 AV Management. All Rights Reserved.</span>
+            <span>|</span><Link to="/privacy-policy" className="hover:text-white hover:underline">Privacy Policy</Link>
+            <span>|</span><Link to="/terms-and-conditions" className="hover:text-white hover:underline">Terms &amp; Conditions</Link>
+            <span>|</span><Link to="/disclosure" className="hover:text-white hover:underline">Disclosure</Link>
           </p>
         </div>
       </div>
