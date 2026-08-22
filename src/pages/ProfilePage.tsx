@@ -19,12 +19,22 @@ const readableError = (error: unknown) => {
     : 'We could not update your profile. Please try again.'
 }
 
+const getProfileNames = (profile: { first_name?: unknown; last_name?: unknown; full_name?: unknown; name?: unknown } | null) => {
+  const legacyName = String(profile?.full_name ?? profile?.name ?? '').trim()
+  const [legacyFirstName = '', ...legacyLastNameParts] = legacyName.split(/\s+/).filter(Boolean)
+  return {
+    firstName: String(profile?.first_name ?? legacyFirstName).trim(),
+    lastName: String(profile?.last_name ?? legacyLastNameParts.join(' ')).trim(),
+  }
+}
+
 export default function ProfilePage() {
   const navigate = useNavigate()
   const location = useLocation()
   const { user, isAuthenticated, refreshProfile, updateProfile, logout } = useAuth()
   const [editing, setEditing] = useState(false)
-  const [fullName, setFullName] = useState('')
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
   const [email, setEmail] = useState('')
   const [profileImage, setProfileImage] = useState<File | null>(null)
   const [preview, setPreview] = useState('')
@@ -43,9 +53,11 @@ export default function ProfilePage() {
   }, [isAuthenticated, location.state, refreshProfile])
 
   useEffect(() => {
-    setFullName(String(user?.full_name ?? user?.name ?? ''))
+    const names = getProfileNames(user)
+    setFirstName(names.firstName)
+    setLastName(names.lastName)
     setEmail(String(user?.email ?? ''))
-  }, [user?.email, user?.full_name, user?.name])
+  }, [user])
 
   useEffect(() => {
     if (!profileImage) {
@@ -58,10 +70,13 @@ export default function ProfilePage() {
   }, [profileImage])
 
   const imageUrl = preview || getProfileImageUrl(user?.profile_image)
+  const displayName = useMemo(() => {
+    const names = getProfileNames(user)
+    return `${names.firstName} ${names.lastName}`.trim() || 'AV Management Customer'
+  }, [user])
   const initials = useMemo(() => {
-    const name = String(user?.full_name ?? user?.name ?? 'AV User').trim()
-    return name.split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase()
-  }, [user?.full_name, user?.name])
+    return displayName.split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase()
+  }, [displayName])
 
   if (!isAuthenticated) return <Navigate to="/login" replace />
 
@@ -69,8 +84,12 @@ export default function ProfilePage() {
     event.preventDefault()
     setError('')
     setSuccess('')
-    if (!fullName.trim()) {
-      setError('Please enter your full name.')
+    if (!firstName.trim()) {
+      setError('Please enter your first name.')
+      return
+    }
+    if (!lastName.trim()) {
+      setError('Please enter your last name.')
       return
     }
     if (email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
@@ -79,7 +98,14 @@ export default function ProfilePage() {
     }
     setLoading(true)
     try {
-      await updateProfile({ fullName, email, profileImage })
+      await updateProfile({
+        id: user?.id,
+        mobile: String(user?.mobile ?? ''),
+        firstName,
+        lastName,
+        email,
+        profileImage,
+      })
       setProfileImage(null)
       setEditing(false)
       setSuccess('Your profile has been updated successfully.')
@@ -91,7 +117,9 @@ export default function ProfilePage() {
   }
 
   const cancelEdit = () => {
-    setFullName(String(user?.full_name ?? user?.name ?? ''))
+    const names = getProfileNames(user)
+    setFirstName(names.firstName)
+    setLastName(names.lastName)
     setEmail(String(user?.email ?? ''))
     setProfileImage(null)
     setError('')
@@ -122,7 +150,7 @@ export default function ProfilePage() {
               )}
               <input ref={fileInput} type="file" accept="image/png,image/jpeg,image/gif,image/webp" className="hidden" onChange={(event) => setProfileImage(event.target.files?.[0] ?? null)} />
             </div>
-            <h2 className="mt-5 text-xl font-bold">{user?.full_name || user?.name || 'AV Management Customer'}</h2>
+            <h2 className="mt-5 text-xl font-bold">{displayName}</h2>
             {/* <p className="mt-1 text-sm text-blue-100">{user?.role || 'CUSTOMER'}</p> */}
             {editing && <p className="mt-3 text-xs text-blue-100">Tap the camera icon to upload a profile image</p>}
           </div>
@@ -154,13 +182,23 @@ export default function ProfilePage() {
           {error && <p className="mt-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
 
           <form onSubmit={saveProfile} className="mt-7 space-y-5">
-            <label className="block text-sm font-semibold text-slate-700">
-              Full name
-              <span className="relative mt-2 block">
-                <UserRound className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                <input value={fullName} onChange={(event) => setFullName(event.target.value)} disabled={!editing || loading} className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3.5 pl-12 pr-4 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100 disabled:text-slate-600" />
-              </span>
-            </label>
+            <div className="grid gap-5 sm:grid-cols-2">
+              <label className="block text-sm font-semibold text-slate-700">
+                First name
+                <span className="relative mt-2 block">
+                  <UserRound className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                  <input value={firstName} onChange={(event) => setFirstName(event.target.value)} disabled={!editing || loading} className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3.5 pl-12 pr-4 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100 disabled:text-slate-600" />
+                </span>
+              </label>
+
+              <label className="block text-sm font-semibold text-slate-700">
+                Last name
+                <span className="relative mt-2 block">
+                  <UserRound className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                  <input value={lastName} onChange={(event) => setLastName(event.target.value)} disabled={!editing || loading} className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3.5 pl-12 pr-4 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100 disabled:text-slate-600" />
+                </span>
+              </label>
+            </div>
 
             <label className="block text-sm font-semibold text-slate-700">
               Email address

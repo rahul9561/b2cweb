@@ -10,6 +10,8 @@ export interface AuthUser {
   username?: string
   mobile?: string
   email?: string
+  first_name?: string
+  last_name?: string
   full_name?: string
   profile_image?: string | null
   wallet_balance?: number | string
@@ -26,7 +28,7 @@ interface AuthContextValue {
   verifyOtp: (mobile: string, otp: string) => Promise<AuthUser>
   resendOtp: (mobile: string) => Promise<void>
   refreshProfile: () => Promise<AuthUser>
-  updateProfile: (input: { fullName: string; email: string; profileImage?: File | null }) => Promise<AuthUser>
+  updateProfile: (input: { id?: string | number; mobile?: string; firstName: string; lastName: string; email: string; profileImage?: File | null }) => Promise<AuthUser>
   logout: () => void
 }
 
@@ -127,8 +129,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return persistUser(await fetchCustomerProfile())
   }, [persistUser])
 
-  const updateProfile = useCallback(async (input: { fullName: string; email: string; profileImage?: File | null }) => {
-    return persistUser(await updateCustomerProfile(input))
+  const updateProfile = useCallback(async (input: { id?: string | number; mobile?: string; firstName: string; lastName: string; email: string; profileImage?: File | null }) => {
+    await updateCustomerProfile(input)
+    return persistUser(await fetchCustomerProfile())
   }, [persistUser])
 
   const logout = () => {
