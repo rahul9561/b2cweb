@@ -1,7 +1,8 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react'
 import { ApiClient, ApiError } from '../lib/apiClient'
 import { AppEndpoints, AppConstants } from '../config/appConfig'
 import { fetchLoanCategories } from '../lib/loanCategories'
+import { fetchCustomerProfile, updateCustomerProfile, type CustomerProfile } from '../lib/profileApi'
 
 export interface AuthUser {
   id?: string | number
@@ -9,6 +10,9 @@ export interface AuthUser {
   username?: string
   mobile?: string
   email?: string
+  full_name?: string
+  profile_image?: string | null
+  wallet_balance?: number | string
   roles?: string[]
   [key: string]: any
 }
@@ -21,6 +25,8 @@ interface AuthContextValue {
   sendOtp: (mobile: string) => Promise<void>
   verifyOtp: (mobile: string, otp: string) => Promise<AuthUser>
   resendOtp: (mobile: string) => Promise<void>
+  refreshProfile: () => Promise<AuthUser>
+  updateProfile: (input: { fullName: string; email: string; profileImage?: File | null }) => Promise<AuthUser>
   logout: () => void
 }
 
@@ -39,6 +45,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(() => localStorage.getItem(AppConstants.tokenKey))
   const [user, setUser] = useState<AuthUser | null>(() => readStoredUser())
   const [loading, setLoading] = useState(false)
+
+  const persistUser = useCallback((profile: CustomerProfile | AuthUser) => {
+    const updatedUser = { ...readStoredUser(), ...profile } as AuthUser
+    localStorage.setItem(AppConstants.userDataKey, JSON.stringify(updatedUser))
+    setUser(updatedUser)
+    return updatedUser
+  }, [])
 
   useEffect(() => {
     const onStorage = () => {
@@ -109,6 +122,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  const refreshProfile = useCallback(async () => {
+    if (!localStorage.getItem(AppConstants.tokenKey)) throw new Error('Please sign in to view your profile.')
+    return persistUser(await fetchCustomerProfile())
+  }, [persistUser])
+
+  const updateProfile = useCallback(async (input: { fullName: string; email: string; profileImage?: File | null }) => {
+    return persistUser(await updateCustomerProfile(input))
+  }, [persistUser])
+
   const logout = () => {
     localStorage.removeItem(AppConstants.tokenKey)
     localStorage.removeItem(AppConstants.userDataKey)
@@ -117,7 +139,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, token, isAuthenticated: !!token, loading, sendOtp, verifyOtp, resendOtp, logout }}>
+    <AuthContext.Provider value={{ user, token, isAuthenticated: !!token, loading, sendOtp, verifyOtp, resendOtp, refreshProfile, updateProfile, logout }}>
       {children}
     </AuthContext.Provider>
   )

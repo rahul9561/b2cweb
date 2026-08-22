@@ -381,8 +381,14 @@ export default function CibilCrossVerifyPage() {
   const [submitting, setSubmitting] = useState(false)
   const { submitVerification, loading, error: submitError } = useCreditAnalysis()
 
-  const setAnswer = (key: string, answer: 'yes' | 'no') => {
-    setVerification((current) => ({ ...current, [key]: answer }))
+  const setCardAnswer = (fields: FieldItem[], answer: 'yes' | 'no') => {
+    setVerification((current) => {
+      const next = { ...current }
+      fields.forEach((field) => {
+        next[field.uniqueKey] = answer
+      })
+      return next
+    })
   }
 
   const allAnswered =
@@ -472,44 +478,41 @@ export default function CibilCrossVerifyPage() {
                       </div>
                     )}
                     <div className="divide-y divide-slate-100">
-                      {card.fields.map((field) => {
-                        const answer = verification[field.uniqueKey]
-                        return (
-                          <div
-                            key={field.uniqueKey}
-                            className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between"
-                          >
-                            <div className="min-w-0">
-                              <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">{field.label}</p>
-                              <p className="mt-1 break-words text-base font-semibold text-navy">{field.value}</p>
-                            </div>
-                            <div className="flex shrink-0 gap-2.5">
-                              <button
-                                type="button"
-                                onClick={() => setAnswer(field.uniqueKey, 'yes')}
-                                className={`flex items-center gap-1.5 rounded-xl border px-5 py-2.5 text-sm font-semibold transition ${
-                                  answer === 'yes'
-                                    ? 'border-emerald-500 bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
-                                    : 'border-slate-300 bg-white text-slate-600 hover:border-emerald-400 hover:bg-emerald-50'
-                                }`}
-                              >
-                                <CheckCircle2 size={16} /> Yes
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => setAnswer(field.uniqueKey, 'no')}
-                                className={`flex items-center gap-1.5 rounded-xl border px-5 py-2.5 text-sm font-semibold transition ${
-                                  answer === 'no'
-                                    ? 'border-red-500 bg-red-500 text-white shadow-lg shadow-red-500/20'
-                                    : 'border-slate-300 bg-white text-slate-600 hover:border-red-400 hover:bg-red-50'
-                                }`}
-                              >
-                                <XCircle size={16} /> No
-                              </button>
-                            </div>
+                      {card.fields.map((field) => (
+                        <div key={field.uniqueKey} className="px-5 py-4">
+                          <div className="min-w-0">
+                            <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">{field.label}</p>
+                            <p className="mt-1 break-words text-base font-semibold text-navy">{field.value}</p>
                           </div>
-                        )
-                      })}
+                        </div>
+                      ))}
+                      <div className="flex flex-col gap-3 bg-slate-50/70 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+                        <p className="text-sm font-semibold text-navy">Are these details are correct</p>
+                        <div className="flex shrink-0 gap-2.5">
+                          <button
+                            type="button"
+                            onClick={() => setCardAnswer(card.fields, 'yes')}
+                            className={`flex items-center gap-1.5 rounded-xl border px-5 py-2.5 text-sm font-semibold transition ${
+                              verification[card.fields[0].uniqueKey] === 'yes'
+                                ? 'border-emerald-500 bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
+                                : 'border-slate-300 bg-white text-slate-600 hover:border-emerald-400 hover:bg-emerald-50'
+                            }`}
+                          >
+                            <CheckCircle2 size={16} /> Yes
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setCardAnswer(card.fields, 'no')}
+                            className={`flex items-center gap-1.5 rounded-xl border px-5 py-2.5 text-sm font-semibold transition ${
+                              verification[card.fields[0].uniqueKey] === 'no'
+                                ? 'border-red-500 bg-red-500 text-white shadow-lg shadow-red-500/20'
+                                : 'border-slate-300 bg-white text-slate-600 hover:border-red-400 hover:bg-red-50'
+                            }`}
+                          >
+                            <XCircle size={16} /> No
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 ))}

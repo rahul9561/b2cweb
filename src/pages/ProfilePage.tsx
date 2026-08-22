@@ -1,0 +1,206 @@
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { Camera, CheckCircle2, Edit3, Loader2, LockKeyhole, LogOut, Mail, Phone, UserRound, Wallet } from 'lucide-react'
+import { Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
+import LogoutConfirmModal from '../components/LogoutConfirmModal'
+import { getProfileImageUrl } from '../lib/profileApi'
+
+const formatBalance = (value: unknown) =>
+  new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+    maximumFractionDigits: 2,
+  }).format(Number(value) || 0)
+
+const readableError = (error: unknown) => {
+  const message = error instanceof Error ? error.message : ''
+  return message && !/<\/?html\b/i.test(message)
+    ? message
+    : 'We could not update your profile. Please try again.'
+}
+
+export default function ProfilePage() {
+  const navigate = useNavigate()
+  const location = useLocation()
+  const { user, isAuthenticated, refreshProfile, updateProfile, logout } = useAuth()
+  const [editing, setEditing] = useState(false)
+  const [fullName, setFullName] = useState('')
+  const [email, setEmail] = useState('')
+  const [profileImage, setProfileImage] = useState<File | null>(null)
+  const [preview, setPreview] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
+  const fileInput = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (!isAuthenticated || (location.state as { profileRefreshed?: boolean } | null)?.profileRefreshed) return
+    setLoading(true)
+    refreshProfile()
+      .catch((requestError) => setError(readableError(requestError)))
+      .finally(() => setLoading(false))
+  }, [isAuthenticated, location.state, refreshProfile])
+
+  useEffect(() => {
+    setFullName(String(user?.full_name ?? user?.name ?? ''))
+    setEmail(String(user?.email ?? ''))
+  }, [user?.email, user?.full_name, user?.name])
+
+  useEffect(() => {
+    if (!profileImage) {
+      setPreview('')
+      return
+    }
+    const objectUrl = URL.createObjectURL(profileImage)
+    setPreview(objectUrl)
+    return () => URL.revokeObjectURL(objectUrl)
+  }, [profileImage])
+
+  const imageUrl = preview || getProfileImageUrl(user?.profile_image)
+  const initials = useMemo(() => {
+    const name = String(user?.full_name ?? user?.name ?? 'AV User').trim()
+    return name.split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase()
+  }, [user?.full_name, user?.name])
+
+  if (!isAuthenticated) return <Navigate to="/login" replace />
+
+  const saveProfile = async (event: React.FormEvent) => {
+    event.preventDefault()
+    setError('')
+    setSuccess('')
+    if (!fullName.trim()) {
+      setError('Please enter your full name.')
+      return
+    }
+    if (email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      setError('Please enter a valid email address.')
+      return
+    }
+    setLoading(true)
+    try {
+      await updateProfile({ fullName, email, profileImage })
+      setProfileImage(null)
+      setEditing(false)
+      setSuccess('Your profile has been updated successfully.')
+    } catch (requestError) {
+      setError(readableError(requestError))
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const cancelEdit = () => {
+    setFullName(String(user?.full_name ?? user?.name ?? ''))
+    setEmail(String(user?.email ?? ''))
+    setProfileImage(null)
+    setError('')
+    setEditing(false)
+  }
+
+  return (
+    <main className="min-h-screen bg-slate-50 pb-16">
+      <section className="border-b border-blue-100 bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+        <div className="container-pb py-10 md:py-14">
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-blue-600">My account</p>
+          <h1 className="mt-2 font-serif text-3xl font-bold text-navy md:text-4xl">Your profile</h1>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">Manage your personal details and keep your account information up to date.</p>
+        </div>
+      </section>
+
+      <div className="container-pb -mt-1 grid max-w-5xl gap-6 py-8 lg:grid-cols-[300px_minmax(0,1fr)]">
+        <aside className="h-fit overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl shadow-blue-950/5">
+          <div className="bg-gradient-to-br from-blue-700 to-indigo-700 px-6 py-8 text-center text-white">
+            <div className="relative mx-auto h-28 w-28">
+              <div className="grid h-full w-full place-items-center overflow-hidden rounded-full border-4 border-white/70 bg-blue-100 text-3xl font-bold text-blue-700 shadow-lg">
+                {imageUrl ? <img src={imageUrl} alt="Profile" className="h-full w-full object-cover" /> : initials}
+              </div>
+              {editing && (
+                <button type="button" onClick={() => fileInput.current?.click()} className="absolute bottom-0 right-0 grid h-10 w-10 place-items-center rounded-full border-2 border-white bg-white text-blue-700 shadow-md transition hover:scale-105" aria-label="Upload profile image">
+                  <Camera size={18} />
+                </button>
+              )}
+              <input ref={fileInput} type="file" accept="image/png,image/jpeg,image/gif,image/webp" className="hidden" onChange={(event) => setProfileImage(event.target.files?.[0] ?? null)} />
+            </div>
+            <h2 className="mt-5 text-xl font-bold">{user?.full_name || user?.name || 'AV Management Customer'}</h2>
+            {/* <p className="mt-1 text-sm text-blue-100">{user?.role || 'CUSTOMER'}</p> */}
+            {editing && <p className="mt-3 text-xs text-blue-100">Tap the camera icon to upload a profile image</p>}
+          </div>
+          <div className="p-5">
+            <div className="flex items-center justify-between rounded-2xl bg-blue-50 p-4">
+              <span className="flex items-center gap-2 text-sm font-medium text-slate-600"><Wallet size={18} className="text-blue-600" /> Wallet balance</span>
+              <strong className="text-blue-700">{formatBalance(user?.wallet_balance)}</strong>
+            </div>
+            <button type="button" onClick={() => setShowLogoutConfirm(true)} className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-red-200 px-4 py-3 text-sm font-semibold text-red-600 transition hover:bg-red-50">
+              <LogOut size={17} /> Sign out
+            </button>
+          </div>
+        </aside>
+
+        <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-blue-950/5 md:p-8">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h2 className="text-xl font-bold text-navy">Personal information</h2>
+              <p className="mt-1 text-sm text-slate-500">Details associated with your account</p>
+            </div>
+            {!editing && (
+              <button type="button" onClick={() => { setEditing(true); setSuccess('') }} className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-700">
+                <Edit3 size={16} /> Edit profile
+              </button>
+            )}
+          </div>
+
+          {success && <p className="mt-6 flex items-center gap-2 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700"><CheckCircle2 size={17} /> {success}</p>}
+          {error && <p className="mt-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
+
+          <form onSubmit={saveProfile} className="mt-7 space-y-5">
+            <label className="block text-sm font-semibold text-slate-700">
+              Full name
+              <span className="relative mt-2 block">
+                <UserRound className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                <input value={fullName} onChange={(event) => setFullName(event.target.value)} disabled={!editing || loading} className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3.5 pl-12 pr-4 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100 disabled:text-slate-600" />
+              </span>
+            </label>
+
+            <label className="block text-sm font-semibold text-slate-700">
+              Email address
+              <span className="relative mt-2 block">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} disabled={!editing || loading} placeholder="Add your email address" className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3.5 pl-12 pr-4 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100 disabled:text-slate-600" />
+              </span>
+            </label>
+
+            <label className="block text-sm font-semibold text-slate-700">
+              Mobile number
+              <span className="relative mt-2 block">
+                <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                <input value={String(user?.mobile ?? '')} disabled className="w-full rounded-xl border border-slate-200 bg-slate-100 py-3.5 pl-12 pr-12 text-slate-600" />
+                <LockKeyhole className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" size={17} />
+              </span>
+              <span className="mt-2 block text-xs font-normal text-slate-500">Your verified mobile number cannot be changed.</span>
+            </label>
+
+            {editing && (
+              <div className="flex flex-wrap justify-end gap-3 border-t border-slate-100 pt-6">
+                <button type="button" onClick={cancelEdit} disabled={loading} className="rounded-xl border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-60">Cancel</button>
+                <button type="submit" disabled={loading} className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-60">
+                  {loading ? <><Loader2 size={17} className="animate-spin" /> Saving...</> : 'Save changes'}
+                </button>
+              </div>
+            )}
+          </form>
+        </section>
+      </div>
+
+      <LogoutConfirmModal
+        open={showLogoutConfirm}
+        onCancel={() => setShowLogoutConfirm(false)}
+        onConfirm={() => {
+          logout()
+          setShowLogoutConfirm(false)
+          navigate('/')
+        }}
+      />
+    </main>
+  )
+}

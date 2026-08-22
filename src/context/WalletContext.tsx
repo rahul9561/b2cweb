@@ -36,7 +36,7 @@ const messageFrom = (error: unknown): string =>
   error instanceof Error ? error.message : 'Something went wrong while loading wallet data.'
 
 export function WalletProvider({ children }: { children: ReactNode }) {
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, user } = useAuth()
   const [wallet, setWallet] = useState<WalletBalance | null>(null)
   const [transactions, setTransactions] = useState<WalletTransaction[]>([])
   const [plans, setPlans] = useState<RechargePlan | null>(null)
@@ -123,9 +123,11 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       setError('')
       return
     }
-
-    void refreshBalance().catch(() => undefined)
-  }, [isAuthenticated, refreshBalance])
+    const profileBalance = Number(user?.wallet_balance)
+    if (Number.isFinite(profileBalance)) {
+      setWallet({ main: profileBalance, aeps: 0, cibil: 0 })
+    }
+  }, [isAuthenticated, user?.wallet_balance])
 
   return (
     <WalletContext.Provider

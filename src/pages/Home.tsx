@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { ArrowRight, ChevronLeft, ChevronRight, CheckCircle2, Zap } from 'lucide-react'
 import { useLocation } from 'react-router-dom'
 import { productTiles } from '../data/home'
+import { useAuth } from '../context/AuthContext'
 
 /* ── AV Management home sections ── */
 import QuickBuy from '../components/QuickBuy'
@@ -50,6 +51,11 @@ const heroBanners = [
 export default function Home() {
   const [modalOpen, setModalOpen] = useState(false)
   const location = useLocation()
+  const { isAuthenticated, refreshProfile } = useAuth()
+
+  useEffect(() => {
+    if (isAuthenticated) void refreshProfile().catch(() => undefined)
+  }, [isAuthenticated, refreshProfile])
 
   useEffect(() => {
     if (location.hash !== '#customer-reviews') return

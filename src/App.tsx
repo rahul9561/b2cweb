@@ -84,6 +84,7 @@ import LoanOffersPage from './pages/LoanOffersPage'
 import WalletPage from './pages/WalletPage'
 import AddMoneyPage from './pages/AddMoneyPage'
 import PaymentStatusPage from './pages/PaymentStatusPage'
+import ProfilePage from './pages/ProfilePage'
 import EducationLoanPage from './pages/EducationLoanPage'
 import CareersPage from './pages/company/CareersPage'
 import AboutUsPage from './pages/company/AboutUsPage'
@@ -172,6 +173,7 @@ export default function App() {
                   <Route path="/wallet" element={<WalletPage />} />
                   <Route path="/wallet/add-money" element={<AddMoneyPage />} />
                   <Route path="/wallet/payment-status" element={<PaymentStatusPage />} />
+                  <Route path="/profile" element={<ProfilePage />} />
                   <Route path="/cibil-score-for-personal-loan" element={<CibilScoreForPersonalLoanPage />} />
                   <Route path="/education-loan" element={<EducationLoanPage />} />
                   <Route path="/careers" element={<CareersPage />} />

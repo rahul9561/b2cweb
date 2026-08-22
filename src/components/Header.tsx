@@ -17,13 +17,11 @@ import {
   RefreshCcw,
   Briefcase,
   Home,
-  LogOut,
   Wallet,
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'          // ← add
 import { useWallet } from '../context/WalletContext'
 import { getTotalBalance } from '../lib/walletApi'
-import LogoutConfirmModal from './LogoutConfirmModal'    
 import { insuranceMenu, renewMenu, claimMenu, creditScoreMenu, supportMenu, loansMenu } from '../data/navigation'
 import type { MenuCategory } from '../data/navigation'
 import logo from "../assets/images/av-logon.png";
@@ -45,8 +43,7 @@ const renewIcons: Record<string, typeof Shield> = {
 
 export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false)
-  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)   // ← add
-  const { isAuthenticated, logout } = useAuth()                       // ← add
+  const { isAuthenticated, refreshProfile } = useAuth()
   const { wallet } = useWallet()
   const navigate = useNavigate()    
   const walletTotal = wallet ? getTotalBalance(wallet) : 0
@@ -55,11 +52,15 @@ export default function Header() {
     currency: 'INR',
     maximumFractionDigits: 0,
   }).format(walletTotal)
-   const handleConfirmLogout = () => {
-    logout()
-    setShowLogoutConfirm(false)
+  const openProfile = async () => {
+    await refreshProfile().catch(() => undefined)
     setMobileOpen(false)
-    navigate('/')
+    navigate('/profile', { state: { profileRefreshed: true } })
+  }
+  const openWallet = async () => {
+    await refreshProfile().catch(() => undefined)
+    setMobileOpen(false)
+    navigate('/wallet')
   }
   return (
     <header className="sticky top-0 z-50 border-b border-gray-800 bg-black shadow-lg">
@@ -286,11 +287,11 @@ export default function Header() {
           </div>
 {isAuthenticated ? (
   <button
-    onClick={() => setShowLogoutConfirm(true)}
+    onClick={openProfile}
     className="hidden items-center gap-2 whitespace-nowrap rounded-full border border-brand px-4 py-2 text-[13px] font-medium text-brand transition-colors hover:bg-brand hover:text-white sm:flex"
   >
-    <LogOut size={14} />
-    Sign out
+    <User size={14} />
+    Profile
   </button>
 ) : (
   <Link
@@ -303,7 +304,7 @@ export default function Header() {
 )}
           {isAuthenticated && (
             <button
-              onClick={() => navigate('/wallet')}
+              onClick={openWallet}
               className="hidden items-center gap-2 whitespace-nowrap rounded-full border border-brand px-4 py-2 text-[13px] font-medium text-brand transition-colors hover:bg-brand hover:text-white sm:flex"
               aria-label={`Wallet balance ${formattedWalletTotal}`}
             >
@@ -445,23 +446,23 @@ export default function Header() {
                 </div>
               </div>
               {isAuthenticated && (
-                <Link
-                  to="/wallet"
-                  onClick={() => setMobileOpen(false)}
+                <button
+                  type="button"
+                  onClick={openWallet}
                   className="flex items-center justify-between rounded-lg border border-brand px-3 py-2.5 text-[13px] font-medium text-brand"
                 >
                   <span className="flex items-center gap-2"><Wallet size={16} /> Wallet</span>
                   <span>{formattedWalletTotal}</span>
-                </Link>
+                </button>
               )}
               <div className="flex gap-3 pt-2">
                 {isAuthenticated ? (
   <button
-    onClick={() => setShowLogoutConfirm(true)}
+    onClick={openProfile}
     className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-brand py-2.5 text-[13px] font-medium text-brand"
   >
-    <LogOut size={14} />
-    Sign out
+    <User size={14} />
+    Profile
   </button>
 ) : (
   <Link
@@ -490,11 +491,6 @@ export default function Header() {
           </div>
         </div>
       )}
-            <LogoutConfirmModal
-        open={showLogoutConfirm}
-        onCancel={() => setShowLogoutConfirm(false)}
-        onConfirm={handleConfirmLogout}
-      />
     </header>
   )
 }

@@ -5,6 +5,8 @@ export const API_BASE_URL: string =
 export const AppEndpoints = {
   customerSendOtp: '/accounts/send-otp/',
   customerVerifyOtp: '/accounts/verify-otp/',
+  customerProfile: '/accounts/profile/',
+  updateCustomerProfile: '/accounts/update-profile/',
   resendOtp: '/auth/resend-otp/',
   // Credit bureau report generation (paid — deducts wallet balance).
   // The same endpoint serves all three bureaus; the bureau is selected

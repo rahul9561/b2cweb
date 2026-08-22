@@ -104,14 +104,14 @@ export const getTotalBalance = (wallet: WalletBalance): number =>
   wallet.main + wallet.aeps + wallet.cibil
 
 export async function getWalletBalance(): Promise<WalletBalance> {
-  const response = asRecord(await walletRequest(AppEndpoints.walletBalance))
-  const wallet = asRecord(response?.wallet)
-  if (!wallet) throw new WalletApiError('The server returned an invalid wallet balance.', 200, response)
+  const response = asRecord(await walletRequest(AppEndpoints.customerProfile))
+  const profile = asRecord(response?.data) ?? response
+  if (!profile) throw new WalletApiError('The server returned invalid profile information.', 200, response)
 
   return {
-    main: numberValue(wallet.main),
-    aeps: numberValue(wallet.aeps),
-    cibil: numberValue(wallet.cibil),
+    main: numberValue(profile.wallet_balance),
+    aeps: 0,
+    cibil: 0,
   }
 }
 
