@@ -1,4 +1,4 @@
-import { useMemo, useState, type ChangeEvent, type FormEvent } from 'react'
+import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from 'react'
 import {
   ArrowLeft,
   ArrowRight,
@@ -12,6 +12,7 @@ import {
   GraduationCap,
   Headset,
   Landmark,
+  Loader2,
   LockKeyhole,
   MapPin,
   UserRound,
@@ -22,14 +23,17 @@ import {
   XCircle,
 } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { useNavigate } from 'react-router-dom'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
-import OTPModal from '../components/OTPModal'
 import educationLoanHero from '../assets/images/education-loan-hero.png'
+import { submitEducationLoanLead } from '../lib/educationLoanApi'
+import { useAuth } from '../context/AuthContext'
 import './EducationLoanPage.css'
 
 type LoanType = 'domestic' | 'abroad'
-type Step = 1 | 2 | 3 | 4 | 5
+type Step = number
+type CoApplicantType = 'business' | 'agriculture' | 'salaried' | 'pension' | 'others'
 
 type BasicDetails = {
   applicantName: string
@@ -45,6 +49,9 @@ type BasicDetails = {
 }
 
 type StudentDetails = {
+  higherSecondaryType: '12th' | 'diploma'
+  additionalQualification: string
+  experienceStatus: 'no' | 'have'
   offerLetterStatus: string
   fatherMobile: string
   fatherEmail: string
@@ -62,6 +69,24 @@ type StudentDetails = {
   reference2Address: string
 }
 
+type CoApplicantDetails = {
+  types: CoApplicantType[]
+  relation: string
+  mobile: string
+  email: string
+  pan: string
+  yearOfJob: string
+  designation: string
+  employeeId: string
+  yearOfBusiness: string
+  businessAddress: string
+  pensionSlipStatus: 'no' | 'have'
+}
+
+type SpouseDetails = {
+  mobile: string
+}
+
 type PropertyDetails = {
   loanSecurity: 'secured' | 'unsecured' | ''
   ownerName: string
@@ -77,6 +102,11 @@ type PropertyDetails = {
 type FileKey =
   | 'tenthMarksheet'
   | 'twelfthMarksheet'
+  | 'diplomaDocument'
+  | 'degreeDocument'
+  | 'postGraduationDegree'
+  | 'additionalQualificationCertificate'
+  | 'experienceLetter'
   | 'offerLetter'
   | 'studentPhoto'
   | 'aadhaarCard'
@@ -93,14 +123,29 @@ type FileKey =
   | 'motherAadhaar'
   | 'motherPanFront'
   | 'motherPanBack'
+  | 'coApplicantPhoto'
+  | 'coApplicantAadhaarFront'
+  | 'coApplicantAadhaarBack'
+  | 'coApplicantPanFront'
+  | 'coApplicantPanBack'
+  | 'coApplicantBankStatement'
+  | 'coApplicantItr'
+  | 'coApplicantSalarySlip'
+  | 'coApplicantJForm'
+  | 'coApplicantGst'
+  | 'coApplicantBusinessPhotos'
+  | 'coApplicantPpo'
+  | 'coApplicantPensionSlip'
+  | 'marriageCertificate'
+  | 'spouseDocuments'
+  | 'spouseFatherDocuments'
+  | 'spouseMotherDocuments'
+  | 'spouseAddressProof'
   | 'propertyDocuments'
   | 'propertyPhotos'
 
 type Uploads = Record<FileKey, File | null>
 type Errors = Record<string, string>
-
-const domesticSteps = ['Loan Type', 'Basic Details', 'Student', 'Review & Submit']
-const abroadSteps = ['Loan Type', 'Basic Details', 'Student', 'Property', 'Review & Submit']
 
 const initialBasic: BasicDetails = {
   applicantName: '',
@@ -116,6 +161,9 @@ const initialBasic: BasicDetails = {
 }
 
 const initialStudent: StudentDetails = {
+  higherSecondaryType: '12th',
+  additionalQualification: '',
+  experienceStatus: 'no',
   offerLetterStatus: '',
   fatherMobile: '',
   fatherEmail: '',
@@ -133,6 +181,22 @@ const initialStudent: StudentDetails = {
   reference2Address: '',
 }
 
+const initialCoApplicant: CoApplicantDetails = {
+  types: [],
+  relation: '',
+  mobile: '',
+  email: '',
+  pan: '',
+  yearOfJob: '',
+  designation: '',
+  employeeId: '',
+  yearOfBusiness: '',
+  businessAddress: '',
+  pensionSlipStatus: 'no',
+}
+
+const initialSpouse: SpouseDetails = { mobile: '' }
+
 const initialProperty: PropertyDetails = {
   loanSecurity: '',
   ownerName: '',
@@ -148,6 +212,11 @@ const initialProperty: PropertyDetails = {
 const initialUploads: Uploads = {
   tenthMarksheet: null,
   twelfthMarksheet: null,
+  diplomaDocument: null,
+  degreeDocument: null,
+  postGraduationDegree: null,
+  additionalQualificationCertificate: null,
+  experienceLetter: null,
   offerLetter: null,
   studentPhoto: null,
   aadhaarCard: null,
@@ -164,6 +233,24 @@ const initialUploads: Uploads = {
   motherAadhaar: null,
   motherPanFront: null,
   motherPanBack: null,
+  coApplicantPhoto: null,
+  coApplicantAadhaarFront: null,
+  coApplicantAadhaarBack: null,
+  coApplicantPanFront: null,
+  coApplicantPanBack: null,
+  coApplicantBankStatement: null,
+  coApplicantItr: null,
+  coApplicantSalarySlip: null,
+  coApplicantJForm: null,
+  coApplicantGst: null,
+  coApplicantBusinessPhotos: null,
+  coApplicantPpo: null,
+  coApplicantPensionSlip: null,
+  marriageCertificate: null,
+  spouseDocuments: null,
+  spouseFatherDocuments: null,
+  spouseMotherDocuments: null,
+  spouseAddressProof: null,
   propertyDocuments: null,
   propertyPhotos: null,
 }
@@ -171,6 +258,11 @@ const initialUploads: Uploads = {
 const uploadLabels: Record<FileKey, string> = {
   tenthMarksheet: '10th Marksheet',
   twelfthMarksheet: '12th Marksheet',
+  diplomaDocument: 'Diploma Document',
+  degreeDocument: "Bachelor's Degree",
+  postGraduationDegree: 'Post Graduation Degree',
+  additionalQualificationCertificate: 'Additional Qualification Certificate',
+  experienceLetter: 'Experience Letter',
   offerLetter: 'Offer Letter',
   studentPhoto: 'Photo (Passport Size)',
   aadhaarCard: 'Aadhaar Card Front',
@@ -187,8 +279,110 @@ const uploadLabels: Record<FileKey, string> = {
   motherAadhaar: 'Mother Aadhaar Card',
   motherPanFront: 'Mother PAN Card Front',
   motherPanBack: 'Mother PAN Card Back',
+  coApplicantPhoto: 'Co-Applicant Photo (Passport Size)',
+  coApplicantAadhaarFront: 'Co-Applicant Aadhaar Front',
+  coApplicantAadhaarBack: 'Co-Applicant Aadhaar Back',
+  coApplicantPanFront: 'Co-Applicant PAN Card Front',
+  coApplicantPanBack: 'Co-Applicant PAN Card Back',
+  coApplicantBankStatement: 'Co-Applicant Bank Statement',
+  coApplicantItr: 'Co-Applicant ITR',
+  coApplicantSalarySlip: 'Co-Applicant Salary Slips',
+  coApplicantJForm: 'J Form (3 Year Latest)',
+  coApplicantGst: 'Co-Applicant GST / MSME',
+  coApplicantBusinessPhotos: 'Co-Applicant Business Photos',
+  coApplicantPpo: 'Co-Applicant PPO Letter',
+  coApplicantPensionSlip: 'Co-Applicant Pension Slip',
+  marriageCertificate: 'Marriage Certificate',
+  spouseDocuments: 'Spouse Documents',
+  spouseFatherDocuments: 'Spouse Father Documents',
+  spouseMotherDocuments: 'Spouse Mother Documents',
+  spouseAddressProof: 'Spouse Address Proof',
   propertyDocuments: 'Property Documents',
   propertyPhotos: 'Property Photos',
+}
+
+const uploadApiKeys: Record<FileKey, string> = {
+  tenthMarksheet: 'student.tenth',
+  twelfthMarksheet: 'student.twelfth',
+  diplomaDocument: 'student.diploma',
+  degreeDocument: 'student.degree',
+  postGraduationDegree: 'student.post_graduation_degree',
+  additionalQualificationCertificate: 'student.additional_qualification_certificate',
+  experienceLetter: 'student.experience_letter',
+  offerLetter: 'student.offer_letter',
+  studentPhoto: 'student.photo',
+  aadhaarCard: 'student.aadhaar_front',
+  aadhaarBack: 'student.aadhaar_back',
+  panCardFront: 'student.pan',
+  panCardBack: 'student.pan_back',
+  passportFront: 'student.passport',
+  addressProof: 'student.electricity_bill',
+  fatherPhoto: 'student.father_photo',
+  fatherAadhaar: 'student.father_adhar',
+  fatherPanFront: 'student.father_pan',
+  fatherPanBack: 'student.father_pan_back',
+  motherPhoto: 'student.mother_photo',
+  motherAadhaar: 'student.mother_adhar',
+  motherPanFront: 'student.mother_pan',
+  motherPanBack: 'student.mother_pan_back',
+  coApplicantPhoto: 'coapplicant.photo_passport',
+  coApplicantAadhaarFront: 'coapplicant.aadhaar_front',
+  coApplicantAadhaarBack: 'coapplicant.aadhaar_back',
+  coApplicantPanFront: 'coapplicant.pan',
+  coApplicantPanBack: 'coapplicant.pan_back',
+  coApplicantBankStatement: 'coapplicant.bank_statement',
+  coApplicantItr: 'coapplicant.itr',
+  coApplicantSalarySlip: 'coapplicant.salary_slip',
+  coApplicantJForm: 'coapplicant.j_form',
+  coApplicantGst: 'coapplicant.gst',
+  coApplicantBusinessPhotos: 'coapplicant.business_photos',
+  coApplicantPpo: 'coapplicant.ppo',
+  coApplicantPensionSlip: 'coapplicant.pension_slip',
+  marriageCertificate: 'husband.marriage_certificate',
+  spouseDocuments: 'husband.husband_docs',
+  spouseFatherDocuments: 'husband.father_docs',
+  spouseMotherDocuments: 'husband.mother_docs',
+  spouseAddressProof: 'husband.address_proof',
+  propertyDocuments: 'property.documents',
+  propertyPhotos: 'property.photos',
+}
+
+const coApplicantIdentityUploads: FileKey[] = [
+  'coApplicantPhoto',
+  'coApplicantAadhaarFront',
+  'coApplicantAadhaarBack',
+  'coApplicantPanFront',
+]
+
+const coApplicantIncomeUploads: Record<CoApplicantType, FileKey[]> = {
+  salaried: ['coApplicantBankStatement', 'coApplicantItr', 'coApplicantSalarySlip'],
+  agriculture: ['coApplicantBankStatement', 'coApplicantItr', 'coApplicantGst', 'coApplicantJForm'],
+  pension: ['coApplicantBankStatement', 'coApplicantItr', 'coApplicantPpo'],
+  business: ['coApplicantBankStatement', 'coApplicantItr', 'coApplicantGst', 'coApplicantJForm', 'coApplicantBusinessPhotos'],
+  others: ['coApplicantBankStatement', 'coApplicantItr'],
+}
+
+const coApplicantTypeOptions: Array<{ value: CoApplicantType; label: string }> = [
+  { value: 'business', label: 'Business' },
+  { value: 'agriculture', label: 'Agriculture' },
+  { value: 'salaried', label: 'Salaried' },
+  { value: 'pension', label: 'Pension' },
+  { value: 'others', label: 'Others' },
+]
+
+const spouseUploads: FileKey[] = [
+  'marriageCertificate',
+  'spouseDocuments',
+  'spouseFatherDocuments',
+  'spouseMotherDocuments',
+  'spouseAddressProof',
+]
+
+const getCoApplicantRelations = (qualification: string) => {
+  const basicRelations = ['mother', 'father', 'brother', 'sister']
+  return qualification === '12th'
+    ? basicRelations
+    : [...basicRelations, 'aunt', 'uncle', 'cousin', 'spouse', 'guardian']
 }
 
 function FieldError({ message }: { message?: string }) {
@@ -257,6 +451,7 @@ function SelectField({
   error,
   placeholder,
   options,
+  allowEmpty = false,
 }: {
   label: string
   value: string
@@ -264,6 +459,7 @@ function SelectField({
   error?: string
   placeholder: string
   options: { value: string; label: string }[]
+  allowEmpty?: boolean
 }) {
   return (
     <div className="el-field">
@@ -276,11 +472,64 @@ function SelectField({
           error ? 'border-red-400' : 'border-slate-200'
         } ${value ? 'text-slate-900' : 'text-slate-400'}`}
       >
-        <option value="" disabled>{placeholder}</option>
+        <option value="" disabled={!allowEmpty}>{placeholder}</option>
         {options.map((option) => (
           <option key={option.value} value={option.value}>{option.label}</option>
         ))}
       </select>
+      <FieldError message={error} />
+    </div>
+  )
+}
+
+function CoApplicantTypeSelect({
+  value,
+  onChange,
+  error,
+}: {
+  value: CoApplicantType[]
+  onChange: (value: CoApplicantType[]) => void
+  error?: string
+}) {
+  const [open, setOpen] = useState(false)
+  const selectedLabels = coApplicantTypeOptions
+    .filter((option) => value.includes(option.value))
+    .map((option) => option.label)
+
+  const toggleType = (type: CoApplicantType) => {
+    onChange(value.includes(type) ? value.filter((item) => item !== type) : [...value, type])
+  }
+
+  return (
+    <div className="el-field sm:col-span-1">
+      <FieldLabel>Co-Applicant Type</FieldLabel>
+      <div>
+        <button
+          type="button"
+          aria-expanded={open}
+          onClick={() => setOpen((current) => !current)}
+          className={`flex min-h-[54px] w-full items-center justify-between rounded-2xl border bg-white px-4 text-left text-[15px] outline-none transition-all duration-200 hover:border-indigo-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100/70 ${error ? 'border-red-400' : 'border-slate-200'}`}
+        >
+          <span className={selectedLabels.length ? 'text-slate-900' : 'text-slate-500'}>
+            {selectedLabels.length ? selectedLabels.join(', ') : 'No Co-applicant'}
+          </span>
+          <ArrowRight size={17} className={`text-slate-400 transition-transform ${open ? '-rotate-90' : 'rotate-90'}`} />
+        </button>
+        {open && (
+          <div className="mt-2 w-full overflow-hidden rounded-2xl border border-slate-200 bg-white py-1 shadow-xl shadow-slate-200/70">
+            <label className="flex cursor-pointer items-center gap-3 px-4 py-1 text-sm font-semibold text-slate-700 transition hover:bg-indigo-50">
+              <input type="checkbox" checked={value.length === 0} onChange={() => { onChange([]); setOpen(false) }} className="h-4 w-4 rounded border-slate-300 accent-indigo-600 outline-none focus:outline-none focus:ring-0" />
+              No Co-applicant
+            </label>
+            {coApplicantTypeOptions.map((option) => (
+              <label key={option.value} className="flex cursor-pointer items-center gap-3 px-4 text-sm font-semibold text-slate-700 transition hover:bg-indigo-50">
+                <input type="checkbox" checked={value.includes(option.value)} onChange={() => toggleType(option.value)} className="h-4 w-4 rounded border-slate-300 accent-indigo-600 outline-none focus:outline-none focus:ring-0" />
+                {option.label}
+              </label>
+            ))}
+          </div>
+        )}
+      </div>
       <FieldError message={error} />
     </div>
   )
@@ -333,6 +582,35 @@ function UploadField({
         type="file"
         onChange={(event: ChangeEvent<HTMLInputElement>) => onChange(field, event.target.files?.[0] ?? null)}
       />
+      <p className="mt-1 text-[11px] text-slate-400">All file types are supported.</p>
+      <FieldError message={error} />
+    </div>
+  )
+}
+
+function DmcUploadField({
+  number,
+  file,
+  error,
+  onChange,
+}: {
+  number: number
+  file: File | null
+  error?: string
+  onChange: (file: File | null) => void
+}) {
+  const id = `education-loan-dmc-${number}`
+  return (
+    <div className="el-upload-field">
+      <FieldLabel>DMC {number}</FieldLabel>
+      <label htmlFor={id} className={`group flex min-h-[62px] cursor-pointer items-center gap-3 rounded-2xl border border-dashed px-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-indigo-400 hover:bg-indigo-50/60 hover:shadow-md ${error ? 'border-red-400 bg-red-50/30' : file ? 'border-emerald-400 bg-emerald-50/50' : 'border-slate-300 bg-slate-50/60'}`}>
+        <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition group-hover:scale-105 ${file ? 'bg-emerald-100 text-emerald-600' : 'bg-white text-indigo-500 shadow-sm'}`}>
+          {file ? <FileCheck2 size={19} /> : <Upload size={18} />}
+        </span>
+        <span className={`min-w-0 flex-1 truncate text-sm ${file ? 'font-medium text-slate-800' : 'text-slate-500'}`}>{file?.name || 'Click to upload'}</span>
+        {file && <button type="button" aria-label={`Remove DMC ${number}`} className="rounded-full p-1 text-slate-400 hover:bg-white hover:text-red-500" onClick={(event) => { event.preventDefault(); onChange(null) }}><XCircle size={18} /></button>}
+      </label>
+      <input id={id} className="sr-only" type="file" onChange={(event: ChangeEvent<HTMLInputElement>) => onChange(event.target.files?.[0] ?? null)} />
       <p className="mt-1 text-[11px] text-slate-400">All file types are supported.</p>
       <FieldError message={error} />
     </div>
@@ -402,43 +680,134 @@ function FooterActions({ onBack, nextLabel = 'Next Step', submit = false, disabl
 }
 
 export default function EducationLoanPage() {
+  const navigate = useNavigate()
+  const { isAuthenticated } = useAuth()
   const [step, setStep] = useState<Step>(1)
   const [loanType, setLoanType] = useState<LoanType | ''>('')
   const [basic, setBasic] = useState<BasicDetails>(initialBasic)
   const [student, setStudent] = useState<StudentDetails>(initialStudent)
+  const [coApplicant, setCoApplicant] = useState<CoApplicantDetails>(initialCoApplicant)
+  const [spouse, setSpouse] = useState<SpouseDetails>(initialSpouse)
   const [property, setProperty] = useState<PropertyDetails>(initialProperty)
   const [uploads, setUploads] = useState<Uploads>(initialUploads)
+  const [dmcUploads, setDmcUploads] = useState<Array<File | null>>([null])
   const [errors, setErrors] = useState<Errors>({})
   const [consent, setConsent] = useState(false)
   const [submitted, setSubmitted] = useState(false)
-  const [showOtp, setShowOtp] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [submissionError, setSubmissionError] = useState('')
+  const [validationToast, setValidationToast] = useState<{ id: number; message: string } | null>(null)
 
   const isAbroad = loanType === 'abroad'
-  const activeSteps = isAbroad ? abroadSteps : domesticSteps
+  const hasCoApplicant = coApplicant.types.length > 0
+  const coApplicantUploadKeys = useMemo<FileKey[]>(() => {
+    if (!hasCoApplicant) return []
+    const keys = coApplicant.types
+      .flatMap((type) => coApplicantIncomeUploads[type])
+      .filter((key) => !isAbroad || key !== 'coApplicantJForm')
+    return [...new Set([
+      ...coApplicantIdentityUploads,
+      ...(isAbroad ? ['coApplicantPanBack' as FileKey] : []),
+      ...keys,
+      ...(coApplicant.types.includes('pension') && coApplicant.pensionSlipStatus === 'have' ? ['coApplicantPensionSlip' as FileKey] : []),
+    ])]
+  }, [coApplicant.pensionSlipStatus, coApplicant.types, hasCoApplicant, isAbroad])
+  const activeSteps = useMemo(() => [
+    'Loan Type',
+    'Basic Details',
+    'Student',
+    ...(hasCoApplicant ? ['Co-Applicant'] : []),
+    ...(isAbroad ? ['Property'] : []),
+    'Review & Submit',
+  ], [hasCoApplicant, isAbroad])
   const totalSteps = activeSteps.length
-  const reviewStep: Step = isAbroad ? 5 : 4
+  const stepFor = (label: string): Step => activeSteps.indexOf(label) + 1
+  const currentStepLabel = activeSteps[step - 1]
+  const reviewStep = stepFor('Review & Submit')
 
-  const requiredUploadKeys = useMemo<FileKey[]>(() => {
-    const domestic: FileKey[] = ['tenthMarksheet', 'twelfthMarksheet', 'studentPhoto', 'aadhaarCard', 'panCardFront', 'fatherPhoto', 'fatherAadhaar', 'fatherPanFront', 'fatherPanBack']
-    const abroad: FileKey[] = [...domestic, 'aadhaarBack', 'panCardBack', 'passportFront', 'addressProof', 'motherPhoto', 'motherAadhaar', 'motherPanFront', 'motherPanBack']
-    const keys = loanType === 'abroad' ? abroad : domestic
-    return student.offerLetterStatus === 'received' ? [...keys.slice(0, 2), 'offerLetter', ...keys.slice(2)] : keys
-  }, [loanType, student.offerLetterStatus])
+  const studentRequiredUploadKeys = useMemo<FileKey[]>(() => {
+    const academics: FileKey[] = ['tenthMarksheet']
+    if (basic.qualification === '12th') academics.push('twelfthMarksheet')
+    if (basic.qualification === 'Graduation' || basic.qualification === 'Post Graduation') {
+      academics.push(student.higherSecondaryType === 'diploma' ? 'diplomaDocument' : 'twelfthMarksheet', 'degreeDocument')
+      if (basic.qualification === 'Post Graduation') academics.push('postGraduationDegree')
+      if (student.experienceStatus === 'have') academics.push('experienceLetter')
+    }
+    if ((basic.qualification === 'Graduation' || basic.qualification === 'Post Graduation') && student.additionalQualification) academics.push('additionalQualificationCertificate')
+    if (student.offerLetterStatus === 'have') academics.push('offerLetter')
+
+    const identity: FileKey[] = ['studentPhoto', 'aadhaarCard', 'panCardFront', 'fatherPhoto', 'fatherAadhaar', 'fatherPanFront', 'fatherPanBack']
+    if (loanType === 'abroad') identity.push('aadhaarBack', 'panCardBack', 'addressProof', 'motherPhoto', 'motherAadhaar', 'motherPanFront', 'motherPanBack')
+
+    const conditional: FileKey[] = []
+    if (basic.maritalStatus === 'married') conditional.push(...spouseUploads)
+
+    return [...new Set([...academics, ...identity, ...conditional])]
+  }, [basic.qualification, basic.maritalStatus, loanType, student])
+
+  const requiredUploadKeys = useMemo<FileKey[]>(
+    () => [...new Set([...studentRequiredUploadKeys, ...coApplicantUploadKeys])],
+    [coApplicantUploadKeys, studentRequiredUploadKeys],
+  )
+
+  useEffect(() => {
+    if (!validationToast) return
+    const timeoutId = window.setTimeout(() => {
+      setValidationToast((current) => current?.id === validationToast.id ? null : current)
+    }, 4500)
+    return () => window.clearTimeout(timeoutId)
+  }, [validationToast])
+
+  const showFirstValidationError = (next: Errors) => {
+    const firstMessage = Object.values(next).find(Boolean)
+    if (firstMessage) setValidationToast({ id: Date.now(), message: firstMessage })
+  }
+
+  const finishValidation = (next: Errors) => {
+    setErrors(next)
+    showFirstValidationError(next)
+    return Object.keys(next).length === 0
+  }
 
   const goToStep = (next: Step) => {
     setErrors({})
+    setValidationToast(null)
     setStep(next)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   const updateBasic = (key: keyof BasicDetails, value: string) => {
     setBasic((previous) => ({ ...previous, [key]: value }))
+    if (key === 'qualification') {
+      setCoApplicant((previous) => getCoApplicantRelations(value).includes(previous.relation) ? previous : { ...previous, relation: '' })
+      if (value === '12th') setStudent((previous) => ({ ...previous, additionalQualification: '' }))
+    }
     setErrors((previous) => ({ ...previous, [key]: '' }))
   }
 
   const updateStudent = (key: keyof StudentDetails, value: string) => {
     setStudent((previous) => ({ ...previous, [key]: value }))
     setErrors((previous) => ({ ...previous, [key]: '' }))
+  }
+
+  const updateCoApplicant = (key: Exclude<keyof CoApplicantDetails, 'types'>, value: string) => {
+    setCoApplicant((previous) => ({ ...previous, [key]: value }))
+    setErrors((previous) => ({ ...previous, [`coApplicant.${key}`]: '' }))
+  }
+
+  const updateCoApplicantTypes = (types: CoApplicantType[]) => {
+    setCoApplicant((previous) => ({ ...previous, types, relation: types.length ? previous.relation : '' }))
+    setErrors((previous) => ({ ...previous, 'coApplicant.types': '', 'coApplicant.relation': '' }))
+  }
+
+  const updateDmcUpload = (index: number, file: File | null) => {
+    setDmcUploads((previous) => previous.map((item, itemIndex) => itemIndex === index ? file : item))
+    setErrors((previous) => ({ ...previous, [`dmc_${index + 1}`]: '' }))
+  }
+
+  const updateSpouse = (key: keyof SpouseDetails, value: string) => {
+    setSpouse((previous) => ({ ...previous, [key]: value }))
+    setErrors((previous) => ({ ...previous, [`spouse.${key}`]: '' }))
   }
 
   const updateProperty = (key: keyof PropertyDetails, value: string | boolean) => {
@@ -468,8 +837,8 @@ export default function EducationLoanPage() {
     if (isAbroad && !basic.country) next.country = 'Country of study is required.'
     if (!basic.gender) next.gender = 'Gender is required.'
     if (!basic.maritalStatus) next.maritalStatus = 'Marital status is required.'
-    setErrors(next)
-    return Object.keys(next).length === 0
+    if (hasCoApplicant && !coApplicant.relation) next['coApplicant.relation'] = 'Co-applicant relation is required.'
+    return finishValidation(next)
   }
 
   const validateStudent = () => {
@@ -493,11 +862,39 @@ export default function EducationLoanPage() {
         if (!student[addressKey].trim()) next[addressKey] = `Reference ${number} address is required.`
       })
     }
-    requiredUploadKeys.forEach((key) => {
+    if (basic.maritalStatus === 'married' && !/^[6-9]\d{9}$/.test(spouse.mobile)) {
+      next['spouse.mobile'] = 'Enter a valid spouse mobile number.'
+    }
+    studentRequiredUploadKeys.forEach((key) => {
       if (!uploads[key]) next[key] = `${uploadLabels[key]} is required.`
     })
-    setErrors(next)
-    return Object.keys(next).length === 0
+    if (basic.qualification === 'Graduation' || basic.qualification === 'Post Graduation') {
+      dmcUploads.forEach((file, index) => {
+        if (!file) next[`dmc_${index + 1}`] = `DMC ${index + 1} is required.`
+      })
+    }
+    return finishValidation(next)
+  }
+
+  const validateCoApplicant = () => {
+    const next: Errors = {}
+    if (!/^[6-9]\d{9}$/.test(coApplicant.mobile)) next['coApplicant.mobile'] = 'Enter a valid co-applicant mobile number.'
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(coApplicant.email)) next['coApplicant.email'] = 'Enter a valid co-applicant email.'
+    if (!/^[A-Z]{5}[0-9]{4}[A-Z]$/.test(coApplicant.pan)) next['coApplicant.pan'] = 'Enter a valid co-applicant PAN.'
+    if ((coApplicant.types.includes('business') || coApplicant.types.includes('agriculture')) && !coApplicant.yearOfBusiness) {
+      next['coApplicant.yearOfBusiness'] = 'Year of Business is required.'
+    }
+    if (coApplicant.types.includes('salaried')) {
+      if (!coApplicant.yearOfJob) next['coApplicant.yearOfJob'] = 'Year of job is required.'
+      if (!coApplicant.designation.trim()) next['coApplicant.designation'] = 'Designation is required.'
+    }
+    if (coApplicant.types.includes('business') && !coApplicant.businessAddress.trim()) {
+      next['coApplicant.businessAddress'] = 'Business address is required.'
+    }
+    coApplicantUploadKeys.forEach((key) => {
+      if (!uploads[key]) next[key] = `${uploadLabels[key]} is required.`
+    })
+    return finishValidation(next)
   }
 
   const validateProperty = () => {
@@ -514,14 +911,19 @@ export default function EducationLoanPage() {
       if (!property.remark.trim()) next.remark = 'Property remark is required.'
       if (property.hasExistingLoan && !property.loanDetails.trim()) next.loanDetails = 'Existing loan details are required.'
     }
-    setErrors(next)
-    return Object.keys(next).length === 0
+    return finishValidation(next)
   }
 
   const handleLoanType = (event: FormEvent) => {
     event.preventDefault()
+    if (!isAuthenticated) {
+      navigate('/login', { state: { authToast: 'Please log in first to continue with the Education Loan application.' } })
+      return
+    }
     if (!loanType) {
-      setErrors({ loanType: 'Please select an education loan type.' })
+      const next = { loanType: 'Please select an education loan type.' }
+      setErrors(next)
+      showFirstValidationError(next)
       return
     }
     goToStep(2)
@@ -534,36 +936,168 @@ export default function EducationLoanPage() {
 
   const handleStudent = (event: FormEvent) => {
     event.preventDefault()
-    if (validateStudent()) goToStep(4)
+    if (validateStudent()) goToStep(stepFor(hasCoApplicant ? 'Co-Applicant' : isAbroad ? 'Property' : 'Review & Submit'))
+  }
+
+  const handleCoApplicant = (event: FormEvent) => {
+    event.preventDefault()
+    if (validateCoApplicant()) goToStep(stepFor(isAbroad ? 'Property' : 'Review & Submit'))
   }
 
   const handleProperty = (event: FormEvent) => {
     event.preventDefault()
-    if (validateProperty()) goToStep(5)
+    if (validateProperty()) goToStep(reviewStep)
   }
 
-  const handleSubmit = (event: FormEvent) => {
+  const handleSubmit = async (event: FormEvent) => {
     event.preventDefault()
     if (!consent) {
-      setErrors({ consent: 'Please accept the declaration and consent before submitting.' })
+      const next = { consent: 'Please accept the declaration and consent before submitting.' }
+      setErrors(next)
+      showFirstValidationError(next)
       return
     }
     setErrors({})
-    setShowOtp(true)
-  }
+    setSubmissionError('')
+    setSubmitting(true)
 
-  const verifyOtp = async () => {
-    await new Promise((resolve) => window.setTimeout(resolve, 650))
-    setShowOtp(false)
-    setSubmitted(true)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    const formData = new FormData()
+    const appendText = (key: string, value: string | boolean) => {
+      if (value !== '') formData.append(key, String(value))
+    }
+
+    appendText('name', basic.applicantName.trim())
+    appendText('mobile', basic.mobile)
+    appendText('email', basic.email.trim())
+    appendText('pan', isAbroad ? basic.pan : '')
+    appendText('highest_qualification', basic.qualification)
+    appendText('loan_amount', basic.loanAmount)
+    appendText('course', basic.course.trim())
+    appendText('loan_type', loanType)
+    appendText('country', isAbroad ? basic.country : '')
+    appendText('gender', basic.gender)
+    appendText('marital_status', basic.maritalStatus)
+    appendText('co_applicant_type', hasCoApplicant ? coApplicant.types.join(', ') : 'none')
+    appendText('co_applicant_relation', hasCoApplicant ? coApplicant.relation : '')
+
+    appendText('student.higher_secondary_type', student.higherSecondaryType)
+    appendText('student.additional_qualification', basic.qualification === 'Graduation' || basic.qualification === 'Post Graduation' ? student.additionalQualification : '')
+    appendText('student.offer_letter_status', student.offerLetterStatus)
+    appendText('student.experience_status', student.experienceStatus)
+    appendText('student.father_mobile', student.fatherMobile)
+    appendText('student.father_email', student.fatherEmail.trim())
+    if (isAbroad) {
+      appendText('student.mother_mobile', student.motherMobile)
+      appendText('student.mother_email', student.motherEmail.trim())
+      appendText('student.grandmother', student.grandmotherName.trim())
+      appendText('student.granny', student.grannyName.trim())
+      appendText('student.ref1_name', student.reference1Name.trim())
+      appendText('student.ref1_mobile', student.reference1Mobile)
+      appendText('student.ref1_email', student.reference1Email.trim())
+      appendText('student.ref1_address', student.reference1Address.trim())
+      appendText('student.ref2_name', student.reference2Name.trim())
+      appendText('student.ref2_mobile', student.reference2Mobile)
+      appendText('student.ref2_email', student.reference2Email.trim())
+      appendText('student.ref2_address', student.reference2Address.trim())
+    }
+
+    if (hasCoApplicant) {
+      appendText('coapplicant.type', coApplicant.types.join(', '))
+      appendText('coapplicant.mobile', coApplicant.mobile)
+      appendText('coapplicant.email', coApplicant.email.trim())
+      appendText('coapplicant.pan_number', coApplicant.pan)
+      appendText('coapplicant.year_of_job', coApplicant.yearOfJob)
+      appendText('coapplicant.designation', coApplicant.designation.trim())
+      appendText('coapplicant.employee_id', coApplicant.employeeId.trim())
+      appendText('coapplicant.year_of_business', coApplicant.yearOfBusiness)
+      appendText('coapplicant.business_address', coApplicant.businessAddress.trim())
+      appendText('coapplicant.pension_slip_status', coApplicant.pensionSlipStatus)
+    }
+
+    if (basic.maritalStatus === 'married') appendText('husband.mobile', spouse.mobile)
+
+    if (isAbroad) {
+      appendText('property.no_property', property.loanSecurity === 'unsecured')
+      if (property.loanSecurity === 'secured') {
+        appendText('property.owner_name', property.ownerName.trim())
+        appendText('property.owner_father', property.ownerFatherName.trim())
+        appendText('property.location', property.propertyType)
+        appendText('property.area_sqft', property.area)
+        appendText('property.valuation', property.valuation)
+        appendText('property.remark', property.remark.trim())
+        appendText('property.loan_on_property', property.hasExistingLoan)
+        appendText('property.loan_details', property.hasExistingLoan ? property.loanDetails.trim() : '')
+      }
+    }
+
+    const applicableUploads = new Set<FileKey>(requiredUploadKeys)
+    if (isAbroad) applicableUploads.add('passportFront')
+    if (isAbroad && property.loanSecurity === 'secured') {
+      applicableUploads.add('propertyDocuments')
+      applicableUploads.add('propertyPhotos')
+    }
+    applicableUploads.forEach((key) => {
+      const file = uploads[key]
+      if (file) formData.append(uploadApiKeys[key], file)
+    })
+    if (basic.qualification === 'Graduation' || basic.qualification === 'Post Graduation') {
+      dmcUploads.forEach((file, index) => {
+        if (file) formData.append(`student.dmc_${index + 1}`, file)
+      })
+    }
+
+    try {
+      await submitEducationLoanLead(formData)
+      setSubmitted(true)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    } catch (error) {
+      setSubmissionError(error instanceof Error ? error.message : 'Education loan submission failed. Please try again.')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   const formatAmount = (value: string) => value ? `₹${Number(value).toLocaleString('en-IN')}` : '—'
 
+  if (submitted) {
+    return (
+      <main className="min-h-screen bg-[#f5f7fb] px-4 py-6 sm:px-8">
+        <button type="button" onClick={() => navigate('/')} className="flex h-11 items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 text-sm font-bold text-slate-700 shadow-sm transition hover:border-indigo-200 hover:text-indigo-600">
+          <ArrowLeft size={17} /> Back
+        </button>
+        <div className="flex min-h-[calc(100vh-92px)] items-center justify-center">
+          <motion.section initial={{ opacity: 0, scale: 0.96, y: 16 }} animate={{ opacity: 1, scale: 1, y: 0 }} className="w-full max-w-xl rounded-3xl border border-emerald-200 bg-white p-8 text-center shadow-[0_25px_70px_rgba(15,23,42,0.12)] sm:p-12">
+            <span className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-emerald-500 text-white shadow-xl shadow-emerald-200"><Check size={38} strokeWidth={3} /></span>
+            <h1 className="mt-7 text-2xl font-black text-slate-900 sm:text-3xl">Your response has been submitted successfully</h1>
+            <p className="mx-auto mt-4 max-w-md text-sm leading-6 text-slate-600">Our team will connect with you shortly.</p>
+          </motion.section>
+        </div>
+      </main>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-[#f5f7fb] text-slate-900">
       <Header />
+      {validationToast && (
+        <motion.div
+          key={validationToast.id}
+          role="alert"
+          aria-live="assertive"
+          initial={{ opacity: 0, x: 28, y: -8 }}
+          animate={{ opacity: 1, x: 0, y: 0 }}
+          className="fixed right-4 top-24 z-[100] flex w-[calc(100%-2rem)] max-w-sm items-start gap-3 rounded-2xl border border-red-200 bg-white px-4 py-3.5 shadow-[0_18px_45px_rgba(15,23,42,0.20)] sm:right-6"
+        >
+          <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-100 text-red-600">
+            <XCircle size={18} />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-extrabold text-slate-900">Please complete this field</p>
+            <p className="mt-0.5 text-sm leading-5 text-slate-600">{validationToast.message}</p>
+          </div>
+          <button type="button" aria-label="Dismiss validation message" onClick={() => setValidationToast(null)} className="rounded-lg px-1.5 py-0.5 text-lg leading-none text-slate-400 transition hover:bg-slate-100 hover:text-slate-700">×</button>
+        </motion.div>
+      )}
       <main>
         <section className="relative isolate min-h-[460px] overflow-hidden bg-[#071b43]">
           <img src={educationLoanHero} alt="Graduate ready to begin her higher education journey" className="absolute inset-0 h-full w-full object-cover object-center lg:object-[center_46%]" />
@@ -615,25 +1149,6 @@ export default function EducationLoanPage() {
               </div>
             )}
 
-        {submitted ? (
-          <motion.div initial={{ opacity: 0, scale: 0.94, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} transition={{ type: 'spring', stiffness: 150 }} className="mx-auto max-w-2xl overflow-hidden rounded-3xl border border-emerald-200 bg-white text-center shadow-[0_25px_70px_rgba(15,23,42,0.14)]">
-            <div className="bg-gradient-to-br from-emerald-500 to-teal-600 px-8 py-10 text-white">
-              <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.2, type: 'spring', stiffness: 220 }} className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full border-4 border-white/40 bg-white text-emerald-600 shadow-xl"><Check size={39} strokeWidth={3} /></motion.span>
-              <h2 className="text-2xl font-black text-white sm:text-3xl">Application submitted successfully!</h2>
-              <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-emerald-50">Your mobile number has been verified and your education loan application is now with our review team.</p>
-            </div>
-            <div className="grid gap-4 p-6 text-left sm:grid-cols-3 sm:p-8">
-              {[
-                { number: '01', label: 'Application review', icon: FileText },
-                { number: '02', label: 'Eligibility check', icon: Landmark },
-                { number: '03', label: 'Expert callback', icon: Headset },
-              ].map((item) => {
-                const Icon = item.icon
-                return <motion.div whileHover={{ y: -4 }} key={item.number} className="group rounded-2xl border border-slate-100 bg-slate-50 p-4 transition hover:bg-white hover:shadow-lg"><span className="flex items-center justify-between text-xs font-black text-indigo-500">{item.number}<Icon size={18} className="text-slate-300 transition group-hover:text-indigo-500" /></span><p className="mt-2 text-sm font-bold text-slate-800">{item.label}</p></motion.div>
-              })}
-            </div>
-          </motion.div>
-        ) : (
           <div className="el-application-workspace">
             <JourneyNavigation current={step} labels={activeSteps} onNavigate={goToStep} />
             <motion.div key={step} initial={{ opacity: 0, x: 18 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.32 }} className="el-step-content">
@@ -654,7 +1169,15 @@ export default function EducationLoanPage() {
                           <motion.button
                             key={option.value}
                             type="button"
-                            onClick={() => { setLoanType(option.value); setErrors({}); window.setTimeout(() => goToStep(2), 180) }}
+                            onClick={() => {
+                              if (!isAuthenticated) {
+                                navigate('/login', { state: { authToast: 'Please log in first to continue with the Education Loan application.' } })
+                                return
+                              }
+                              setLoanType(option.value)
+                              setErrors({})
+                              window.setTimeout(() => goToStep(2), 180)
+                            }}
                             whileHover={{ y: -6, scale: 1.01 }}
                             whileTap={{ scale: 0.985 }}
                             className={`el-loan-choice group relative flex min-h-48 flex-col items-center justify-center overflow-hidden rounded-3xl border-2 p-6 text-center transition-all duration-300 ${selected ? 'is-selected border-indigo-500 bg-gradient-to-br from-indigo-50 to-blue-50 text-indigo-700 shadow-xl shadow-indigo-100' : 'border-slate-200 bg-white hover:border-indigo-200 hover:shadow-xl hover:shadow-indigo-100/60'}`}
@@ -683,13 +1206,15 @@ export default function EducationLoanPage() {
                     <TextField label="Student Email Address" value={basic.email} onChange={(value) => updateBasic('email', value)} error={errors.email} placeholder="e.g. john.doe@example.com" type="email" inputMode="email" />
                     {isAbroad && <TextField label="Student PAN Number" value={basic.pan} onChange={(value) => updateBasic('pan', value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 10))} error={errors.pan} placeholder="e.g. ABCDE1234F" />}
                     <SelectField label="Highest Qualification" value={basic.qualification} onChange={(value) => updateBasic('qualification', value)} error={errors.qualification} placeholder="Select Highest Qualification" options={[
-                      { value: '12th', label: '12th Pass' }, { value: 'graduation', label: "Graduation (Bachelor's)" }, { value: 'post-graduation', label: "Post Graduation (Master's)" }, { value: 'doctorate', label: 'Doctorate / PhD' },
+                      { value: '12th', label: '12th Pass' }, { value: 'Graduation', label: "Graduation (Bachelor's)" }, { value: 'Post Graduation', label: "Post Graduation (Master's)" },
                     ]} />
                     <TextField label="Loan Amount (₹)" value={basic.loanAmount} onChange={(value) => updateBasic('loanAmount', value.replace(/\D/g, '').slice(0, 10))} error={errors.loanAmount} placeholder="e.g. 1500000" inputMode="numeric" />
                     <TextField label="Course" value={basic.course} onChange={(value) => updateBasic('course', value)} error={errors.course} placeholder="e.g. MBA, MBBS" />
-                    {isAbroad && <SelectField label="Country of Study" value={basic.country} onChange={(value) => updateBasic('country', value)} error={errors.country} placeholder="Select Country" options={[{ value: 'usa', label: 'United States' }, { value: 'uk', label: 'United Kingdom' }, { value: 'canada', label: 'Canada' }, { value: 'australia', label: 'Australia' }, { value: 'germany', label: 'Germany' }, { value: 'ireland', label: 'Ireland' }, { value: 'new-zealand', label: 'New Zealand' }, { value: 'other', label: 'Other' }]} />}
+                    {isAbroad && <SelectField label="Country of Study" value={basic.country} onChange={(value) => updateBasic('country', value)} error={errors.country} placeholder="Select Country" options={['Canada', 'UK', 'Australia', 'USA', 'New Zealand', 'Spain', 'Finland', 'Germany', 'Cyprus', 'Malta', 'Georgia', 'Other'].map((country) => ({ value: country, label: country }))} />}
                     <SelectField label="Gender" value={basic.gender} onChange={(value) => updateBasic('gender', value)} error={errors.gender} placeholder="Select Gender" options={[{ value: 'male', label: 'Male' }, { value: 'female', label: 'Female' }, { value: 'other', label: 'Other' }]} />
                     <SelectField label="Marital Status" value={basic.maritalStatus} onChange={(value) => updateBasic('maritalStatus', value)} error={errors.maritalStatus} placeholder="Select Marital Status" options={[{ value: 'single', label: 'Single' }, { value: 'married', label: 'Married' }]} />
+                    <CoApplicantTypeSelect value={coApplicant.types} onChange={updateCoApplicantTypes} error={errors['coApplicant.types']} />
+                    {hasCoApplicant && <SelectField label="Co-Applicant Relation" value={coApplicant.relation} onChange={(value) => updateCoApplicant('relation', value)} error={errors['coApplicant.relation']} placeholder="Select Relation" options={getCoApplicantRelations(basic.qualification).map((relation) => ({ value: relation, label: relation.charAt(0).toUpperCase() + relation.slice(1) }))} />}
                   </div>
                   <FooterActions onBack={() => goToStep(1)} />
                 </form>
@@ -703,13 +1228,32 @@ export default function EducationLoanPage() {
                       <h3 className="mb-5 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.08em] text-slate-500"><span className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600"><GraduationCap size={17} /></span> Academic documents</h3>
                       <div className="grid gap-6 sm:grid-cols-2">
                         <UploadField field="tenthMarksheet" file={uploads.tenthMarksheet} error={errors.tenthMarksheet} onChange={updateUpload} />
-                        <UploadField field="twelfthMarksheet" file={uploads.twelfthMarksheet} error={errors.twelfthMarksheet} onChange={updateUpload} />
+                        {(basic.qualification === 'Graduation' || basic.qualification === 'Post Graduation') && <SelectField label="12th or Diploma" value={student.higherSecondaryType} onChange={(value) => updateStudent('higherSecondaryType', value)} error={errors.higherSecondaryType} placeholder="Select Qualification" options={[{ value: '12th', label: '12th Marksheet' }, { value: 'diploma', label: 'Diploma' }]} />}
+                        {(basic.qualification === '12th' || ((basic.qualification === 'Graduation' || basic.qualification === 'Post Graduation') && student.higherSecondaryType === '12th')) && <UploadField field="twelfthMarksheet" file={uploads.twelfthMarksheet} error={errors.twelfthMarksheet} onChange={updateUpload} />}
+                        {(basic.qualification === 'Graduation' || basic.qualification === 'Post Graduation') && student.higherSecondaryType === 'diploma' && <UploadField field="diplomaDocument" file={uploads.diplomaDocument} error={errors.diplomaDocument} onChange={updateUpload} />}
+                        {(basic.qualification === 'Graduation' || basic.qualification === 'Post Graduation') && <>
+                          <UploadField field="degreeDocument" file={uploads.degreeDocument} error={errors.degreeDocument} onChange={updateUpload} />
+                        </>}
+                        {basic.qualification === 'Post Graduation' && <UploadField field="postGraduationDegree" file={uploads.postGraduationDegree} error={errors.postGraduationDegree} onChange={updateUpload} />}
+                        {(basic.qualification === 'Graduation' || basic.qualification === 'Post Graduation') && <SelectField label="Additional Qualification" value={student.additionalQualification} onChange={(value) => updateStudent('additionalQualification', value)} error={errors.additionalQualification} placeholder="None" allowEmpty options={[{ value: 'iti', label: 'ITI' }, { value: 'polytechnic', label: 'Polytechnic' }, { value: 'vocational', label: 'Vocational' }, { value: 'skill', label: 'Skill Development' }, { value: 'other', label: 'Other' }]} />}
+                        {(basic.qualification === 'Graduation' || basic.qualification === 'Post Graduation') && student.additionalQualification && <UploadField field="additionalQualificationCertificate" file={uploads.additionalQualificationCertificate} error={errors.additionalQualificationCertificate} onChange={updateUpload} />}
+                        {(basic.qualification === 'Graduation' || basic.qualification === 'Post Graduation') && <SelectField label="Experience Status" value={student.experienceStatus} onChange={(value) => updateStudent('experienceStatus', value)} error={errors.experienceStatus} placeholder="Select Experience Status" options={[{ value: 'no', label: 'No Experience' }, { value: 'have', label: 'I Have Experience' }]} />}
+                        {(basic.qualification === 'Graduation' || basic.qualification === 'Post Graduation') && student.experienceStatus === 'have' && <UploadField field="experienceLetter" file={uploads.experienceLetter} error={errors.experienceLetter} onChange={updateUpload} />}
                       </div>
+                      {(basic.qualification === 'Graduation' || basic.qualification === 'Post Graduation') && (
+                        <div className="mt-7 border-t border-indigo-100 pt-6">
+                          <h4 className="mb-5 text-xs font-bold uppercase tracking-[0.08em] text-slate-500">DMC Uploads</h4>
+                          <div className="grid gap-6 sm:grid-cols-2">
+                            {dmcUploads.map((file, index) => <DmcUploadField key={index} number={index + 1} file={file} error={errors[`dmc_${index + 1}`]} onChange={(nextFile) => updateDmcUpload(index, nextFile)} />)}
+                          </div>
+                          <button type="button" onClick={() => setDmcUploads((previous) => [...previous, null])} className="mt-4 text-sm font-bold text-indigo-600 transition hover:text-indigo-800">+ Add another DMC</button>
+                        </div>
+                      )}
                     </section>
 
                     <section className="rounded-3xl border border-cyan-100 bg-gradient-to-br from-cyan-50/70 to-white p-5 shadow-sm transition-all hover:shadow-lg hover:shadow-cyan-100/50">
-                      <SelectField label="Offer Letter Status" value={student.offerLetterStatus} onChange={(value) => updateStudent('offerLetterStatus', value)} error={errors.offerLetterStatus} placeholder="Select Offer Letter Status" options={[{ value: 'applied', label: 'Applied (offer letter not received yet)' }, { value: 'received', label: 'I have the offer letter' }]} />
-                      {student.offerLetterStatus === 'received' && <div className="mt-5"><UploadField field="offerLetter" file={uploads.offerLetter} error={errors.offerLetter} onChange={updateUpload} /></div>}
+                      <SelectField label="Offer Letter Status" value={student.offerLetterStatus} onChange={(value) => updateStudent('offerLetterStatus', value)} error={errors.offerLetterStatus} placeholder="Select Offer Letter Status" options={[{ value: 'applied', label: 'Applied (offer letter not received yet)' }, { value: 'have', label: 'I have the offer letter' }]} />
+                      {student.offerLetterStatus === 'have' && <div className="mt-5"><UploadField field="offerLetter" file={uploads.offerLetter} error={errors.offerLetter} onChange={updateUpload} /></div>}
                     </section>
 
                     <section className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm transition-all hover:shadow-lg">
@@ -772,14 +1316,55 @@ export default function EducationLoanPage() {
                         })}
                       </section>
                     )}
+
+                    {/* {basic.maritalStatus === 'married' && (
+                      <section className="rounded-3xl border border-blue-100 bg-gradient-to-br from-blue-50/70 to-white p-5 shadow-sm transition-all hover:shadow-lg hover:shadow-blue-100/50">
+                        <h3 className="mb-1 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.08em] text-slate-500"><span className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100 text-blue-600"><UserRound size={17} /></span> Spouse Details</h3>
+                        <p className="mb-6 text-sm text-slate-500">Provide the spouse contact and marriage-related documents.</p>
+                        <div className="grid gap-6 sm:grid-cols-2">
+                          <TextField label="Spouse Mobile" value={spouse.mobile} onChange={(value) => updateSpouse('mobile', value.replace(/\D/g, '').slice(0, 10))} error={errors['spouse.mobile']} placeholder="10-digit mobile number" inputMode="numeric" />
+                          {spouseUploads.map((key) => <UploadField key={key} field={key} file={uploads[key]} error={errors[key]} onChange={updateUpload} />)}
+                        </div>
+                      </section>
+                    )} */}
                   </div>
                   <FooterActions onBack={() => goToStep(2)} />
                 </form>
               )}
 
-              {isAbroad && step === 4 && (
+              {hasCoApplicant && currentStepLabel === 'Co-Applicant' && (
+                <form onSubmit={handleCoApplicant} noValidate>
+                  <StepHeader step={step} title="Co-Applicant" total={totalSteps} previousLabel="Student" onBack={() => goToStep(stepFor('Student'))} />
+                  <div className="space-y-7 p-5 sm:p-8">
+                    <section className="rounded-3xl border border-emerald-100 bg-gradient-to-br from-emerald-50/70 to-white p-5 shadow-sm transition-all hover:shadow-lg hover:shadow-emerald-100/50">
+                      <h3 className="mb-1 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.08em] text-slate-500"><span className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600"><UserRound size={17} /></span> Co-Applicant</h3>
+                      <p className="mb-6 text-sm text-slate-500">Provide the co-applicant's identity, contact, and income details.</p>
+                      <div className="grid gap-6 sm:grid-cols-2">
+                        <TextField label="Mobile" value={coApplicant.mobile} onChange={(value) => updateCoApplicant('mobile', value.replace(/\D/g, '').slice(0, 10))} error={errors['coApplicant.mobile']} placeholder="10-digit mobile number" inputMode="numeric" />
+                        <TextField label="Email" value={coApplicant.email} onChange={(value) => updateCoApplicant('email', value)} error={errors['coApplicant.email']} placeholder="coapplicant@example.com" type="email" inputMode="email" />
+                        <TextField label="PAN Number" value={coApplicant.pan} onChange={(value) => updateCoApplicant('pan', value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 10))} error={errors['coApplicant.pan']} placeholder="ABCDE1234F" />
+                        {(coApplicant.types.includes('business') || coApplicant.types.includes('agriculture')) && <TextField label="Year of Business" value={coApplicant.yearOfBusiness} onChange={(value) => updateCoApplicant('yearOfBusiness', value.replace(/\D/g, '').slice(0, 4))} error={errors['coApplicant.yearOfBusiness']} placeholder="e.g. 2020" inputMode="numeric" />}
+                        {coApplicant.types.includes('salaried') && <>
+                          <TextField label="Year of Job" value={coApplicant.yearOfJob} onChange={(value) => updateCoApplicant('yearOfJob', value.replace(/\D/g, '').slice(0, 4))} error={errors['coApplicant.yearOfJob']} placeholder="e.g. 2022" inputMode="numeric" />
+                          <TextField label="Designation" value={coApplicant.designation} onChange={(value) => updateCoApplicant('designation', value)} error={errors['coApplicant.designation']} placeholder="Job designation" />
+                          <TextField label="Employee ID" optional value={coApplicant.employeeId} onChange={(value) => updateCoApplicant('employeeId', value)} error={errors['coApplicant.employeeId']} placeholder="Employee ID" />
+                        </>}
+                        {coApplicant.types.includes('business') && <div className="sm:col-span-2"><TextField label="Business Address" value={coApplicant.businessAddress} onChange={(value) => updateCoApplicant('businessAddress', value)} error={errors['coApplicant.businessAddress']} placeholder="Complete business address" /></div>}
+                        {coApplicant.types.includes('pension') && <SelectField label="Pension Slip Status" value={coApplicant.pensionSlipStatus} onChange={(value) => updateCoApplicant('pensionSlipStatus', value)} error={errors['coApplicant.pensionSlipStatus']} placeholder="Select Pension Slip Status" options={[{ value: 'no', label: "Don't Have Pension Slip" }, { value: 'have', label: 'I Have Pension Slip' }]} />}
+                      </div>
+                      <h4 className="mb-5 mt-7 text-xs font-bold uppercase tracking-[0.08em] text-slate-500">Identity and income documents</h4>
+                      <div className="grid gap-6 sm:grid-cols-2">
+                        {coApplicantUploadKeys.map((key) => <UploadField key={key} field={key} file={uploads[key]} error={errors[key]} onChange={updateUpload} />)}
+                      </div>
+                    </section>
+                  </div>
+                  <FooterActions onBack={() => goToStep(stepFor('Student'))} />
+                </form>
+              )}
+
+              {currentStepLabel === 'Property' && (
                 <form onSubmit={handleProperty} noValidate>
-                  <StepHeader step={4} title="Property" total={totalSteps} previousLabel="Student" onBack={() => goToStep(3)} />
+                  <StepHeader step={step} title="Property" total={totalSteps} previousLabel={hasCoApplicant ? 'Co-Applicant' : 'Student'} onBack={() => goToStep(stepFor(hasCoApplicant ? 'Co-Applicant' : 'Student'))} />
                   <div className="space-y-7 p-5 sm:p-8">
                     <section className="overflow-hidden rounded-3xl border border-indigo-100 bg-gradient-to-br from-indigo-50 via-white to-cyan-50 p-5 shadow-sm">
                       <div className="mb-5 flex items-center gap-3"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-lg shadow-indigo-200"><Landmark size={20} /></span><div><h3 className="text-sm font-extrabold text-slate-900">Loan security</h3><p className="text-xs text-slate-500">Choose how you want to secure this education loan.</p></div></div>
@@ -830,20 +1415,20 @@ export default function EducationLoanPage() {
                       </motion.section>
                     )}
                   </div>
-                  <FooterActions onBack={() => goToStep(3)} />
+                  <FooterActions onBack={() => goToStep(stepFor(hasCoApplicant ? 'Co-Applicant' : 'Student'))} />
                 </form>
               )}
 
               {step === reviewStep && (
                 <form onSubmit={handleSubmit} noValidate>
-                  <StepHeader step={reviewStep} title="Review & Submit" total={totalSteps} previousLabel={isAbroad ? 'Property' : 'Student'} onBack={() => goToStep(isAbroad ? 4 : 3)} />
+                  <StepHeader step={reviewStep} title="Review & Submit" total={totalSteps} previousLabel={isAbroad ? 'Property' : hasCoApplicant ? 'Co-Applicant' : 'Student'} onBack={() => goToStep(reviewStep - 1)} />
                   <div className="space-y-5 p-5 sm:p-8">
                     <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="flex items-center gap-3 rounded-2xl border border-emerald-200 bg-gradient-to-r from-emerald-50 to-teal-50 px-4 py-3 text-sm font-medium text-emerald-700"><span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-white"><Check size={17} strokeWidth={3} /></span> Please review your details before submitting.</motion.div>
                     <section className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm transition-all hover:shadow-lg">
                       <h3 className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.08em] text-slate-500"><span className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600"><FileText size={17} /></span> Basic details</h3>
                       {[
                         ['Name', basic.applicantName], ['Mobile', basic.mobile], ['Email', basic.email], ['Loan Amount', formatAmount(basic.loanAmount)], ['Course', basic.course], ['Loan Type', loanType === 'domestic' ? 'Domestic' : 'Abroad'], ['Qualification', basic.qualification.replace('-', ' ')], ['Gender', basic.gender], ['Marital Status', basic.maritalStatus],
-                        ...(isAbroad ? [['PAN', basic.pan], ['Country of Study', basic.country.replace('-', ' ')]] : []),
+                        ...(isAbroad ? [['PAN', basic.pan], ['Country of Study', basic.country]] : []),
                       ].map(([label, value]) => (
                         <div key={label} className="flex items-start justify-between gap-4 border-b border-slate-100 py-2.5 last:border-0"><span className="text-sm text-slate-400">{label}</span><span className="text-right text-sm font-semibold capitalize text-slate-900">{value}</span></div>
                       ))}
@@ -854,8 +1439,16 @@ export default function EducationLoanPage() {
                       {isAbroad && <div className="flex justify-between gap-4 border-b border-slate-100 py-2.5"><span className="text-sm text-slate-400">Mother Mobile</span><span className="text-sm font-semibold">{student.motherMobile}</span></div>}
                       {isAbroad && <div className="flex justify-between gap-4 border-b border-slate-100 py-2.5"><span className="text-sm text-slate-400">Reference 1</span><span className="text-right text-sm font-semibold">{student.reference1Name} · {student.reference1Mobile}</span></div>}
                       {isAbroad && <div className="flex justify-between gap-4 border-b border-slate-100 py-2.5"><span className="text-sm text-slate-400">Reference 2</span><span className="text-right text-sm font-semibold">{student.reference2Name} · {student.reference2Mobile}</span></div>}
-                      <div className="flex justify-between gap-4 py-2.5"><span className="text-sm text-slate-400">Offer Letter</span><span className="text-sm font-semibold">{student.offerLetterStatus === 'received' ? 'Have offer letter' : 'Applied, not received yet'}</span></div>
+                      <div className="flex justify-between gap-4 py-2.5"><span className="text-sm text-slate-400">Offer Letter</span><span className="text-sm font-semibold">{student.offerLetterStatus === 'have' ? 'Have offer letter' : 'Applied, not received yet'}</span></div>
                     </section>
+                    {hasCoApplicant && <section className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm transition-all hover:shadow-lg">
+                      <h3 className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.08em] text-slate-500"><span className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600"><UserRound size={17} /></span> Co-Applicant</h3>
+                      {[['Type', coApplicant.types.join(', ')], ['Relation', coApplicant.relation], ['Mobile', coApplicant.mobile], ['Email', coApplicant.email], ['PAN', coApplicant.pan]].map(([label, value]) => <div key={label} className="flex justify-between gap-4 border-b border-slate-100 py-2.5 last:border-0"><span className="text-sm text-slate-400">{label}</span><span className="text-right text-sm font-semibold capitalize">{value}</span></div>)}
+                    </section>}
+                    {basic.maritalStatus === 'married' && <section className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm transition-all hover:shadow-lg">
+                      <h3 className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.08em] text-slate-500"><span className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100 text-blue-600"><UserRound size={17} /></span> Spouse</h3>
+                      <div className="flex justify-between gap-4 py-2.5"><span className="text-sm text-slate-400">Mobile</span><span className="text-sm font-semibold">{spouse.mobile}</span></div>
+                    </section>}
                     {isAbroad && (
                       <section className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm transition-all hover:shadow-lg">
                         <h3 className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.08em] text-slate-500"><span className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-100 text-amber-600"><Landmark size={17} /></span> Property</h3>
@@ -876,6 +1469,12 @@ export default function EducationLoanPage() {
                           <button type="button" onClick={() => uploads[key] && window.open(URL.createObjectURL(uploads[key] as File), '_blank')} className="rounded-xl border border-sky-200 bg-sky-50 px-3 py-1.5 text-xs font-bold text-sky-600 transition-all hover:-translate-y-0.5 hover:bg-sky-100 hover:shadow-md">View</button>
                         </div>
                       ))}
+                      {(basic.qualification === 'Graduation' || basic.qualification === 'Post Graduation') && dmcUploads.map((file, index) => (
+                        <div key={`review-dmc-${index + 1}`} className="flex items-center justify-between gap-4 border-b border-slate-100 py-3 last:border-0">
+                          <div className="min-w-0"><p className="text-sm font-semibold text-slate-800">DMC {index + 1}</p><p className="truncate text-xs text-indigo-500">{file?.name}</p></div>
+                          <button type="button" onClick={() => file && window.open(URL.createObjectURL(file), '_blank')} className="rounded-xl border border-sky-200 bg-sky-50 px-3 py-1.5 text-xs font-bold text-sky-600 transition-all hover:-translate-y-0.5 hover:bg-sky-100 hover:shadow-md">View</button>
+                        </div>
+                      ))}
                     </section>
                     <label className={`flex cursor-pointer items-start gap-3 rounded-3xl border p-5 transition-all hover:-translate-y-0.5 hover:shadow-lg ${errors.consent ? 'border-red-400 bg-red-50/30' : 'border-indigo-200 bg-gradient-to-br from-indigo-50 to-blue-50'}`}>
                       <input type="checkbox" checked={consent} onChange={(event) => { setConsent(event.target.checked); setErrors({}) }} className="mt-1 h-4 w-4 accent-indigo-600" />
@@ -886,25 +1485,22 @@ export default function EducationLoanPage() {
                         <FieldError message={errors.consent} />
                       </span>
                     </label>
+                    {submissionError && <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">{submissionError}</p>}
                   </div>
-                  <FooterActions onBack={() => goToStep(isAbroad ? 4 : 3)} nextLabel="Submit Application" submit disabled={!consent} />
+                  <div className="el-footer-actions flex items-center justify-between border-t border-slate-100 bg-slate-50/80 px-5 py-5 sm:px-8">
+                    <button type="button" onClick={() => goToStep(reviewStep - 1)} className="flex h-12 items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 font-bold text-slate-700 shadow-sm hover:border-slate-300"><ArrowLeft size={17} /> Back</button>
+                    <button type="submit" disabled={!consent || submitting} className="group flex h-12 items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 px-7 font-bold text-white shadow-lg shadow-indigo-200 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-indigo-200 disabled:cursor-not-allowed disabled:from-indigo-300 disabled:to-blue-300">
+                      {submitting ? <><Loader2 size={18} className="animate-spin" /> Submitting...</> : <>Submit Application <Check size={18} /></>}
+                    </button>
+                  </div>
                 </form>
               )}
             </motion.div>
           </div>
-        )}
           </div>
         </section>
       </main>
       <Footer />
-      {showOtp && (
-        <OTPModal
-          phoneNumber={basic.mobile}
-          onClose={() => setShowOtp(false)}
-          onVerify={verifyOtp}
-          onResendOtp={async () => { await new Promise((resolve) => window.setTimeout(resolve, 400)) }}
-        />
-      )}
     </div>
   )
 }

@@ -1,10 +1,13 @@
 import React, { useState } from 'react'
-import { ArrowRight, FileText, Loader2, Phone } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { ArrowRight, CircleAlert, FileText, Loader2, Phone, X } from 'lucide-react'
 import OTPModal from './OTPModal'
 import PDFViewer from './PDFViewer'
 import { useCreditReport } from '../hooks/useCreditReport'
 import InsufficientBalanceModal from './wallet/InsufficientBalanceModal'
 import { formatReportPrice, useReportPurchaseGuard } from '../hooks/useReportPurchaseGuard'
+import { ApiError } from '../lib/apiClient'
+import { useAuth } from '../context/AuthContext'
 
 export type ReportType = 'cibil' | 'equifax' | 'crif'
 
@@ -23,6 +26,12 @@ const friendlyCibilError = (error: unknown): string => {
     return 'Your login session has expired. Please sign in again and retry.'
   }
   return friendlyReportError(error)
+}
+
+const isAuthenticationError = (error: unknown): boolean => {
+  if (error instanceof ApiError && (error.status === 401 || error.status === 403)) return true
+  const message = error instanceof Error ? error.message : String(error ?? '')
+  return /authentication credentials|not authenticated|login session|token.*(?:not valid|invalid|expired)|(?:invalid|expired).*token/i.test(message)
 }
 
 interface CreditReportFlowProps {
@@ -48,6 +57,8 @@ interface CreditReportFlowProps {
  * report payload ONLY for equifax so the CIBIL and CRIF APIs stay untouched.
  */
 const CreditReportFlow: React.FC<CreditReportFlowProps> = ({ reportType, reportName, bureauName }) => {
+  const navigate = useNavigate()
+  const { isAuthenticated } = useAuth()
   const [fullName, setFullName] = useState('')
   const [phone, setPhone] = useState('')
   const [pan, setPan] = useState('')
@@ -58,6 +69,7 @@ const CreditReportFlow: React.FC<CreditReportFlowProps> = ({ reportType, reportN
   const [showPDFViewer, setShowPDFViewer] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [reportId, setReportId] = useState<string | undefined>()
+  const [loginToast, setLoginToast] = useState<{ id: number; message: string } | null>(null)
   const submissionLock = React.useRef(false)
 
   const isEquifax = reportType === 'equifax'
@@ -76,6 +88,20 @@ const CreditReportFlow: React.FC<CreditReportFlowProps> = ({ reportType, reportN
     insufficientModalProps,
   } = useReportPurchaseGuard(reportType)
 
+  React.useEffect(() => {
+    if (!loginToast) return
+    const timeoutId = window.setTimeout(() => {
+      setLoginToast((current) => current?.id === loginToast.id ? null : current)
+    }, 4500)
+    return () => window.clearTimeout(timeoutId)
+  }, [loginToast])
+
+  const redirectToLogin = () => {
+    const message = `Please log in first to generate your ${reportName}.`
+    setLoginToast({ id: Date.now(), message })
+    navigate('/login', { state: { authToast: message } })
+  }
+
   const canSubmit =
     fullName &&
     phone.length === 10 &&
@@ -88,6 +114,10 @@ const CreditReportFlow: React.FC<CreditReportFlowProps> = ({ reportType, reportN
     event.preventDefault()
     setAttempted(true)
     if (!canSubmit) return
+    if (!isAuthenticated) {
+      redirectToLogin()
+      return
+    }
     if (submissionLock.current) return
 
     submissionLock.current = true
@@ -120,6 +150,10 @@ const CreditReportFlow: React.FC<CreditReportFlowProps> = ({ reportType, reportN
       // Step 3: Show OTP modal for user to enter & verify OTP
       setShowOTPModal(true)
     } catch (error) {
+      if (isAuthenticationError(error)) {
+        redirectToLogin()
+        return
+      }
       if (await handleInsufficientApiError(error)) setError('')
       else setError(generatesBeforeOtp ? friendlyCibilError(error) : friendlyReportError(error))
     } finally {
@@ -149,6 +183,10 @@ const CreditReportFlow: React.FC<CreditReportFlowProps> = ({ reportType, reportN
       setShowOTPModal(false)
       setShowPDFViewer(true)
     } catch (error) {
+      if (isAuthenticationError(error)) {
+        redirectToLogin()
+        return
+      }
       if (await handleInsufficientApiError(error)) setError('')
       else setError(generatesBeforeOtp ? friendlyCibilError(error) : friendlyReportError(error))
       setShowOTPModal(false)
@@ -163,6 +201,25 @@ const CreditReportFlow: React.FC<CreditReportFlowProps> = ({ reportType, reportN
 
   return (
     <>
+      {loginToast && (
+        <div
+          key={loginToast.id}
+          role="alert"
+          aria-live="assertive"
+          className="fixed left-1/2 top-24 z-[100] flex w-[calc(100%-2rem)] max-w-md -translate-x-1/2 items-start gap-3 rounded-2xl border border-red-200 bg-white px-4 py-3.5 shadow-[0_18px_45px_rgba(15,23,42,0.22)]"
+        >
+          <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-100 text-red-600">
+            <CircleAlert size={18} />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-bold text-slate-900">Login required</p>
+            <p className="mt-0.5 text-sm leading-5 text-slate-600">{loginToast.message}</p>
+          </div>
+          <button type="button" aria-label="Dismiss login message" onClick={() => setLoginToast(null)} className="rounded-lg p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700">
+            <X size={17} />
+          </button>
+        </div>
+      )}
       <form onSubmit={submit} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xl shadow-blue-900/5 md:p-7">
         <div className="mb-6 flex items-center gap-3">
           <span className="rounded-xl bg-blue-100 p-3 text-blue-600"><FileText size={22} /></span>

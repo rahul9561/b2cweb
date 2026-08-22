@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   ArrowRight,
   CalendarDays,
   Check,
   CheckCircle2,
+  CircleAlert,
   ChevronDown,
   ChevronRight,
   ChevronUp,
@@ -13,12 +14,14 @@ import {
   ShieldCheck,
   Sparkles,
   UserRound,
+  X,
 } from 'lucide-react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { CreditScoreArticles, CreditScoreDisclaimer } from '../components/credit-score/CreditScoreArticles'
 import { ApiClient, ApiError } from '../lib/apiClient'
 import { AppEndpoints } from '../config/appConfig'
 import { fetchLoanCategories, getSavedLoanCategoryList, getSavedPincode, type LoanCategory } from '../lib/loanCategories'
+import { useAuth } from '../context/AuthContext'
 
 type Details = {
   firstName: string
@@ -44,6 +47,12 @@ const isLoanEligible = (score: number | null, dpd: number | null) => {
     score <= INELIGIBLE_SCORE_MAX
 
   return !hasIneligibleDpd && !hasIneligibleScore
+}
+
+const isAuthenticationError = (error: unknown) => {
+  if (error instanceof ApiError && (error.status === 401 || error.status === 403)) return true
+  const message = error instanceof Error ? error.message : String(error ?? '')
+  return /authentication credentials|not authenticated|login session|token.*(?:not valid|invalid|expired)|(?:invalid|expired).*token/i.test(message)
 }
 
 // const MAX_ELIGIBLE_DPD = 29
@@ -118,6 +127,7 @@ const faqs = [
 
 export default function CibilScoreLoanPage() {
   const navigate = useNavigate()
+  const { isAuthenticated } = useAuth()
   const location = useLocation()
   const incoming = (location.state ?? {}) as Partial<Details> | null
 
@@ -134,6 +144,21 @@ export default function CibilScoreLoanPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
   const [openFaq, setOpenFaq] = useState<number | null>(null)
+  const [loginToast, setLoginToast] = useState<{ id: number; message: string } | null>(null)
+
+  useEffect(() => {
+    if (!loginToast) return
+    const timeoutId = window.setTimeout(() => {
+      setLoginToast((current) => current?.id === loginToast.id ? null : current)
+    }, 4500)
+    return () => window.clearTimeout(timeoutId)
+  }, [loginToast])
+
+  const redirectToLogin = () => {
+    const message = 'Please log in first to check your credit score and loan eligibility.'
+    setLoginToast({ id: Date.now(), message })
+    navigate('/login', { state: { authToast: message } })
+  }
 
   const update = (key: keyof Details, value: string) => setDetails((current) => ({ ...current, [key]: value }))
 
@@ -207,6 +232,10 @@ export default function CibilScoreLoanPage() {
     const newErrors = validate()
     setErrors(newErrors)
     if (Object.keys(newErrors).length > 0) return
+    if (!isAuthenticated) {
+      redirectToLogin()
+      return
+    }
 
     setIsSubmitting(true)
     const payload = {
@@ -240,6 +269,10 @@ export default function CibilScoreLoanPage() {
       }
       navigate('/loan-offers', { state: { ...details, score, bankPayload } })
     } catch (error) {
+      if (isAuthenticationError(error)) {
+        redirectToLogin()
+        return
+      }
       setSubmitError(error instanceof ApiError && error.status === 401 ? 'Your login session has expired. Please sign in again and retry.' : error instanceof Error ? error.message : 'Something went wrong. Please try again.')
     } finally {
       setIsSubmitting(false)
@@ -248,6 +281,25 @@ export default function CibilScoreLoanPage() {
 
   return (
     <main className="bg-white">
+      {loginToast && (
+        <div
+          key={loginToast.id}
+          role="alert"
+          aria-live="assertive"
+          className="fixed left-1/2 top-24 z-[100] flex w-[calc(100%-2rem)] max-w-md -translate-x-1/2 items-start gap-3 rounded-2xl border border-red-200 bg-white px-4 py-3.5 shadow-[0_18px_45px_rgba(15,23,42,0.22)]"
+        >
+          <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-100 text-red-600">
+            <CircleAlert size={18} />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-bold text-slate-900">Login required</p>
+            <p className="mt-0.5 text-sm leading-5 text-slate-600">{loginToast.message}</p>
+          </div>
+          <button type="button" aria-label="Dismiss login message" onClick={() => setLoginToast(null)} className="rounded-lg p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700">
+            <X size={17} />
+          </button>
+        </div>
+      )}
       {/* ===== HERO + "Let's Get Started" FORM — UNTOUCHED ===== */}
       <section className="border-b border-blue-100 bg-gradient-to-br from-blue-50 via-white to-slate-50">
         <div className="container-pb grid gap-8 py-10 lg:grid-cols-[minmax(0,1fr)_380px]">

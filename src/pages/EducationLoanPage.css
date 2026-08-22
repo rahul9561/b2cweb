@@ -328,3 +328,8 @@
     transition-duration: .01ms !important;
   }
 }
+.el-field input[type="checkbox"]:focus,
+.el-field input[type="checkbox"]:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}

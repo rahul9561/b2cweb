@@ -1,6 +1,6 @@
-import { useRef, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowRight, BarChart3, Check, ChevronDown, ChevronUp, CircleAlert, FileText, Gauge, Lightbulb, Loader2, RefreshCw, ShieldCheck, Sparkles, TrendingUp } from 'lucide-react'
+import { ArrowRight, BarChart3, Check, ChevronDown, ChevronUp, CircleAlert, FileText, Gauge, Lightbulb, Loader2, RefreshCw, ShieldCheck, Sparkles, TrendingUp, X } from 'lucide-react'
 import OTPModal from '../components/OTPModal'
 import PDFViewer from '../components/PDFViewer'
 import { CreditScoreArticles, CreditScoreDisclaimer } from '../components/credit-score/CreditScoreArticles'
@@ -8,6 +8,7 @@ import { useCreditAnalysis } from '../hooks/useCreditAnalysis'
 import { formatBlockedDate, getCibilAnalysisBlockedUntil } from '../lib/cibilAnalysisSession'
 import { ApiClient, ApiError } from '../lib/apiClient'
 import { AppEndpoints } from '../config/appConfig'
+import { useAuth } from '../context/AuthContext'
 
 type PageKind = 'equifax' | 'crif' | 'pan' | 'improve'
 type FormData = {
@@ -196,13 +197,19 @@ const Field = ({ label, error, children }: { label: string; error?: string; chil
 
 const getCreditAnalysisErrorMessage = (error: unknown) => {
   if (error instanceof ApiError) {
-    if (error.status === 401 || error.status === 403) return 'Your session has expired. Please sign in again and retry.'
+    if (error.status === 401 || error.status === 403) return 'Please sign in again and retry.'
     if (error.status === 404 || /<\/?(?:html|body|head|footer)\b/i.test(error.message)) {
       return 'The credit analysis service is currently unavailable. Please try again later.'
     }
     if (error.message && !/^Request failed \(\d+\)$/.test(error.message)) return error.message
   }
   return 'We could not generate your credit analysis report. Please try again.'
+}
+
+const isAuthenticationError = (error: unknown) => {
+  if (error instanceof ApiError && (error.status === 401 || error.status === 403)) return true
+  const message = error instanceof Error ? error.message : String(error ?? '')
+  return /authentication credentials|not authenticated|login session|token.*(?:not valid|invalid|expired)|(?:invalid|expired).*token/i.test(message)
 }
 
 function BlockedReportScreen({ blockedUntil }: { blockedUntil: Date }) {
@@ -224,6 +231,7 @@ function BlockedReportScreen({ blockedUntil }: { blockedUntil: Date }) {
 
 export default function CreditScoreInfoPage({ kind }: { kind: PageKind }) {
   const navigate = useNavigate()
+  const { isAuthenticated } = useAuth()
   const config = configs[kind]
   const isImprove = kind === 'improve'
 
@@ -242,6 +250,7 @@ export default function CreditScoreInfoPage({ kind }: { kind: PageKind }) {
   const [otp, setOtp] = useState(false)
   const [report, setReport] = useState(false)
   const [openFaq, setOpenFaq] = useState<number | null>(null)
+  const [loginToast, setLoginToast] = useState<{ id: number; message: string } | null>(null)
   const analysisSubmissionLock = useRef(false)
 
   const { generateReport, loading: analysisLoading, error: analysisError, setError: setAnalysisError } = useCreditAnalysis()
@@ -263,6 +272,19 @@ export default function CreditScoreInfoPage({ kind }: { kind: PageKind }) {
   const [scoreLoading, setScoreLoading] = useState(false)
   const [scoreError, setScoreError] = useState('')
 
+  useEffect(() => {
+    if (!loginToast) return
+    const timeoutId = window.setTimeout(() => {
+      setLoginToast((current) => current?.id === loginToast.id ? null : current)
+    }, 4500)
+    return () => window.clearTimeout(timeoutId)
+  }, [loginToast])
+
+  const redirectToLogin = (message: string) => {
+    setLoginToast({ id: Date.now(), message })
+    navigate('/login', { state: { authToast: message } })
+  }
+
   const submit = async (event: React.FormEvent) => {
     event.preventDefault()
     setSubmitted(true)
@@ -271,6 +293,10 @@ export default function CreditScoreInfoPage({ kind }: { kind: PageKind }) {
     // and navigate straight to the score page (no OTP, no report download).
     if (kind === 'pan') {
       if (errors.firstName || errors.lastName || errors.dob || errors.pincode || errors.phone || errors.pan) return
+      if (!isAuthenticated) {
+        redirectToLogin('Please log in first to generate your CIBIL PAN report.')
+        return
+      }
       setScoreLoading(true)
       setScoreError('')
       try {
@@ -287,6 +313,10 @@ export default function CreditScoreInfoPage({ kind }: { kind: PageKind }) {
           state: { apiData: { ...apiData, credit_score: creditScore } },
         })
       } catch (err) {
+        if (isAuthenticationError(err)) {
+          redirectToLogin('Please log in first to generate your CIBIL PAN report.')
+          return
+        }
         const message =
           err instanceof ApiError ? err.message : 'Could not fetch your CIBIL score. Please try again.'
         setScoreError(message)
@@ -304,6 +334,10 @@ export default function CreditScoreInfoPage({ kind }: { kind: PageKind }) {
     // improve kind — validate the required fields and fire the analysis API
     if (errors.name || errors.phone || errors.pan || errors.gender) return
     if (!consent) return
+    if (!isAuthenticated) {
+      redirectToLogin('Please log in first to analyse your credit profile.')
+      return
+    }
     if (analysisSubmissionLock.current) return
 
     analysisSubmissionLock.current = true
@@ -323,6 +357,10 @@ export default function CreditScoreInfoPage({ kind }: { kind: PageKind }) {
         },
       })
     } catch (error) {
+      if (isAuthenticationError(error)) {
+        redirectToLogin('Please log in first to analyse your credit profile.')
+        return
+      }
       setAnalysisError(getCreditAnalysisErrorMessage(error))
     } finally {
       analysisSubmissionLock.current = false
@@ -339,6 +377,25 @@ export default function CreditScoreInfoPage({ kind }: { kind: PageKind }) {
 
   return (
     <div className="bg-white">
+      {loginToast && (
+        <div
+          key={loginToast.id}
+          role="alert"
+          aria-live="assertive"
+          className="fixed left-1/2 top-24 z-[100] flex w-[calc(100%-2rem)] max-w-md -translate-x-1/2 items-start gap-3 rounded-2xl border border-red-200 bg-white px-4 py-3.5 shadow-[0_18px_45px_rgba(15,23,42,0.22)]"
+        >
+          <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-100 text-red-600">
+            <CircleAlert size={18} />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-bold text-slate-900">Login required</p>
+            <p className="mt-0.5 text-sm leading-5 text-slate-600">{loginToast.message}</p>
+          </div>
+          <button type="button" aria-label="Dismiss login message" onClick={() => setLoginToast(null)} className="rounded-lg p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700">
+            <X size={17} />
+          </button>
+        </div>
+      )}
       <section className="border-b border-blue-100 bg-gradient-to-br from-blue-50 via-white to-slate-50 py-12">
         <div className="container-pb grid gap-9 lg:grid-cols-[1.2fr_.8fr]">
           <div className="pt-2">

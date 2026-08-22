@@ -32,6 +32,7 @@ export const AppEndpoints = {
   loanBanks: '/loans/banks/',
   loanCategories: '/loans/categories/',
   loanApply: '/loans/sav/apply/',
+  educationLoanLead: '/loans/b2c-website-lead/',
   walletBalance: '/dashboard/all/balace/summary/',
   walletTransactions: '/wallet/transactions/',
   razorpayCreateOrder: '/razorpay/create-order/',

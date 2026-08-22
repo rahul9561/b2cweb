@@ -148,15 +148,17 @@
 //   )
 // }
 import { useEffect, useRef, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Loader2, Shield, Smartphone } from 'lucide-react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { ArrowLeft, CircleAlert, Loader2, Shield, Smartphone, X } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 
 const RESEND_COOLDOWN_SECONDS = 30
 
 export default function Login() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { sendOtp, verifyOtp, resendOtp } = useAuth()
+  const loginRouteState = location.state as { authToast?: string } | null
 
   const [phone, setPhone] = useState('')
   const [sent, setSent] = useState(false)
@@ -166,14 +168,22 @@ export default function Login() {
   const [verifying, setVerifying] = useState(false)
   const [resending, setResending] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
+  const [authToast, setAuthToast] = useState(loginRouteState?.authToast ?? '')
 const [showAppStorePopup, setShowAppStorePopup] = useState(false)
 
   const [cooldown, setCooldown] = useState(0)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
     return () => { if (timerRef.current) clearInterval(timerRef.current) }
   }, [])
+
+  useEffect(() => {
+    if (!authToast) return
+    const timeoutId = window.setTimeout(() => setAuthToast(''), 4500)
+    return () => window.clearTimeout(timeoutId)
+  }, [authToast])
 
   const startCooldown = () => {
     setCooldown(RESEND_COOLDOWN_SECONDS)
@@ -244,6 +254,20 @@ const [showAppStorePopup, setShowAppStorePopup] = useState(false)
 
   return (
     <section className="bg-blueBG py-16">
+      {authToast && (
+        <div role="alert" aria-live="assertive" className="fixed right-4 top-24 z-[100] flex w-[calc(100%-2rem)] max-w-sm items-start gap-3 rounded-2xl border border-red-200 bg-white px-4 py-3.5 shadow-[0_18px_45px_rgba(15,23,42,0.22)] sm:right-6">
+          <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-100 text-red-600">
+            <CircleAlert size={18} />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-bold text-slate-900">Login required</p>
+            <p className="mt-0.5 text-sm leading-5 text-slate-600">{authToast}</p>
+          </div>
+          <button type="button" aria-label="Dismiss login message" onClick={() => setAuthToast('')} className="rounded-lg p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700">
+            <X size={17} />
+          </button>
+        </div>
+      )}
       <div className="container-pb flex justify-center">
         <div className="w-full max-w-md">
           <Link to="/" className="mb-6 inline-flex items-center gap-1 text-[13px] text-slate2-secondary hover:text-brand">
