@@ -136,14 +136,14 @@ export const loansMenu = [
 ]
 export const supportMenu = {
   accountService: [
-    'Login with mobile number',
-    'Track payments / policy status',
-    'View / manage policies',
-    'Claims',
-    'Communication preferences',
-    'Get help/Report an issue',
+    { label: 'Login with Mobile Number', to: '/login' },
+    { label: 'Articles', to: '/category/credit-score' },
+    { label: 'Contact Us', to: '/contact-us' },
+    { label: 'Terms & Conditions', to: '/terms-and-conditions' },
+    { label: 'Privacy Policy', to: '/privacy-policy' },
   ],
-  more: ['Verify advisor', 'Advisor Feedback', 'Get a call back', 'Chat With Us', 'View more'],
+  // Previous Account & Service Help and More links are temporarily removed.
+  // Restore them here if the former Support menu is needed again.
 }
 
 export const footerColumns = {

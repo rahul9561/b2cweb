@@ -99,6 +99,7 @@ import LoansListPage from './pages/LoansListPage'
 import SelectIssuePage from './pages/SelectIssuePage'
 import DisputesPage from './pages/DisputesPage'
 import DisputeDetailPage from './pages/DisputeDetailPage'
+import DisputePreviewPage from './pages/DisputePreviewPage'
 const leadRoute = (slug: LandingSlug) => <LeadLanding slug={slug} />
 
 function FirstLoginGuard() {
@@ -192,6 +193,7 @@ export default function App() {
                   <Route path="/loans" element={<LoansListPage />} />
                   <Route path="/loans/disputes" element={<DisputesPage />} />
                   <Route path="/loans/disputes/:disputeId" element={<DisputeDetailPage />} />
+                  <Route path="/loans/disputes/:disputeId/preview" element={<DisputePreviewPage />} />
                   <Route path="/loans/:accountId/issues" element={<SelectIssuePage />} />
                   <Route path="/cibil-score-for-personal-loan" element={<CibilScoreForPersonalLoanPage />} />
                   <Route path="/education-loan" element={<EducationLoanPage />} />

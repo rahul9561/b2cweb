@@ -41,31 +41,39 @@ const mostRecentReport = <T extends { id: string; createdAt: string }>(reports: 
   })[0]
 
 export function LoansProvider({ children }: { children: ReactNode }) {
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, token } = useAuth()
   const [loans, setLoans] = useState<LoanAccount[]>([])
   const [reportId, setReportId] = useState('')
   const [loading, setLoading] = useState(false)
   const [loaded, setLoaded] = useState(false)
   const [error, setError] = useState('')
-  const didAutoLoad = useRef(false)
+  const [dataSessionToken, setDataSessionToken] = useState('')
+  const autoLoadedToken = useRef<string | null>(null)
   const authenticated = useRef(isAuthenticated)
+  const activeToken = useRef(token)
   authenticated.current = isAuthenticated
+  activeToken.current = token
 
-  const applyReport = useCallback((id: string, accounts: LoanAccount[]) => {
-    if (!authenticated.current) return
+  const applyReport = useCallback((id: string, accounts: LoanAccount[], requestToken: string) => {
+    if (!authenticated.current || activeToken.current !== requestToken) return
+    setDataSessionToken(requestToken)
     setReportId(id)
     setLoans(accounts)
     if (id) localStorage.setItem(AppConstants.creditRepairReportIdKey, id)
   }, [])
 
   const refreshLoans = useCallback(async () => {
+    const requestToken = activeToken.current
+    if (!requestToken) return
     setLoading(true)
     setError('')
     try {
       const reports = await listReports()
+      if (activeToken.current !== requestToken) return
       const latest = mostRecentReport(reports)
       if (!latest?.id) {
-        if (authenticated.current) {
+        if (authenticated.current && activeToken.current === requestToken) {
+          setDataSessionToken(requestToken)
           setLoans([])
           setReportId('')
           setLoaded(true)
@@ -73,48 +81,55 @@ export function LoansProvider({ children }: { children: ReactNode }) {
         return
       }
       const report = await getReportDetail(latest.id)
-      applyReport(report.id || latest.id, report.accounts)
-      if (authenticated.current) setLoaded(true)
+      if (activeToken.current !== requestToken) return
+      applyReport(report.id || latest.id, report.accounts, requestToken)
+      if (authenticated.current && activeToken.current === requestToken) setLoaded(true)
     } catch (requestError) {
-      if (authenticated.current) {
+      if (authenticated.current && activeToken.current === requestToken) {
+        setDataSessionToken(requestToken)
+        setLoans([])
+        setReportId('')
         setError(messageFrom(requestError))
         setLoaded(true)
       }
       throw requestError
     } finally {
-      if (authenticated.current) setLoading(false)
+      if (authenticated.current && activeToken.current === requestToken) setLoading(false)
     }
   }, [applyReport])
 
+  const sessionMatches = Boolean(token) && dataSessionToken === token
+  const visibleLoans = sessionMatches ? loans : []
+  const visibleReportId = sessionMatches ? reportId : ''
+
   const getLoanById = useCallback(
-    (id: string | number) => loans.find((loan) => loan.id === String(id)),
-    [loans],
+    (id: string | number) => visibleLoans.find((loan) => loan.id === String(id)),
+    [visibleLoans],
   )
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      didAutoLoad.current = false
-      setLoans([])
-      setReportId('')
-      setLoading(false)
-      setLoaded(false)
-      setError('')
-      return
-    }
-    if (didAutoLoad.current) return
-    didAutoLoad.current = true
+    if (autoLoadedToken.current === token) return
+    autoLoadedToken.current = token
+    setDataSessionToken('')
+    setLoans([])
+    setReportId('')
+    setLoading(false)
+    setLoaded(false)
+    setError('')
+    localStorage.removeItem(AppConstants.creditRepairReportIdKey)
+    if (!token) return
     void refreshLoans().catch(() => {
       // The context exposes the request error; consumers decide how to display it.
     })
-  }, [isAuthenticated, refreshLoans])
+  }, [token, refreshLoans])
 
   return (
     <LoansContext.Provider value={{
-      loans,
-      reportId,
-      loading,
-      loaded,
-      error,
+      loans: visibleLoans,
+      reportId: visibleReportId,
+      loading: Boolean(token) && loading,
+      loaded: sessionMatches && loaded,
+      error: sessionMatches ? error : '',
       refreshLoans,
       getLoanById,
     }}>

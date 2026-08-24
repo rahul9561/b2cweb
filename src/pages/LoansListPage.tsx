@@ -2,6 +2,7 @@ import { AlertCircle, ArrowLeft, ChevronRight, FileCheck2, RefreshCw } from 'luc
 import { Link, Navigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useLoans } from '../context/LoansContext'
+import { useEffect } from 'react'
 import {
   displayAccountNumber,
   formatLoanAmount,
@@ -20,7 +21,13 @@ const ListSkeleton = () => (
 export default function LoansListPage() {
   const { isAuthenticated } = useAuth()
   const { loans, loading, loaded, error, refreshLoans } = useLoans()
-
+  useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: 'instant',
+    })
+  }, [])
   if (!isAuthenticated) return <Navigate to="/login" replace />
 
   return (

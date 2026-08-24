@@ -25,6 +25,11 @@ import { getTotalBalance } from '../lib/walletApi'
 import { insuranceMenu, renewMenu, claimMenu, creditScoreMenu, supportMenu, loansMenu } from '../data/navigation'
 import type { MenuCategory } from '../data/navigation'
 import logo from "../assets/images/av-logon.png";
+
+// TEMPORARILY HIDDEN HEADER ITEMS:
+// Change this value to `true` to show Insurance Products, Renew Your Policy, and Claim again.
+const SHOW_INSURANCE_HEADER_ITEMS = false
+
 const categoryMeta: { key: MenuCategory; label: string; icon: typeof Shield }[] = [
   { key: 'termInsurance', label: 'Term Insurance', icon: Shield },
   { key: 'investmentPlans', label: 'Investment Plans', icon: TrendingUp },
@@ -64,7 +69,7 @@ export default function Header() {
   }
   return (
     <header className="sticky top-0 z-50 border-b border-gray-800 bg-black shadow-lg">
-     <div className="flex h-[70px] w-full items-center justify-between px-1 lg:px-4">
+      <div className="flex h-[70px] w-full items-center justify-between px-1 lg:px-4">
         <div className="flex items-center gap-8">
           <button
             className="lg:hidden"
@@ -83,7 +88,7 @@ export default function Header() {
         className="h-14 w-auto object-contain"
     />
 </Link>
-          <nav className="hidden items-center gap-0 lg:flex">
+           <nav className="hidden items-center gap-0 lg:flex">
             <div className="group relative">
               <button className="flex items-center gap-1 whitespace-nowrap px-3 py-5 text-[14px] font-medium text-white hover:text-orange-400">
                 Credit Score
@@ -127,6 +132,7 @@ export default function Header() {
     </ul>
   </div>
 </div>
+            {SHOW_INSURANCE_HEADER_ITEMS && <>
             <div className="group relative">
               <button className="flex items-center gap-1 whitespace-nowrap px-3 py-5 text-[14px] font-medium text-white hover:text-orange-400">
                 Insurance Products
@@ -210,46 +216,30 @@ export default function Header() {
                 </ul>
               </div>
             </div>
+            </>}
 
             <div className="group relative">
               <button className="flex items-center gap-1 whitespace-nowrap px-3 py-5 text-[14px] font-medium text-white hover:text-orange-400">
                 Support
                 <ChevronDown size={14} />
               </button>
-              <div className="invisible absolute left-0 top-full z-50 w-[520px] bg-white opacity-0 shadow-card transition-all duration-150 group-hover:visible group-hover:opacity-100">
-                <div className="grid grid-cols-2 gap-6 p-6">
-                  <div>
+              <div className="invisible absolute left-0 top-full z-50 w-80 bg-white opacity-0 shadow-card transition-all duration-150 group-hover:visible group-hover:opacity-100">
+                <div className="p-6">
                     <h3 className="mb-3 text-[14px] font-semibold text-navy">
                       Account & Service Help
                     </h3>
                     <ul className="space-y-1.5">
                       {supportMenu.accountService.map((l) => (
-                        <li key={l}>
+                        <li key={l.label}>
                           <Link
-                            to="/login"
-                            className="text-[12px] text-slate2-secondary hover:text-brand"
+                            to={l.to}
+                            className="block rounded-lg px-3 py-2.5 text-[12px] text-slate2-secondary transition-colors hover:bg-blueBG hover:text-brand"
                           >
-                            {l}
+                            {l.label}
                           </Link>
                         </li>
                       ))}
                     </ul>
-                  </div>
-                  <div>
-                    <h3 className="mb-3 text-[14px] font-semibold text-navy">More</h3>
-                    <ul className="space-y-1.5">
-                      {supportMenu.more.map((l) => (
-                        <li key={l}>
-                          <Link
-                            to="/login"
-                            className="text-[12px] text-slate2-secondary hover:text-brand"
-                          >
-                            {l}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
                 </div>
               </div>
             </div>
@@ -370,12 +360,14 @@ export default function Header() {
               {[
                 { label: 'Credit Score', to: '/cibil-score', icon: TrendingUp },
                 { label: 'Loans', to: '/cibil-score-loan', icon: Briefcase },
-                { label: 'Health Insurance', to: '/health-insurance', icon: HeartPulse },
-                { label: 'Term Insurance', to: '/term-insurance', icon: Shield },
-                { label: 'Car Insurance', to: '/car-insurance', icon: Car },
-                { label: 'Bike Insurance', to: '/bike-insurance', icon: Bike },
-                { label: 'Travel Insurance', to: '/travel-insurance', icon: Plane },
-                { label: 'Investment Plans', to: '/investment-plans', icon: TrendingUp },
+                ...(SHOW_INSURANCE_HEADER_ITEMS ? [
+                  { label: 'Health Insurance', to: '/health-insurance', icon: HeartPulse },
+                  { label: 'Term Insurance', to: '/term-insurance', icon: Shield },
+                  { label: 'Car Insurance', to: '/car-insurance', icon: Car },
+                  { label: 'Bike Insurance', to: '/bike-insurance', icon: Bike },
+                  { label: 'Travel Insurance', to: '/travel-insurance', icon: Plane },
+                  { label: 'Investment Plans', to: '/investment-plans', icon: TrendingUp },
+                ] : []),
                 { label: 'Calculators', to: '/calculators', icon: Briefcase },
               ].map((item) => {
                 const Icon = item.icon
@@ -427,7 +419,7 @@ export default function Header() {
                   ))}
                 </div>
               </div>
-              <div className="mt-3 border-t border-slate2-border pt-3">
+              {SHOW_INSURANCE_HEADER_ITEMS && <div className="mt-3 border-t border-slate2-border pt-3">
                 <p className="mb-2 flex items-center gap-2 text-[13px] font-semibold text-navy">
                   <RefreshCcw size={14} className="text-brand" />
                   Renew a Policy
@@ -444,7 +436,7 @@ export default function Header() {
                     </Link>
                   ))}
                 </div>
-              </div>
+              </div>}
               {isAuthenticated && (
                 <button
                   type="button"

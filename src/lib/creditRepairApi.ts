@@ -21,18 +21,6 @@ export const DisputeType = {
 
 export type DisputeTypeValue = typeof DisputeType[keyof typeof DisputeType]
 
-export const DisputeTypeOptions: ReadonlyArray<{ value: DisputeTypeValue; label: string }> = [
-  { value: DisputeType.OWNERSHIP, label: 'Ownership Dispute' },
-  { value: DisputeType.BALANCE, label: 'Incorrect Balance' },
-  { value: DisputeType.OVERDUE, label: 'Incorrect Overdue' },
-  { value: DisputeType.STATUS, label: 'Incorrect Status' },
-  { value: DisputeType.DATES, label: 'Incorrect Dates' },
-  { value: DisputeType.DPD, label: 'Incorrect Payment History / DPD' },
-  { value: DisputeType.DUPLICATE, label: 'Duplicate Account' },
-  { value: DisputeType.PERSONAL_INFO, label: 'Personal Information' },
-  { value: DisputeType.OTHER, label: 'Other' },
-]
-
 export type LoanAccount = {
   id: string
   accountType: string
@@ -72,8 +60,10 @@ export type CreditIssue = {
 
 export type Dispute = {
   id: string
+  reportId: string
   issueId: string
   accountId: string
+  lenderName: string
   disputeType: string
   description: string
   status: string
@@ -81,6 +71,19 @@ export type Dispute = {
   sentAt: string
   title: string
   preview: string
+  generatedLetter: string
+  generatedEmailSubject: string
+  generatedEmailBody: string
+  raw: RawRecord
+}
+
+export type DisputePreview = {
+  to: string
+  toMasked: string
+  subject: string
+  message: string
+  attachments: string[]
+  readyToSend: boolean
   raw: RawRecord
 }
 
@@ -275,15 +278,33 @@ export function normalizeDispute(value: unknown): Dispute {
   const raw = nestedObject(value, ['dispute', 'credit_dispute', 'creditDispute'])
   return {
     id: recordId(raw, ['dispute_id', 'disputeId']),
-    issueId: textValue(pick(raw, ['issue_id', 'issueId', 'credit_issue_id'])),
+    reportId: textValue(pick(raw, ['report', 'report_id', 'reportId', 'credit_report_id'])),
+    issueId: textValue(pick(raw, ['issue', 'issue_id', 'issueId', 'credit_issue_id'])),
     accountId: textValue(pick(raw, ['account_id', 'accountId', 'loan_account_id'])),
+    lenderName: textValue(pick(raw, ['lender_name', 'lenderName'])),
     disputeType: textValue(pick(raw, ['dispute_type', 'disputeType', 'type'])),
     description: textValue(pick(raw, ['description', 'details', 'message', 'notes'])),
     status: textValue(pick(raw, ['dispute_status', 'disputeStatus', 'status'])),
-    generatedAt: textValue(pick(raw, ['generated_at', 'generatedAt', 'date_generated'])),
+    generatedAt: textValue(pick(raw, ['generated_at', 'generatedAt', 'date_generated', 'created_at'])),
     sentAt: textValue(pick(raw, ['sent_at', 'sentAt', 'emailed_at', 'submitted_at'])),
-    title: textValue(pick(raw, ['title', 'subject', 'dispute_title'])),
-    preview: textValue(pick(raw, ['preview', 'letter', 'content', 'body'])),
+    title: textValue(pick(raw, ['title', 'subject', 'dispute_title', 'generated_email_subject'])),
+    preview: textValue(pick(raw, ['preview', 'letter', 'content', 'body', 'generated_letter'])),
+    generatedLetter: textValue(pick(raw, ['generated_letter', 'generatedLetter'])),
+    generatedEmailSubject: textValue(pick(raw, ['generated_email_subject', 'generatedEmailSubject'])),
+    generatedEmailBody: textValue(pick(raw, ['generated_email_body', 'generatedEmailBody'])),
+    raw,
+  }
+}
+
+const normalizeDisputePreview = (value: unknown): DisputePreview => {
+  const raw = asObject(value)
+  return {
+    to: textValue(pick(raw, ['to', 'recipient', 'recipient_email'])),
+    toMasked: textValue(pick(raw, ['to_masked', 'toMasked', 'masked_recipient'])),
+    subject: textValue(pick(raw, ['subject', 'email_subject'])),
+    message: textValue(pick(raw, ['message', 'body', 'content'])),
+    attachments: stringList(pick(raw, ['attachments', 'files'])),
+    readyToSend: booleanValue(pick(raw, ['ready_to_send', 'readyToSend'])),
     raw,
   }
 }
@@ -327,23 +348,23 @@ export async function reviewAccount(accountId: string | number, input: ReviewAcc
 }
 
 export async function createDispute(issueId: string | number, input: CreateDisputeInput): Promise<Dispute> {
-  return normalizeDispute(await ApiClient.post<JsonResult>(path(`/issues/${issueId}/dispute`), input, { auth: true }))
+  return normalizeDispute(await ApiClient.post<JsonResult>(path(`/issues/${issueId}/dispute/`), input, { auth: true }))
 }
 
 export async function getDisputeDetail(disputeId: string | number): Promise<Dispute> {
-  return normalizeDispute(await ApiClient.get<JsonResult>(path(`/disputes/${disputeId}`), { auth: true }))
+  return normalizeDispute(await ApiClient.get<JsonResult>(path(`/disputes/${disputeId}/`), { auth: true }))
 }
 
 export async function generateDispute(disputeId: string | number): Promise<Dispute> {
-  return normalizeDispute(await ApiClient.post<JsonResult>(path(`/disputes/${disputeId}/generate`), undefined, { auth: true }))
+  return normalizeDispute(await ApiClient.post<JsonResult>(path(`/disputes/${disputeId}/generate/`), undefined, { auth: true }))
 }
 
-export async function previewDispute(disputeId: string | number): Promise<JsonResult> {
-  return ApiClient.get<JsonResult>(path(`/disputes/${disputeId}/preview?target=LENDER`), { auth: true })
+export async function previewDispute(disputeId: string | number): Promise<DisputePreview> {
+  return normalizeDisputePreview(await ApiClient.get<JsonResult>(path(`/disputes/${disputeId}/preview?target=LENDER`), { auth: true }))
 }
 
 export async function sendDisputeEmail(disputeId: string | number): Promise<Dispute> {
-  return normalizeDispute(await ApiClient.post<JsonResult>(path(`/disputes/${disputeId}/send`), {
+  return normalizeDispute(await ApiClient.post<JsonResult>(path(`/disputes/${disputeId}/send/`), {
     target: 'LENDER',
     confirm: true,
   }, { auth: true }))

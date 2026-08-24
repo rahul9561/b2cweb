@@ -41,7 +41,7 @@ export default function DisputesPage() {
         <div className="container-pb py-9">
           <Link to="/loans" className="inline-flex items-center gap-1.5 text-sm font-medium text-slate2-secondary hover:text-brand"><ArrowLeft size={16} /> Back to loans</Link>
           <h1 className="mt-4 font-serif text-3xl font-bold text-navy md:text-4xl">Your disputes</h1>
-          <p className="mt-2 text-sm text-slate2-secondary">Generate, preview and send your credit-report disputes to the lender.</p>
+          <p className="mt-2 text-sm text-slate2-secondary">Review the details and current status of your credit-report disputes.</p>
         </div>
       </section>
 

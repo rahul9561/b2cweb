@@ -137,6 +137,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = () => {
     localStorage.removeItem(AppConstants.tokenKey)
     localStorage.removeItem(AppConstants.userDataKey)
+    localStorage.removeItem(AppConstants.creditRepairReportIdKey)
     setToken(null)
     setUser(null)
   }
