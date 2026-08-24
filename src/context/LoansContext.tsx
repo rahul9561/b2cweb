@@ -10,14 +10,10 @@ import {
 import { AppConstants } from '../config/appConfig'
 import { useAuth } from './AuthContext'
 import {
-  fetchLoansForNewUser,
   getReportDetail,
   listReports,
-  type FetchCrifReportInput,
   type LoanAccount,
 } from '../lib/creditRepairApi'
-
-type FreshReportInput = Omit<FetchCrifReportInput, 'name_lookup'>
 
 type LoansContextValue = {
   loans: LoanAccount[]
@@ -26,7 +22,6 @@ type LoansContextValue = {
   loaded: boolean
   error: string
   refreshLoans: () => Promise<void>
-  loadFreshReportForUser: (input: FreshReportInput) => Promise<{ reportId: string; accounts: LoanAccount[] }>
   getLoanById: (id: string | number) => LoanAccount | undefined
 }
 
@@ -53,7 +48,6 @@ export function LoansProvider({ children }: { children: ReactNode }) {
   const [loaded, setLoaded] = useState(false)
   const [error, setError] = useState('')
   const didAutoLoad = useRef(false)
-  const freshRequest = useRef<Promise<{ reportId: string; accounts: LoanAccount[] }> | null>(null)
   const authenticated = useRef(isAuthenticated)
   authenticated.current = isAuthenticated
 
@@ -68,22 +62,18 @@ export function LoansProvider({ children }: { children: ReactNode }) {
     setLoading(true)
     setError('')
     try {
-      let cachedId = localStorage.getItem(AppConstants.creditRepairReportIdKey) || ''
-      if (!cachedId) {
-        const reports = await listReports()
-        const latest = mostRecentReport(reports)
-        if (!latest?.id) {
-          if (authenticated.current) {
-            setLoans([])
-            setReportId('')
-            setLoaded(true)
-          }
-          return
+      const reports = await listReports()
+      const latest = mostRecentReport(reports)
+      if (!latest?.id) {
+        if (authenticated.current) {
+          setLoans([])
+          setReportId('')
+          setLoaded(true)
         }
-        cachedId = latest.id
+        return
       }
-      const report = await getReportDetail(cachedId)
-      applyReport(report.id || cachedId, report.accounts)
+      const report = await getReportDetail(latest.id)
+      applyReport(report.id || latest.id, report.accounts)
       if (authenticated.current) setLoaded(true)
     } catch (requestError) {
       if (authenticated.current) {
@@ -96,28 +86,6 @@ export function LoansProvider({ children }: { children: ReactNode }) {
     }
   }, [applyReport])
 
-  const loadFreshReportForUser = useCallback((input: FreshReportInput) => {
-    if (freshRequest.current) return freshRequest.current
-    const request = (async () => {
-      setLoading(true)
-      setError('')
-      try {
-        const result = await fetchLoansForNewUser(input)
-        applyReport(result.reportId, result.accounts)
-        if (authenticated.current) setLoaded(true)
-        return result
-      } catch (requestError) {
-        if (authenticated.current) setError(messageFrom(requestError))
-        throw requestError
-      } finally {
-        freshRequest.current = null
-        if (authenticated.current) setLoading(false)
-      }
-    })()
-    freshRequest.current = request
-    return request
-  }, [applyReport])
-
   const getLoanById = useCallback(
     (id: string | number) => loans.find((loan) => loan.id === String(id)),
     [loans],
@@ -126,7 +94,6 @@ export function LoansProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!isAuthenticated) {
       didAutoLoad.current = false
-      freshRequest.current = null
       setLoans([])
       setReportId('')
       setLoading(false)
@@ -149,7 +116,6 @@ export function LoansProvider({ children }: { children: ReactNode }) {
       loaded,
       error,
       refreshLoans,
-      loadFreshReportForUser,
       getLoanById,
     }}>
       {children}

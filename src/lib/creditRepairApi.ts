@@ -21,6 +21,18 @@ export const DisputeType = {
 
 export type DisputeTypeValue = typeof DisputeType[keyof typeof DisputeType]
 
+export const DisputeTypeOptions: ReadonlyArray<{ value: DisputeTypeValue; label: string }> = [
+  { value: DisputeType.OWNERSHIP, label: 'Ownership Dispute' },
+  { value: DisputeType.BALANCE, label: 'Incorrect Balance' },
+  { value: DisputeType.OVERDUE, label: 'Incorrect Overdue' },
+  { value: DisputeType.STATUS, label: 'Incorrect Status' },
+  { value: DisputeType.DATES, label: 'Incorrect Dates' },
+  { value: DisputeType.DPD, label: 'Incorrect Payment History / DPD' },
+  { value: DisputeType.DUPLICATE, label: 'Duplicate Account' },
+  { value: DisputeType.PERSONAL_INFO, label: 'Personal Information' },
+  { value: DisputeType.OTHER, label: 'Other' },
+]
+
 export type LoanAccount = {
   id: string
   accountType: string
@@ -32,6 +44,12 @@ export type LoanAccount = {
   sanctionedAmount: number | null
   overdueAmount: number | null
   openDate: string
+  closedDate: string
+  ownership: string
+  emi: number | null
+  reviewStatus: string
+  reviewedFields: string[]
+  reviewedAt: string
   reportId: string
   raw: RawRecord
 }
@@ -46,6 +64,8 @@ export type CreditIssue = {
   description: string
   status: string
   severity: string
+  recommendedAction: string
+  isDisputeEligible: boolean
   createdAt: string
   raw: RawRecord
 }
@@ -59,26 +79,46 @@ export type Dispute = {
   status: string
   generatedAt: string
   sentAt: string
+  title: string
+  preview: string
   raw: RawRecord
+}
+
+export type CreditReportSummary = {
+  totalAccounts: number
+  activeAccounts: number
+  overdueAccounts: number
+  totalCurrentBalance: number
+  recentEnquiries: number
+  issuesCount: number
 }
 
 export type CreditReport = {
   id: string
+  reference: string
+  score: number | null
+  status: string
+  parsingStatus: string
   createdAt: string
+  fetchedAt: string
+  summary: CreditReportSummary
   accounts: LoanAccount[]
+  issues: CreditIssue[]
   raw: RawRecord
-}
-
-export type FetchCrifReportInput = {
-  mobile: string
-  first_name: string
-  last_name: string
-  name_lookup?: number
 }
 
 export type CreateDisputeInput = {
   dispute_type: DisputeTypeValue
-  description: string
+  description?: string
+}
+
+export type ReviewDecision = 'CORRECT' | 'NOT_RECOGNIZED' | 'INCORRECT'
+export type IncorrectField = 'BALANCE' | 'STATUS' | 'DATES'
+
+export type ReviewAccountInput = {
+  decision: ReviewDecision
+  incorrect_fields?: IncorrectField[]
+  notes?: string
 }
 
 const base = AppEndpoints.creditRepairBase
@@ -151,6 +191,12 @@ const numberValue = (value: unknown): number | null => {
   return Number.isFinite(parsed) ? parsed : null
 }
 
+const booleanValue = (value: unknown): boolean =>
+  value === true || value === 1 || (typeof value === 'string' && value.toLowerCase() === 'true')
+
+const stringList = (value: unknown): string[] =>
+  Array.isArray(value) ? value.map(textValue).filter(Boolean) : []
+
 const recordId = (record: RawRecord, keys: string[] = []) =>
   textValue(pick(record, [...keys, 'id', 'pk', 'uuid']))
 
@@ -191,7 +237,13 @@ export function normalizeAccount(value: unknown, fallbackReportId = ''): LoanAcc
     currentBalance: numberValue(pick(raw, ['current_balance', 'currentBalance', 'balance', 'outstanding_balance', 'amount_outstanding'])),
     sanctionedAmount: numberValue(pick(raw, ['sanctioned_amount', 'sanctionedAmount', 'loan_amount', 'loanAmount', 'credit_limit', 'high_credit'])),
     overdueAmount: numberValue(pick(raw, ['overdue_amount', 'overdueAmount', 'amount_overdue', 'past_due_amount'])),
-    openDate: textValue(pick(raw, ['created_at'])),
+    openDate: textValue(pick(raw, ['opened_date', 'open_date', 'created_at'])),
+    closedDate: textValue(pick(raw, ['closed_date', 'close_date'])),
+    ownership: textValue(pick(raw, ['ownership', 'ownership_type'])),
+    emi: numberValue(pick(raw, ['emi', 'monthly_payment'])),
+    reviewStatus: textValue(pick(raw, ['review_status', 'reviewStatus'])),
+    reviewedFields: stringList(pick(raw, ['reviewed_fields', 'reviewedFields'])),
+    reviewedAt: textValue(pick(raw, ['reviewed_at', 'reviewedAt'])),
     reportId: textValue(pick(raw, ['report_id', 'reportId', 'credit_report_id'])) || fallbackReportId,
     raw,
   }
@@ -212,6 +264,8 @@ export function normalizeIssue(value: unknown): CreditIssue {
     description: textValue(pick(raw, ['description', 'details', 'message', 'notes'])),
     status: textValue(pick(raw, ['issue_status', 'issueStatus', 'status'])),
     severity: textValue(pick(raw, ['severity', 'priority', 'risk_level', 'riskLevel'])),
+    recommendedAction: textValue(pick(raw, ['recommended_action', 'recommendedAction'])),
+    isDisputeEligible: booleanValue(pick(raw, ['is_dispute_eligible', 'isDisputeEligible'])),
     createdAt: textValue(pick(raw, ['created_at', 'createdAt', 'date_created', 'reported_at'])),
     raw,
   }
@@ -228,6 +282,8 @@ export function normalizeDispute(value: unknown): Dispute {
     status: textValue(pick(raw, ['dispute_status', 'disputeStatus', 'status'])),
     generatedAt: textValue(pick(raw, ['generated_at', 'generatedAt', 'date_generated'])),
     sentAt: textValue(pick(raw, ['sent_at', 'sentAt', 'emailed_at', 'submitted_at'])),
+    title: textValue(pick(raw, ['title', 'subject', 'dispute_title'])),
+    preview: textValue(pick(raw, ['preview', 'letter', 'content', 'body'])),
     raw,
   }
 }
@@ -235,59 +291,66 @@ export function normalizeDispute(value: unknown): Dispute {
 const normalizeReport = (value: unknown): CreditReport => {
   const raw = nestedObject(value, ['report', 'credit_report', 'creditReport'])
   const id = recordId(raw, ['report_id', 'reportId', 'credit_report_id'])
+  const summary = nestedObject(pick(raw, ['summary']), [])
   const accounts = asList(raw, ['accounts', 'loan_accounts', 'loanAccounts', 'tradelines', 'credit_accounts'])
     .map((account) => normalizeAccount(account, id))
+  const issues = asList(raw, ['issues', 'credit_issues', 'creditIssues'])
+    .map(normalizeIssue)
   return {
     id,
+    reference: textValue(pick(raw, ['report_reference', 'reportReference', 'reference'])),
+    score: numberValue(pick(raw, ['score', 'credit_score', 'creditScore'])),
+    status: textValue(pick(raw, ['status', 'report_status', 'reportStatus'])),
+    parsingStatus: textValue(pick(raw, ['parsing_status', 'parsingStatus'])),
     createdAt: textValue(pick(raw, ['created_at', 'createdAt', 'generated_at', 'generatedAt', 'report_date', 'reportDate'])),
+    fetchedAt: textValue(pick(raw, ['fetched_at', 'fetchedAt'])),
+    summary: {
+      totalAccounts: numberValue(pick(summary, ['total_accounts', 'totalAccounts'])) ?? accounts.length,
+      activeAccounts: numberValue(pick(summary, ['active_accounts', 'activeAccounts'])) ?? 0,
+      overdueAccounts: numberValue(pick(summary, ['overdue_accounts', 'overdueAccounts'])) ?? 0,
+      totalCurrentBalance: numberValue(pick(summary, ['total_current_balance', 'totalCurrentBalance'])) ?? 0,
+      recentEnquiries: numberValue(pick(summary, ['recent_enquiries', 'recentEnquiries'])) ?? 0,
+      issuesCount: numberValue(pick(summary, ['issues_count', 'issuesCount'])) ?? issues.length,
+    },
     accounts,
+    issues,
     raw,
   }
 }
 
-export async function fetchCrifReport(input: FetchCrifReportInput): Promise<CreditReport> {
-  const response = await ApiClient.post<JsonResult>(path('/report/fetch/'), {
-    mobile: input.mobile,
-    first_name: input.first_name,
-    last_name: input.last_name,
-    name_lookup: input.name_lookup ?? 0,
-  }, { auth: true })
-  return normalizeReport(response)
-}
-
 export async function getReportDetail(reportId: string | number): Promise<CreditReport> {
-  return normalizeReport(await ApiClient.get<JsonResult>(path(`/reports/${reportId}/`), { auth: true }))
+  return normalizeReport(await ApiClient.get<JsonResult>(path(`/reports/${reportId}`), { auth: true }))
 }
 
-export async function reviewAccount(accountId: string | number, input: { decision: string; notes: string }): Promise<LoanAccount> {
-  return normalizeAccount(await ApiClient.post<JsonResult>(path(`/accounts/${accountId}/review/`), input, { auth: true }))
+export async function reviewAccount(accountId: string | number, input: ReviewAccountInput): Promise<JsonResult> {
+  return ApiClient.post<JsonResult>(path(`/accounts/${accountId}/review/`), input, { auth: true })
 }
 
 export async function createDispute(issueId: string | number, input: CreateDisputeInput): Promise<Dispute> {
-  return normalizeDispute(await ApiClient.post<JsonResult>(path(`/issues/${issueId}/dispute/`), input, { auth: true }))
+  return normalizeDispute(await ApiClient.post<JsonResult>(path(`/issues/${issueId}/dispute`), input, { auth: true }))
 }
 
 export async function getDisputeDetail(disputeId: string | number): Promise<Dispute> {
-  return normalizeDispute(await ApiClient.get<JsonResult>(path(`/disputes/${disputeId}/`), { auth: true }))
+  return normalizeDispute(await ApiClient.get<JsonResult>(path(`/disputes/${disputeId}`), { auth: true }))
 }
 
 export async function generateDispute(disputeId: string | number): Promise<Dispute> {
-  return normalizeDispute(await ApiClient.post<JsonResult>(path(`/disputes/${disputeId}/generate/`), undefined, { auth: true }))
+  return normalizeDispute(await ApiClient.post<JsonResult>(path(`/disputes/${disputeId}/generate`), undefined, { auth: true }))
 }
 
 export async function previewDispute(disputeId: string | number): Promise<JsonResult> {
-  return ApiClient.get<JsonResult>(path(`/disputes/${disputeId}/preview/`), { auth: true })
+  return ApiClient.get<JsonResult>(path(`/disputes/${disputeId}/preview?target=LENDER`), { auth: true })
 }
 
 export async function sendDisputeEmail(disputeId: string | number): Promise<Dispute> {
-  return normalizeDispute(await ApiClient.post<JsonResult>(path(`/disputes/${disputeId}/send/`), {
+  return normalizeDispute(await ApiClient.post<JsonResult>(path(`/disputes/${disputeId}/send`), {
     target: 'LENDER',
     confirm: true,
   }, { auth: true }))
 }
 
 export async function listReports(): Promise<CreditReport[]> {
-  const response = await ApiClient.get<JsonResult>(path('/reports/'), { auth: true })
+  const response = await ApiClient.get<JsonResult>(path('/reports'), { auth: true })
   return asList(response, ['reports', 'credit_reports', 'creditReports']).map(normalizeReport)
 }
 
@@ -300,7 +363,7 @@ export async function compareReport(reportId: string | number): Promise<JsonResu
 }
 
 export async function getAccountDetail(accountId: string | number): Promise<LoanAccount> {
-  return normalizeAccount(await ApiClient.get<JsonResult>(path(`/accounts/${accountId}/`), { auth: true }))
+  return normalizeAccount(await ApiClient.get<JsonResult>(path(`/accounts/${accountId}`), { auth: true }))
 }
 
 export async function listIssues(): Promise<CreditIssue[]> {
@@ -309,7 +372,7 @@ export async function listIssues(): Promise<CreditIssue[]> {
 }
 
 export async function listDisputes(): Promise<Dispute[]> {
-  const response = await ApiClient.get<JsonResult>(path('/disputes/'), { auth: true })
+  const response = await ApiClient.get<JsonResult>(path('/disputes'), { auth: true })
   return asList(response, ['disputes', 'credit_disputes', 'creditDisputes']).map(normalizeDispute)
 }
 
@@ -366,13 +429,4 @@ export async function submitIssueAndNotifyLender(issueId: string | number, input
   if (!created.id) throw new ApiError('The server did not return a dispute id.', 200, created.raw)
   await generateDispute(created.id)
   return sendDisputeEmail(created.id)
-}
-
-export async function fetchLoansForNewUser(
-  input: Omit<FetchCrifReportInput, 'name_lookup'>,
-): Promise<{ reportId: string; accounts: LoanAccount[] }> {
-  const freshReport = await fetchCrifReport({ ...input, name_lookup: 0 })
-  if (!freshReport.id) throw new ApiError('The server did not return a report id.', 200, freshReport.raw)
-  const report = await getReportDetail(freshReport.id)
-  return { reportId: report.id || freshReport.id, accounts: report.accounts }
 }

@@ -1,4 +1,4 @@
-import { ArrowRight, ChevronRight } from 'lucide-react'
+import { ArrowRight, ChevronRight, FileCheck2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { useLoans } from '../../context/LoansContext'
@@ -31,12 +31,14 @@ export default function ActiveLoansSection() {
     <section className="container-pb pb-10">
       <div className="mb-5 flex items-center justify-between gap-4">
         <h2 className="text-xl font-bold text-navy md:text-2xl">Active Loans Lender</h2>
-        <Link to="/loans" className="inline-flex shrink-0 items-center gap-1 text-sm font-semibold text-brand hover:underline">
-          See All Loans <ArrowRight size={15} />
-        </Link>
+        <div className="flex items-center gap-4">
+          <Link to="/loans/disputes" className="hidden items-center gap-1 text-sm font-semibold text-slate2-secondary hover:text-brand sm:inline-flex"><FileCheck2 size={15} /> My disputes</Link>
+          <Link to="/loans" className="inline-flex shrink-0 items-center gap-1 text-sm font-semibold text-brand hover:underline">See All Loans <ArrowRight size={15} /></Link>
+        </div>
       </div>
 
       <div className="space-y-4">
+        <Link to="/loans/disputes" className="inline-flex items-center gap-1 text-sm font-semibold text-brand sm:hidden"><FileCheck2 size={15} /> My disputes</Link>
         {!loaded || (loading && loans.length === 0) ? (
           <><LoanSkeleton /><LoanSkeleton /></>
         ) : loans.length === 0 ? (

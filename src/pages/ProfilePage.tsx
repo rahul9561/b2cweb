@@ -33,7 +33,7 @@ export default function ProfilePage() {
   const navigate = useNavigate()
   const location = useLocation()
   const { user, isAuthenticated, refreshProfile, updateProfile, logout } = useAuth()
-  const { loadFreshReportForUser } = useLoans()
+  const { refreshLoans } = useLoans()
   const firstLogin = Boolean((location.state as { firstLogin?: boolean } | null)?.firstLogin)
     || (isAuthenticated && !String(user?.full_name ?? user?.name ?? '').trim())
   const [editing, setEditing] = useState(false)
@@ -118,18 +118,7 @@ export default function ProfilePage() {
       setEditing(false)
       setSuccess('Your profile has been updated successfully.')
       if (firstLogin) {
-        const fullName = `${firstName.trim()} ${lastName.trim()}`.trim()
-        const [freshFirstName = '', ...freshLastNameParts] = fullName.split(/\s+/).filter(Boolean)
-        const mobile = String(user?.mobile ?? '').trim()
-        if (mobile) {
-          void loadFreshReportForUser({
-            mobile,
-            first_name: freshFirstName,
-            last_name: freshLastNameParts.join(' '),
-          }).catch(() => {
-            // A failed initial CRIF pull must never block completion of first-time setup.
-          })
-        }
+        void refreshLoans().catch(() => undefined)
         navigate('/')
       }
     } catch (requestError) {

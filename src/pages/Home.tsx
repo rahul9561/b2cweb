@@ -1,9 +1,8 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { ArrowRight, ChevronLeft, ChevronRight, CheckCircle2, Zap } from 'lucide-react'
 import { useLocation } from 'react-router-dom'
 import { productTiles } from '../data/home'
 import { useAuth } from '../context/AuthContext'
-import { useLoans } from '../context/LoansContext'
 
 /* ── AV Management home sections ── */
 import QuickBuy from '../components/QuickBuy'
@@ -53,37 +52,11 @@ const heroBanners = [
 export default function Home() {
   const [modalOpen, setModalOpen] = useState(false)
   const location = useLocation()
-  const { isAuthenticated, refreshProfile, user } = useAuth()
-  const { loadFreshReportForUser } = useLoans()
-  const requestedHomeReport = useRef(false)
+  const { isAuthenticated, refreshProfile } = useAuth()
 
   useEffect(() => {
     if (isAuthenticated) void refreshProfile().catch(() => undefined)
   }, [isAuthenticated, refreshProfile])
-
-  useEffect(() => {
-    if (!isAuthenticated) {
-      requestedHomeReport.current = false
-      return
-    }
-    if (requestedHomeReport.current) return
-
-    const mobile = String(user?.mobile ?? '').trim()
-    const storedFirstName = String(user?.first_name ?? '').trim()
-    const storedLastName = String(user?.last_name ?? '').trim()
-    const fullName = String(user?.full_name ?? user?.name ?? '').trim()
-    const [fallbackFirstName = '', ...fallbackLastNameParts] = fullName.split(/\s+/).filter(Boolean)
-    const firstName = storedFirstName || fallbackFirstName
-    const lastName = storedLastName || fallbackLastNameParts.join(' ')
-    if (!mobile || !firstName) return
-
-    requestedHomeReport.current = true
-    void loadFreshReportForUser({
-      mobile,
-      first_name: firstName,
-      last_name: lastName,
-    }).catch(() => undefined)
-  }, [isAuthenticated, loadFreshReportForUser, user?.first_name, user?.full_name, user?.last_name, user?.mobile, user?.name])
 
   useEffect(() => {
     if (location.hash !== '#customer-reviews') return

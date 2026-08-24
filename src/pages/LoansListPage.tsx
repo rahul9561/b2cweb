@@ -1,4 +1,4 @@
-import { AlertCircle, ArrowLeft, ChevronRight, RefreshCw } from 'lucide-react'
+import { AlertCircle, ArrowLeft, ChevronRight, FileCheck2, RefreshCw } from 'lucide-react'
 import { Link, Navigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useLoans } from '../context/LoansContext'
@@ -28,8 +28,7 @@ export default function LoansListPage() {
       <section className="border-b border-blue-100 bg-white">
         <div className="container-pb py-9">
           <Link to="/" className="inline-flex items-center gap-1.5 text-sm font-medium text-slate2-secondary hover:text-brand"><ArrowLeft size={16} /> Back to home</Link>
-          <h1 className="mt-4 font-serif text-3xl font-bold text-navy md:text-4xl">Your active loans</h1>
-          <p className="mt-2 text-sm text-slate2-secondary">Review your reported loan accounts and select any details that need correction.</p>
+          <div className="mt-4 flex flex-wrap items-end justify-between gap-4"><div><h1 className="font-serif text-3xl font-bold text-navy md:text-4xl">Your active loans</h1><p className="mt-2 text-sm text-slate2-secondary">Review your reported loan accounts and select any details that need correction.</p></div><Link to="/loans/disputes" className="inline-flex items-center gap-2 rounded-lg border border-slate2-border px-4 py-2.5 text-sm font-semibold text-navy hover:border-brand hover:text-brand"><FileCheck2 size={16} /> My disputes</Link></div>
         </div>
       </section>
 
