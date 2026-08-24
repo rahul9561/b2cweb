@@ -220,8 +220,9 @@ const [showAppStorePopup, setShowAppStorePopup] = useState(false)
     setErrorMsg('')
     setVerifying(true)
     try {
-      await verifyOtp(phone, otp)
-      navigate('/')
+      const verifiedUser = await verifyOtp(phone, otp)
+      const existingName = String(verifiedUser.full_name ?? verifiedUser.name ?? '').trim()
+      navigate(existingName ? '/' : '/profile', existingName ? undefined : { state: { firstLogin: true } })
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : 'Invalid or expired OTP. Please try again.')
     } finally {

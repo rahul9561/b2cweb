@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Camera, CheckCircle2, Edit3, Loader2, LockKeyhole, LogOut, Mail, Phone, UserRound, Wallet } from 'lucide-react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { useLoans } from '../context/LoansContext'
 import LogoutConfirmModal from '../components/LogoutConfirmModal'
 import { getProfileImageUrl } from '../lib/profileApi'
 
@@ -32,6 +33,9 @@ export default function ProfilePage() {
   const navigate = useNavigate()
   const location = useLocation()
   const { user, isAuthenticated, refreshProfile, updateProfile, logout } = useAuth()
+  const { loadFreshReportForUser } = useLoans()
+  const firstLogin = Boolean((location.state as { firstLogin?: boolean } | null)?.firstLogin)
+    || (isAuthenticated && !String(user?.full_name ?? user?.name ?? '').trim())
   const [editing, setEditing] = useState(false)
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
@@ -43,6 +47,10 @@ export default function ProfilePage() {
   const [success, setSuccess] = useState('')
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
   const fileInput = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (firstLogin) setEditing(true)
+  }, [firstLogin])
 
   useEffect(() => {
     if (!isAuthenticated || (location.state as { profileRefreshed?: boolean } | null)?.profileRefreshed) return
@@ -109,6 +117,21 @@ export default function ProfilePage() {
       setProfileImage(null)
       setEditing(false)
       setSuccess('Your profile has been updated successfully.')
+      if (firstLogin) {
+        const fullName = `${firstName.trim()} ${lastName.trim()}`.trim()
+        const [freshFirstName = '', ...freshLastNameParts] = fullName.split(/\s+/).filter(Boolean)
+        const mobile = String(user?.mobile ?? '').trim()
+        if (mobile) {
+          void loadFreshReportForUser({
+            mobile,
+            first_name: freshFirstName,
+            last_name: freshLastNameParts.join(' '),
+          }).catch(() => {
+            // A failed initial CRIF pull must never block completion of first-time setup.
+          })
+        }
+        navigate('/')
+      }
     } catch (requestError) {
       setError(readableError(requestError))
     } finally {
@@ -179,6 +202,7 @@ export default function ProfilePage() {
           </div>
 
           {success && <p className="mt-6 flex items-center gap-2 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700"><CheckCircle2 size={17} /> {success}</p>}
+          {firstLogin && <p className="mt-6 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm font-medium text-blue-700">Welcome! Please add your name to continue.</p>}
           {error && <p className="mt-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
 
           <form onSubmit={saveProfile} className="mt-7 space-y-5">
@@ -220,7 +244,7 @@ export default function ProfilePage() {
 
             {editing && (
               <div className="flex flex-wrap justify-end gap-3 border-t border-slate-100 pt-6">
-                <button type="button" onClick={cancelEdit} disabled={loading} className="rounded-xl border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-60">Cancel</button>
+                {!firstLogin && <button type="button" onClick={cancelEdit} disabled={loading} className="rounded-xl border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-60">Cancel</button>}
                 <button type="submit" disabled={loading} className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-60">
                   {loading ? <><Loader2 size={17} className="animate-spin" /> Saving...</> : 'Save changes'}
                 </button>

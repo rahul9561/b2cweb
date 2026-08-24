@@ -1,4 +1,4 @@
-import { Routes, Route, useLocation } from 'react-router-dom'
+import { Navigate, Routes, Route, useLocation } from 'react-router-dom'
 import { UserProfileProvider } from './context/UserProfileContext'
 import { FiltersProvider } from './context/FiltersContext'
 import { HealthProfileProvider } from './context/HealthProfileContext'
@@ -91,10 +91,21 @@ import AboutUsPage from './pages/company/AboutUsPage'
 import ContactUsPage from './pages/company/ContactUsPage'
 import LegalAdminPoliciesPage from './pages/company/LegalAdminPoliciesPage'
 import { DisclosurePage, PrivacyPolicyPage, TermsConditionsPage } from './pages/company/LegalPages'
-import { AuthProvider } from './context/AuthContext'   // add near the other context imports
+import { AuthProvider, useAuth } from './context/AuthContext'   // add near the other context imports
 import { WalletProvider } from './context/WalletContext'
 import { ToastProvider } from './context/ToastContext'
+import { LoansProvider } from './context/LoansContext'
+import LoansListPage from './pages/LoansListPage'
+import SelectIssuePage from './pages/SelectIssuePage'
 const leadRoute = (slug: LandingSlug) => <LeadLanding slug={slug} />
+
+function FirstLoginGuard() {
+  const location = useLocation()
+  const { isAuthenticated, user } = useAuth()
+  const hasName = Boolean(String(user?.full_name ?? user?.name ?? '').trim())
+  if (!isAuthenticated || hasName || location.pathname === '/login' || location.pathname === '/profile') return null
+  return <Navigate to="/profile" replace state={{ firstLogin: true }} />
+}
 
 export default function App() {
   const location = useLocation()
@@ -118,7 +129,9 @@ export default function App() {
 
   return (
     <AuthProvider>
+    <FirstLoginGuard />
     <WalletProvider>
+    <LoansProvider>
     <ToastProvider>
     <UserProfileProvider>
       <FiltersProvider>
@@ -174,6 +187,8 @@ export default function App() {
                   <Route path="/wallet/add-money" element={<AddMoneyPage />} />
                   <Route path="/wallet/payment-status" element={<PaymentStatusPage />} />
                   <Route path="/profile" element={<ProfilePage />} />
+                  <Route path="/loans" element={<LoansListPage />} />
+                  <Route path="/loans/:accountId/issues" element={<SelectIssuePage />} />
                   <Route path="/cibil-score-for-personal-loan" element={<CibilScoreForPersonalLoanPage />} />
                   <Route path="/education-loan" element={<EducationLoanPage />} />
                   <Route path="/careers" element={<CareersPage />} />
@@ -244,6 +259,7 @@ export default function App() {
       </FiltersProvider>
     </UserProfileProvider>
     </ToastProvider>
+    </LoansProvider>
     </WalletProvider>
     </AuthProvider>
   )

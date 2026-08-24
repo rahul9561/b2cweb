@@ -3,6 +3,7 @@ export const API_BASE_URL: string =
   'https://apib2c.avmanagementpvtltd.com/api'
 
 export const AppEndpoints = {
+  creditRepairBase: '/credit-repair',
   customerSendOtp: '/accounts/send-otp/',
   customerVerifyOtp: '/accounts/verify-otp/',
   customerProfile: '/accounts/profile/',
@@ -44,6 +45,7 @@ export const AppConstants = {
   companyName: 'AV Management Pvt Ltd',
   tokenKey: 'av_token',
   userDataKey: 'av_user_data',
+  creditRepairReportIdKey: 'av_credit_repair_report_id',
   // Key used to block repeat "Increase CIBIL Score" analysis requests until
   // the cooling-off window (30 working days) has passed.
   cibilAnalysisSessionKey: 'cibil_analysis_session',
