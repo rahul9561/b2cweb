@@ -91,7 +91,7 @@ export default function Header() {
            <nav className="hidden items-center gap-0 lg:flex">
             <div className="group relative">
               <button className="flex items-center gap-1 whitespace-nowrap px-3 py-5 text-[14px] font-medium text-white hover:text-orange-400">
-                Credit Score
+                Credit Report
                 <ChevronDown size={14} />
               </button>
               <div className="invisible absolute left-0 top-full z-50 w-72 bg-white opacity-0 shadow-card transition-all duration-150 group-hover:visible group-hover:opacity-100">
@@ -358,7 +358,7 @@ export default function Header() {
                 Home
               </Link>
               {[
-                { label: 'Credit Score', to: '/cibil-score', icon: TrendingUp },
+                { label: 'Credit Report', to: '/cibil-score', icon: TrendingUp },
                 { label: 'Loans', to: '/cibil-score-loan', icon: Briefcase },
                 ...(SHOW_INSURANCE_HEADER_ITEMS ? [
                   { label: 'Health Insurance', to: '/health-insurance', icon: HeartPulse },
@@ -386,7 +386,7 @@ export default function Header() {
               <div className="mt-3 border-t border-slate2-border pt-3">
                 <p className="mb-2 flex items-center gap-2 text-[13px] font-semibold text-navy">
                   <TrendingUp size={14} className="text-brand" />
-                  Credit Score
+                  Credit Report
                 </p>
                 <div className="space-y-1.5 pl-5">
                   {creditScoreMenu.map((item) => (

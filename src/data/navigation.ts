@@ -72,7 +72,7 @@ export const insuranceMenu: Record<MenuCategory, { title: string; links: { label
     ],
   },
   creditScore: {
-    title: 'Credit Score',
+    title: 'Credit Report',
     links: [
       // { label: 'Credit Report', to: '/credit-score' },
       { label: 'Cibil Report', to: '/cibil-report' },
