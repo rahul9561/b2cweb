@@ -15,6 +15,7 @@ import {
 import 'swiper/css'
 import 'swiper/css/pagination'
 import 'swiper/css/navigation'
+import { SHOW_HOME_SECTIONS_COMING_SOON } from '../config/featureFlags'
 
 type CalcGroup = {
   title: string
@@ -82,7 +83,7 @@ const calculatorGroups: CalcGroup[] = [
   },
 ]
 
-export default function PopularCalculators() {
+export default function PopularCalculators({ onComingSoon }: { onComingSoon?: (featureName: string) => void }) {
   const prevRef = useRef<HTMLButtonElement>(null)
   const nextRef = useRef<HTMLButtonElement>(null)
 
@@ -145,6 +146,11 @@ export default function PopularCalculators() {
                         <li key={l} className="border-b border-slate2-border/60 last:border-0">
                           <Link
                             to={g.linksTo?.[i] ?? '/calculators'}
+                            onClick={(event) => {
+                              if (!SHOW_HOME_SECTIONS_COMING_SOON) return
+                              event.preventDefault()
+                              onComingSoon?.(l)
+                            }}
                             className="group flex items-center justify-between px-5 py-3.5 text-[13px] text-slate2-secondary transition-colors hover:bg-blueBG/60 hover:text-brand"
                           >
                             {l}
@@ -185,12 +191,22 @@ export default function PopularCalculators() {
         <div className="mt-10 flex flex-wrap justify-center gap-3">
           <Link
             to="/calculators"
+            onClick={(event) => {
+              if (!SHOW_HOME_SECTIONS_COMING_SOON) return
+              event.preventDefault()
+              onComingSoon?.('All health calculators')
+            }}
             className="rounded-lg border border-brand px-5 py-2 text-[12px] font-medium text-brand transition-colors hover:bg-brand hover:text-white"
           >
             View all health calculators
           </Link>
           <Link
             to="/calculators"
+            onClick={(event) => {
+              if (!SHOW_HOME_SECTIONS_COMING_SOON) return
+              event.preventDefault()
+              onComingSoon?.('All financial calculators')
+            }}
             className="rounded-lg border border-brand px-5 py-2 text-[12px] font-medium text-brand transition-colors hover:bg-brand hover:text-white"
           >
             View all financial calculators

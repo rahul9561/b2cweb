@@ -26,9 +26,11 @@ interface LoanCategoriesResponse {
  *  2. Pincode derived from the user's geolocation permission.
  *  3. Static fallback pincode "843123".
  */
-export async function resolvePincode(): Promise<string> {
-  const stored = localStorage.getItem(AppConstants.pincodeKey)
-  if (stored && /^\d{6}$/.test(stored)) return stored
+export async function resolvePincode(preferCurrentLocation = false): Promise<string> {
+  if (!preferCurrentLocation) {
+    const stored = localStorage.getItem(AppConstants.pincodeKey)
+    if (stored && /^\d{6}$/.test(stored)) return stored
+  }
 
   const fromLocation = await getPincodeFromLocation()
   if (fromLocation && /^\d{6}$/.test(fromLocation)) {
@@ -64,8 +66,8 @@ export function getSavedPincode(): string {
  * Safe to call right after OTP verification — the resolvePincode() helper
  * asks for location permission and falls back to "843123" on any failure.
  */
-export async function fetchLoanCategories(): Promise<LoanCategory[]> {
-  const pincode = await resolvePincode()
+export async function fetchLoanCategories(preferCurrentLocation = false): Promise<LoanCategory[]> {
+  const pincode = await resolvePincode(preferCurrentLocation)
   const response = await ApiClient.get<LoanCategoriesResponse>(
     `${AppEndpoints.loanCategories}?pincode=${pincode}`,
     { auth: true }

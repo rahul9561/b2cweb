@@ -1,8 +1,14 @@
 import { useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { quickBuyItems } from '../data/home'
+import { SHOW_HOME_SECTIONS_COMING_SOON } from '../config/featureFlags'
 
-export default function QuickBuy({ onViewAll }: { onViewAll?: () => void }) {
+type QuickBuyProps = {
+  onViewAll?: () => void
+  onComingSoon?: (featureName: string) => void
+}
+
+export default function QuickBuy({ onViewAll, onComingSoon }: QuickBuyProps) {
   const scrollRef = useRef<HTMLDivElement>(null)
 
   return (
@@ -26,6 +32,11 @@ export default function QuickBuy({ onViewAll }: { onViewAll?: () => void }) {
             <Link
               key={item.label}
               to="/"
+              onClick={(event) => {
+                if (!SHOW_HOME_SECTIONS_COMING_SOON) return
+                event.preventDefault()
+                onComingSoon?.(item.label)
+              }}
               className="group flex shrink-0 items-center gap-3 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg"
               style={{ minWidth: 180 }}
             >

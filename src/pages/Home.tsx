@@ -16,8 +16,11 @@ import Testimonials from '../components/Testimonials'
 import Partners from '../components/Partners'
 import HelpCenter from '../components/HelpCenter'
 import ActiveLoansSection from '../components/loans/ActiveLoansSection'
+import { fetchLoanCategories } from '../lib/loanCategories'
 // import GroupBrands from '../components/GroupBrands'
 import ProductModal from '../components/ProductModal'
+import ComingSoonModal from '../components/ComingSoonModal'
+import { SHOW_HOME_SECTIONS_COMING_SOON } from '../config/featureFlags'
 /* ── Hero banners ── */
 const heroBanners = [
   {
@@ -51,12 +54,17 @@ const heroBanners = [
 
 export default function Home() {
   const [modalOpen, setModalOpen] = useState(false)
+  const [comingSoonFeature, setComingSoonFeature] = useState('')
   const location = useLocation()
   const { isAuthenticated, refreshProfile } = useAuth()
 
   useEffect(() => {
     if (isAuthenticated) void refreshProfile().catch(() => undefined)
   }, [isAuthenticated, refreshProfile])
+
+  useEffect(() => {
+    void fetchLoanCategories(true).catch(() => undefined)
+  }, [])
 
   useEffect(() => {
     if (location.hash !== '#customer-reviews') return
@@ -66,22 +74,42 @@ export default function Home() {
   return (
     <div>
       <ProductModal isOpen={modalOpen} onClose={() => setModalOpen(false)} />
+      <ComingSoonModal
+        isOpen={Boolean(comingSoonFeature)}
+        onClose={() => setComingSoonFeature('')}
+        featureName={comingSoonFeature}
+      />
       <Hero />
-      <ProductGrid />
+      <ProductGrid onComingSoon={setComingSoonFeature} />
        <div className="mt-5 text-center">
           <button
-  onClick={() => setModalOpen(true)}
+  onClick={() => {
+    if (SHOW_HOME_SECTIONS_COMING_SOON) {
+      setComingSoonFeature('All products')
+      return
+    }
+    setModalOpen(true)
+  }}
   className="inline-flex items-center gap-1 text-[13px] font-medium text-brand hover:underline"
 >
   View all products <ArrowRight size={13} />
 </button>
         </div>
       <ActiveLoansSection />
-      <QuickBuy onViewAll={() => setModalOpen(true)} />
-      <PromoCards />
+      <QuickBuy
+        onViewAll={() => {
+          if (SHOW_HOME_SECTIONS_COMING_SOON) {
+            setComingSoonFeature('All Quick Buy products')
+            return
+          }
+          setModalOpen(true)
+        }}
+        onComingSoon={setComingSoonFeature}
+      />
+      <PromoCards onComingSoon={setComingSoonFeature} />
       <WhyChooseUs />
       <MiniBannerSlider />
-      <PopularCalculators />
+      <PopularCalculators onComingSoon={setComingSoonFeature} />
       <Advantages />
       <DownloadApp />
       <Testimonials />
@@ -203,7 +231,7 @@ function Hero() {
 }
 
 /* ═══════════════════════ PRODUCT GRID ═══════════════════════ */
-function ProductGrid() {
+function ProductGrid({ onComingSoon }: { onComingSoon: (featureName: string) => void }) {
   return (
     <section className="container-pb py-10">
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7">
@@ -211,6 +239,11 @@ function ProductGrid() {
           <a
             key={p.name}
             href={p.to}
+            onClick={(event) => {
+              if (!SHOW_HOME_SECTIONS_COMING_SOON) return
+              event.preventDefault()
+              onComingSoon(p.name)
+            }}
             className="group relative flex flex-col items-center rounded-xl bg-white p-4 text-center shadow-[0_2px_12px_rgba(0,0,0,0.06)] transition-all hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(0,0,0,0.1)]"
           >
             {p.tag && (

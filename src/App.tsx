@@ -100,6 +100,7 @@ import SelectIssuePage from './pages/SelectIssuePage'
 import DisputesPage from './pages/DisputesPage'
 import DisputeDetailPage from './pages/DisputeDetailPage'
 import DisputePreviewPage from './pages/DisputePreviewPage'
+import ScrollToTop from './components/ScrollToTop'
 const leadRoute = (slug: LandingSlug) => <LeadLanding slug={slug} />
 
 function FirstLoginGuard() {
@@ -185,7 +186,10 @@ export default function App() {
                   <Route path="/increase-cibil-score/success" element={<CibilAnalysisSuccessPage />} />
                   <Route path="/cibil-score-loan" element={<CibilScoreLoanPage />} />
                   <Route path="/cibil-score-loan/eligible" element={<CibilLoanEligibilityPage />} />
+                  <Route path="/apply-credit-card" element={<CibilScoreLoanPage product="credit-card" />} />
+                  <Route path="/apply-credit-card/eligible" element={<CibilLoanEligibilityPage product="credit-card" />} />
                   <Route path="/loan-offers" element={<LoanOffersPage />} />
+                  <Route path="/credit-card-offers" element={<LoanOffersPage product="credit-card" />} />
                   <Route path="/wallet" element={<WalletPage />} />
                   <Route path="/wallet/add-money" element={<AddMoneyPage />} />
                   <Route path="/wallet/payment-status" element={<PaymentStatusPage />} />

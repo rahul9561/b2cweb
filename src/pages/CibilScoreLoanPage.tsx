@@ -125,10 +125,41 @@ const faqs = [
   },
 ]
 
-export default function CibilScoreLoanPage() {
+const creditCardFaqs = [
+  {
+    q: 'Can I apply for a credit card without having a CIBIL score?',
+    a: 'Some issuers accept applications from new-to-credit customers. Approval and the available credit limit depend on the issuer’s eligibility rules, income and other profile details.',
+  },
+  {
+    q: 'Can I get a credit card with a low CIBIL score?',
+    a: 'Eligibility varies by issuer. A lower score may reduce the available choices, while secured or FD-backed cards may be alternatives for some applicants.',
+  },
+  {
+    q: 'How does a high CIBIL score help with a credit-card application?',
+    a: 'A stronger score generally indicates responsible credit behaviour and may improve approval chances, available limits and access to suitable card offers.',
+  },
+  {
+    q: 'Will I get a credit card if my CIBIL score is 720?',
+    a: 'Many issuers may consider a score of 720, but approval also depends on income, existing liabilities and the issuer’s own eligibility requirements.',
+  },
+  {
+    q: 'What should I consider before applying for a credit card?',
+    a: 'Compare eligibility, annual fees, interest charges, rewards and benefits. Apply selectively because several applications in a short period can create multiple credit enquiries.',
+  },
+]
+
+type CreditProduct = 'personal-loan' | 'credit-card'
+
+export default function CibilScoreLoanPage({ product = 'personal-loan' }: { product?: CreditProduct }) {
   const navigate = useNavigate()
   const { isAuthenticated } = useAuth()
   const location = useLocation()
+  const isCreditCard = product === 'credit-card'
+  const categoryCode = isCreditCard ? 'cc' : 'pl'
+  const categoryName = isCreditCard ? 'Credit Card' : 'Personal Loan'
+  const eligibilityRoute = isCreditCard ? '/apply-credit-card/eligible' : '/cibil-score-loan/eligible'
+  const offersRoute = isCreditCard ? '/credit-card-offers' : '/loan-offers'
+  const activeFaqs = isCreditCard ? creditCardFaqs : faqs
   const incoming = (location.state ?? {}) as Partial<Details> | null
 
   const [details, setDetails] = useState<Details>({
@@ -155,7 +186,7 @@ export default function CibilScoreLoanPage() {
   }, [loginToast])
 
   const redirectToLogin = () => {
-    const message = 'Please log in first to check your credit score and loan eligibility.'
+    const message = `Please log in first to check your credit score and ${isCreditCard ? 'credit-card' : 'loan'} eligibility.`
     setLoginToast({ id: Date.now(), message })
     navigate('/login', { state: { authToast: message } })
   }
@@ -216,13 +247,11 @@ export default function CibilScoreLoanPage() {
     return score
   }
 
-  const pickCategoryId = (categories: LoanCategory[]): string => {
-    // Prefer the "Personal Loan" category for this personal-loan flow,
-    // otherwise fall back to the first saved category.
-    const personalLoan = categories.find(
-      (c) => c.shortCode?.toLowerCase() === 'pl' || /personal/i.test(c.name)
+  const pickCategory = (categories: LoanCategory[]): LoanCategory | undefined => {
+    const category = categories.find(
+      (item) => item.shortCode?.toLowerCase() === categoryCode || item.name?.toLowerCase() === categoryName.toLowerCase()
     )
-    return personalLoan?._id ?? categories[0]?._id ?? ''
+    return category ?? (isCreditCard ? undefined : categories[0])
   }
 
   const submit = async (event: React.FormEvent) => {
@@ -249,25 +278,27 @@ export default function CibilScoreLoanPage() {
     try {
       let categories = getSavedLoanCategoryList()
       if (categories.length === 0) categories = await fetchLoanCategories()
-      const categoryId = pickCategoryId(categories)
-      if (!categoryId) throw new Error('Unable to find the Personal Loan category.')
+      let category = pickCategory(categories)
+      if (!category && isCreditCard) {
+        categories = await fetchLoanCategories()
+        category = pickCategory(categories)
+      }
+      if (!category?._id) throw new Error(`Unable to find the ${categoryName} category.`)
 
-      // Keep the Personal Loan category fixed from the login-time category
-      // response; use only the form's editable pincode for both live calls.
       const [report, bankPayload] = await Promise.all([
         ApiClient.post<Record<string, unknown>>(AppEndpoints.experianLoanReport, payload, { auth: true }),
         ApiClient.get(
-          `${AppEndpoints.loanBanks}?category_id=${encodeURIComponent(categoryId)}&pincode=${encodeURIComponent(details.pincode)}`,
+          `${AppEndpoints.loanBanks}?category_id=${encodeURIComponent(category._id)}&pincode=${encodeURIComponent(details.pincode)}`,
           { auth: true }
         ),
       ])
       const score = findScore(report)
       const dpd = findDpd(report)
       if (!isLoanEligible(score, dpd)) {
-        navigate('/cibil-score-loan/eligible', { state: { score, ...details } })
+        navigate(eligibilityRoute, { state: { score, ...details } })
         return
       }
-      navigate('/loan-offers', { state: { ...details, score, bankPayload } })
+      navigate(offersRoute, { state: { ...details, score, bankPayload, categoryId: category._id, categoryCode: category.shortCode } })
     } catch (error) {
       if (isAuthenticationError(error)) {
         redirectToLogin()
@@ -304,13 +335,15 @@ export default function CibilScoreLoanPage() {
       <section className="border-b border-blue-100 bg-gradient-to-br from-blue-50 via-white to-slate-50">
         <div className="container-pb grid gap-8 py-10 lg:grid-cols-[minmax(0,1fr)_380px]">
           <div>
-            <p className="text-sm font-semibold text-blue-600">PERSONAL LOAN ELIGIBILITY</p>
-            <h1 className="mt-2 font-serif text-3xl font-bold text-navy md:text-4xl">CIBIL Score for Personal Loan / Instant Loan</h1>
+            <p className="text-sm font-semibold text-blue-600">{isCreditCard ? 'CREDIT CARD ELIGIBILITY' : 'PERSONAL LOAN ELIGIBILITY'}</p>
+            <h1 className="mt-2 font-serif text-3xl font-bold text-navy md:text-4xl">{isCreditCard ? 'Apply for Credit Card' : 'CIBIL Score for Personal Loan / Instant Loan'}</h1>
             <p className="mt-4 max-w-2xl leading-7 text-slate-600">
-              A stronger credit profile may help improve your personal-loan eligibility. Check your score and explore offers from leading lenders.
+              {isCreditCard
+                ? 'Check your credit score and explore personalised credit-card offers from available issuers.'
+                : 'A stronger credit profile may help improve your personal-loan eligibility. Check your score and explore offers from leading lenders.'}
             </p>
             <div className="mt-6 grid gap-3 sm:grid-cols-3">
-              {['Check score from all 4 bureaus', 'Personalised loan offers', 'Secure, paperless journey'].map((item) => (
+              {['Check score from all 4 bureaus', isCreditCard ? 'Personalised card offers' : 'Personalised loan offers', 'Secure, paperless journey'].map((item) => (
                 <div key={item} className="flex items-center gap-2 rounded-xl border border-blue-100 bg-white p-3 text-sm font-medium text-navy">
                   <CheckCircle2 className="shrink-0 text-emerald-500" size={18} />
                   {item}
@@ -371,7 +404,12 @@ export default function CibilScoreLoanPage() {
               ))}
             </div>
             <button disabled={isSubmitting} className="mt-5 flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70">
-              {isSubmitting ? 'Checking your credit score...' : 'Get Free Credit Score'} <ArrowRight size={17} />
+              {isSubmitting
+                ? 'Checking your credit score...'
+                : isCreditCard
+                  ? 'Apply for Credit Card'
+                  : 'Get Free Credit Score'}{' '}
+              <ArrowRight size={17} />
             </button>
             {submitError && <p className="mt-3 text-center text-xs text-red-600" role="alert">{submitError}</p>}
             <p className="mt-3 text-center text-[11px] text-slate-500">By continuing, you agree to the terms of use and privacy policy.</p>
@@ -384,6 +422,47 @@ export default function CibilScoreLoanPage() {
       <div className="container-pb py-12 md:py-16">
         <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_320px]">
           <div className="space-y-14">
+            {isCreditCard ? <>
+              <Section title="Why Your Credit Score Matters for a Credit Card">
+                <Copy>
+                  Card issuers use your credit history along with income and other eligibility details when reviewing an application. A stronger profile can improve your chance of finding suitable offers.
+                </Copy>
+              </Section>
+
+              <Section title="CIBIL Score Required for a Credit Card">
+                <Copy>There is no single minimum score used by every issuer. Each bank or card provider applies its own eligibility and underwriting criteria.</Copy>
+                <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-5">
+                  <BulletList items={[
+                    'A stronger score may improve your chances of approval and access to suitable card limits.',
+                    'Income, employment, existing obligations and recent enquiries may also affect eligibility.',
+                    'New-to-credit applicants may still have options, including secured or FD-backed cards.',
+                    'Always compare annual fees, interest charges, rewards and card benefits before applying.',
+                  ]} />
+                </div>
+              </Section>
+
+              <Section title="How Credit Card Offers Are Selected">
+                <Copy>
+                  After checking your credit report, we request available issuers for the Credit Card category and your pincode. The offers shown are returned by the lender API for those details.
+                </Copy>
+                <div className="mt-4">
+                  <BulletList items={[
+                    'Your current credit profile and repayment history',
+                    'The pincode entered in the application form',
+                    'Availability and eligibility rules from participating issuers',
+                  ]} />
+                </div>
+              </Section>
+
+              <Section title="Things to Keep in Mind Before Applying">
+                <BulletList items={[
+                  'Check the joining fee, annual fee and applicable interest charges.',
+                  'Choose rewards and benefits that match how you expect to use the card.',
+                  'Avoid making several card applications within a short period.',
+                  'Pay bills on time and keep credit utilisation manageable after approval.',
+                ]} />
+              </Section>
+            </> : <>
             <Section title="Importance of Credit Score for Personal Loan Approval">
               <Copy>
                 As a personal loan is an unsecured credit product, lenders emphasise the credit score the most. A good credit score is very
@@ -462,6 +541,7 @@ export default function CibilScoreLoanPage() {
                 ))}
               </div>
             </Section>
+            </>}
           </div>
 
           {/* Sticky sidebar */}
@@ -510,14 +590,14 @@ export default function CibilScoreLoanPage() {
             Credit Score
           </Link>
           <ChevronRight size={14} className="text-slate-400" />
-          <span className="text-slate-500">Cibil Score For Personal Loan</span>
+          <span className="text-slate-500">{isCreditCard ? 'Apply for Credit Card' : 'Cibil Score For Personal Loan'}</span>
         </nav>
 
         {/* FAQs */}
         <section className="mt-6 rounded-2xl bg-slate-50 p-6 md:p-8">
           <h2 className="font-serif text-2xl font-bold text-navy">FAQs</h2>
           <div className="mt-5 space-y-3">
-            {faqs.map((faq, index) => (
+            {activeFaqs.map((faq, index) => (
               <div key={faq.q} className="rounded-xl border border-slate-200 bg-white">
                 <button
                   type="button"

@@ -1,5 +1,7 @@
 import { motion } from 'framer-motion'
 import { FaCoins, FaUserMd, FaCalculator } from 'react-icons/fa'
+import { Link } from 'react-router-dom'
+import { SHOW_HOME_SECTIONS_COMING_SOON } from '../config/featureFlags'
 
 const promos = [
   {
@@ -7,22 +9,25 @@ const promos = [
     subtitle: 'Grow your wealth tax-free',
     gradient: 'from-emerald-500 to-emerald-700',
     icon: FaCoins,
+    to: '/investment-plans',
   },
   {
     title: 'Health Insurance',
     subtitle: 'Cashless claims at 18,000+ hospitals',
     gradient: 'from-blue-500 to-blue-700',
     icon: FaUserMd,
+    to: '/health-insurance',
   },
   {
     title: 'SIP Calculator',
     subtitle: 'Plan your investments smartly',
     gradient: 'from-purple-500 to-purple-700',
     icon: FaCalculator,
+    to: '/sip-calculator',
   },
 ]
 
-export default function PromoCards() {
+export default function PromoCards({ onComingSoon }: { onComingSoon?: (featureName: string) => void }) {
   return (
     <section className="bg-white pb-10">
       <div className="container-pb grid gap-5 md:grid-cols-3">
@@ -45,9 +50,17 @@ export default function PromoCards() {
                 </div>
                 <h3 className="text-[16px] font-bold">{p.title}</h3>
                 <p className="mt-1 text-[12px] text-white/80">{p.subtitle}</p>
-                <button className="mt-4 rounded-full bg-white px-5 py-2 text-[12px] font-semibold text-gray-800 shadow transition-colors hover:bg-white/90">
+                <Link
+                  to={p.to}
+                  onClick={(event) => {
+                    if (!SHOW_HOME_SECTIONS_COMING_SOON) return
+                    event.preventDefault()
+                    onComingSoon?.(p.title)
+                  }}
+                  className="mt-4 inline-flex rounded-full bg-white px-5 py-2 text-[12px] font-semibold text-gray-800 shadow transition-colors hover:bg-white/90"
+                >
                   Explore Now
-                </button>
+                </Link>
               </div>
             </motion.div>
           )

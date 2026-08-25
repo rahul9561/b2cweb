@@ -31,8 +31,13 @@ export default function DisputeDetailPage() {
 
   if (!isAuthenticated) return <Navigate to="/login" replace />
 
+  const generatedLetter = dispute?.generatedLetter || dispute?.generatedEmailBody || dispute?.preview || ''
+  const generated = Boolean(generatedLetter)
+  const alreadySent = Boolean(dispute?.sentAt) || ['SUBMITTED', 'SENT', 'COMPLETED'].includes((dispute?.status || '').toUpperCase())
+  const isDraftWorkflow = allowGeneration || (dispute?.status || '').toUpperCase() === 'DRAFT'
+
   const generate = async () => {
-    if (!allowGeneration || generated) return
+    if (!isDraftWorkflow || generated) return
     setGenerating(true)
     setError('')
     setNotice('')
@@ -46,18 +51,14 @@ export default function DisputeDetailPage() {
     }
   }
 
-  const generatedLetter = dispute?.generatedLetter || dispute?.generatedEmailBody || dispute?.preview || ''
-  const generated = Boolean(generatedLetter)
-  const alreadySent = Boolean(dispute?.sentAt) || ['SUBMITTED', 'SENT', 'COMPLETED'].includes((dispute?.status || '').toUpperCase())
-
   return (
     <main className="min-h-screen bg-blueBGMuted pb-16">
       <section className="border-b border-blue-100 bg-white">
         <div className="container-pb max-w-4xl py-9">
           <Link to="/loans/disputes" className="inline-flex items-center gap-1.5 text-sm font-medium text-slate2-secondary hover:text-brand"><ArrowLeft size={16} /> Back to disputes</Link>
-          <h1 className="mt-4 font-serif text-3xl font-bold text-navy md:text-4xl">{allowGeneration ? 'Generate your dispute' : 'Dispute details'}</h1>
-          <p className="mt-2 text-sm text-slate2-secondary">{allowGeneration ? 'Create a formal lender letter from the account issue you confirmed.' : 'Review the information and generated lender letter for this dispute.'}</p>
-          {allowGeneration && <div className="mt-7 grid grid-cols-2 gap-2 sm:max-w-md">
+          <h1 className="mt-4 font-serif text-3xl font-bold text-navy md:text-4xl">{isDraftWorkflow ? 'Generate your dispute' : 'Dispute details'}</h1>
+          <p className="mt-2 text-sm text-slate2-secondary">{isDraftWorkflow ? 'Create a formal lender letter from the account issue you confirmed.' : 'Review the information and generated lender letter for this dispute.'}</p>
+          {isDraftWorkflow && <div className="mt-7 grid grid-cols-2 gap-2 sm:max-w-md">
             <div className="rounded-xl bg-brand px-3 py-2.5 text-center text-xs font-bold text-white">1. Generate</div>
             <div className="rounded-xl bg-slate-100 px-3 py-2.5 text-center text-xs font-semibold text-slate2-muted">2. Review</div>
           </div>}
@@ -78,7 +79,7 @@ export default function DisputeDetailPage() {
                 <p className="mt-2 text-sm leading-6 text-slate2-secondary">{generated ? 'Your formal letter has been created from the report, lender and issue details.' : 'We will prepare a professional dispute letter using the verified details associated with this issue.'}</p>
                 <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-xs text-slate2-muted"><span>Dispute #{dispute.id}</span>{dispute.disputeType && <span>Type: {displayStatus(dispute.disputeType)}</span>}{dispute.lenderName && <span>Lender: {dispute.lenderName}</span>}</div>
               </div>
-              {allowGeneration && !generated && <button type="button" onClick={() => void generate()} disabled={generating} className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-brand px-5 py-3 text-sm font-semibold text-white hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-50">{generating ? <Loader2 size={17} className="animate-spin" /> : <WandSparkles size={17} />}{generating ? 'Generating...' : 'Generate dispute'}</button>}
+              {isDraftWorkflow && !generated && <button type="button" onClick={() => void generate()} disabled={generating} className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-brand px-5 py-3 text-sm font-semibold text-white hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-50">{generating ? <Loader2 size={17} className="animate-spin" /> : <WandSparkles size={17} />}{generating ? 'Generating...' : 'Generate dispute'}</button>}
             </div>
           </section>
 
@@ -88,7 +89,7 @@ export default function DisputeDetailPage() {
               <div className="bg-slate-100 p-4 sm:p-7"><article className="mx-auto max-w-3xl rounded-sm border border-slate-200 bg-white px-6 py-8 shadow-sm sm:px-10 sm:py-10"><pre className="whitespace-pre-wrap font-sans text-sm leading-7 text-slate-700">{generatedLetter}</pre></article></div>
             </section>
 
-            {allowGeneration && !alreadySent && <section className="mt-6 flex flex-col gap-4 rounded-cardlg border border-blue-200 bg-white p-6 shadow-card sm:flex-row sm:items-center sm:justify-between"><div><h2 className="font-bold text-navy">Letter generated successfully</h2><p className="mt-1 text-sm text-slate2-secondary">Continue to verify the recipient, subject, message and attachments.</p></div><Link to={`/loans/disputes/${encodeURIComponent(dispute.id)}/preview`} className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-brand px-5 py-3 text-sm font-semibold text-white hover:bg-brand-dark">Review lender email <ChevronRight size={17} /></Link></section>}
+            {isDraftWorkflow && !alreadySent && <section className="mt-6 flex flex-col gap-4 rounded-cardlg border border-blue-200 bg-white p-6 shadow-card sm:flex-row sm:items-center sm:justify-between"><div><h2 className="font-bold text-navy">Letter generated successfully</h2><p className="mt-1 text-sm text-slate2-secondary">Continue to verify the recipient, subject, message and attachments.</p></div><Link to={`/loans/disputes/${encodeURIComponent(dispute.id)}/preview`} className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-brand px-5 py-3 text-sm font-semibold text-white hover:bg-brand-dark">Review lender email <ChevronRight size={17} /></Link></section>}
           </>}
         </>}
       </div>

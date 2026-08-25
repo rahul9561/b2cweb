@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { useState } from 'react'
 import {
   Facebook,
   Linkedin,
@@ -15,6 +16,8 @@ import paytmLogo from '../assets/images/paytm.svg'
 import mastercardLogo from '../assets/images/mastercard.png'
 import amexLogo from '../assets/images/american_express.svg'
 import visaLogo from '../assets/images/visa.png'
+import ComingSoonModal from './ComingSoonModal'
+import { SHOW_HOME_SECTIONS_COMING_SOON } from '../config/featureFlags'
 
 const importantLinks = ['IRDAI', 'IRDAI Customer Education Website', 'Bima Bharosa']
 const socialLinks = [
@@ -69,9 +72,27 @@ const resourceRoutes: Record<string, string> = {
   'Customer reviews': '/#customer-reviews',
 }
 
+const insuranceRoutes: Record<string, string> = {
+  'Health Insurance': '/health-insurance',
+  'Bike Insurance': '/bike-insurance',
+  'Travel Insurance': '/travel-insurance',
+  'Term Life Insurance': '/term-insurance',
+  'Term Insurance(Women)': '/term-insurance-women',
+  'Investment Plans': '/investment-plans',
+  'Home Insurance': '/home-insurance',
+  'Family Health Insurance': '/family-health-insurance',
+}
+
 export default function Footer() {
+  const [comingSoonFeature, setComingSoonFeature] = useState('')
+
   return (
     <footer className="bg-navy text-white">
+      <ComingSoonModal
+        isOpen={Boolean(comingSoonFeature)}
+        onClose={() => setComingSoonFeature('')}
+        featureName={comingSoonFeature}
+      />
       <div className="container-pb grid gap-10 py-14 md:grid-cols-2 lg:grid-cols-4">
         <div>
           <h4 className="mb-5 text-base font-semibold">{footerColumns.insurance.title}</h4>
@@ -81,7 +102,15 @@ export default function Footer() {
               <ul className="space-y-2">
                 {g.links.map((l) => (
                   <li key={l}>
-                    <Link to="/health-insurance" className="text-[13px] text-white/60 hover:text-white">
+                    <Link
+                      to={insuranceRoutes[l] ?? '/'}
+                      onClick={(event) => {
+                        if (!SHOW_HOME_SECTIONS_COMING_SOON) return
+                        event.preventDefault()
+                        setComingSoonFeature(l)
+                      }}
+                      className="text-[13px] text-white/60 hover:text-white"
+                    >
                       {l}
                     </Link>
                   </li>
@@ -96,7 +125,15 @@ export default function Footer() {
           <ul className="space-y-2.5">
             {footerColumns.calculators.links.map((l) => (
               <li key={l}>
-                <Link to="/calculators" className="text-[13px] text-white/60 hover:text-white">
+                <Link
+                  to="/calculators"
+                  onClick={(event) => {
+                    if (!SHOW_HOME_SECTIONS_COMING_SOON) return
+                    event.preventDefault()
+                    setComingSoonFeature(l)
+                  }}
+                  className="text-[13px] text-white/60 hover:text-white"
+                >
                   {l}
                 </Link>
               </li>

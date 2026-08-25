@@ -81,6 +81,7 @@ export const insuranceMenu: Record<MenuCategory, { title: string; links: { label
       { label: 'CIBIL Score', to: '/cibil-score' },
       { label: 'How to increase CIBIL Score', to: '/increase-cibil-score' },
       { label: 'CIBIL Score for Personal Loan/Instant Loan', to: '/cibil-score-loan' },
+      { label: 'Apply For Credit Card', to: '/apply-credit-card' },
     ],
   },
   otherInsurance: {
@@ -129,6 +130,10 @@ export const loansMenu = [
     label: 'CIBIL Score for Personal Loan/Instant Loan',
     to: '/cibil-score-loan',
   },
+    {
+    label: 'Apply for Credit Card',
+    to: '/apply-credit-card',
+  },
   {
     label: 'Education Loan',
     to: '/education-loan',
@@ -136,7 +141,7 @@ export const loansMenu = [
 ]
 export const supportMenu = {
   accountService: [
-    { label: 'Login with Mobile Number', to: '/login' },
+   // { label: 'Login with Mobile Number', to: '/login' },
     { label: 'Articles', to: '/category/credit-score' },
     { label: 'Contact Us', to: '/contact-us' },
     { label: 'Terms & Conditions', to: '/terms-and-conditions' },
@@ -153,17 +158,17 @@ export const footerColumns = {
       {
         heading: 'General Insurance',
         links: [
-          'Car Insurance',
+           'Health Insurance',
           'Bike Insurance',
-          'Motor Insurance',
-          'Third Party Car Insurance',
-          'Third Party Bike Insurance',
+          // 'Motor Insurance',
+          // 'Third Party Car Insurance',
+          // 'Third Party Bike Insurance',
           'Travel Insurance',
         ],
       },
       {
         heading: 'Life Insurance',
-        links: ['Life Insurance', 'Term Insurance', 'Investment', 'Health Insurance'],
+        links: ['Term Life Insurance', 'Term Insurance(Women)', 'Investment Plans', 'Home Insurance','Family Health Insurance'],
       },
     ],
   },
@@ -171,31 +176,32 @@ export const footerColumns = {
     title: 'Calculators',
     links: [
       'Investment Calculators',
-      'Fitness Calculators',
+      // 'Fitness Calculators',
       'Income Tax Calculator',
       'Term Insurance Calculator',
-      'EMI Calculator',
+      // 'EMI Calculator',
       'Car Insurance Calculator',
-      'Bike Insurance Calculator',
+      // 'Bike Insurance Calculator',
       'Health Insurance Calculator',
       'SIP Calculator',
     ],
   },
   resources: {
     title: 'Resources',
-    links: ['Articles', 'Customer reviews', 'Insurance companies'],
+    // links: ['Articles', 'Customer reviews', 'Insurance companies'],
+    links: ['Articles', 'Customer reviews'],
   },
   company: {
     title: 'Company',
     links: [
       'About Us',
-      'Sitemap',
+      // 'Sitemap',
       'Careers',
       'Legal & Admin policies',
-      'ISNP',
+      // 'ISNP',
       'Contact us',
-      'Verify your advisor',
-      'Investor Relations',
+      // 'Verify your advisor',
+      // 'Investor Relations',
     ],
   },
 }

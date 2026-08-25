@@ -62,7 +62,7 @@ export default function Advantages() {
   return (
     <section className="bg-blueBGMuted py-14">
       <div className="container-pb">
-        <h2 className="text-center text-[22px] font-medium text-navy">PB Advantage</h2>
+        <h2 className="text-center text-[22px] font-medium text-navy">AV Advantage</h2>
         <span className="heading-accent mx-auto mt-2 block h-1 w-12 rounded-full bg-brand" />
         <p className="mx-auto mt-4 max-w-3xl text-center text-[13px] leading-6 text-slate2-secondary">
           When you buy insurance from us, you get more than just financial safety. You also get our

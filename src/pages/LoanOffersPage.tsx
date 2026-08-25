@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { ArrowUpDown, Gauge, Info, Landmark, Loader2, PencilLine, User } from 'lucide-react'
+import { ArrowLeft, ArrowUpDown, Gauge, Info, Landmark, Loader2, PencilLine, User } from 'lucide-react'
 import { ApiClient, ApiError } from '../lib/apiClient'
 import { AppEndpoints } from '../config/appConfig'
 import { getSavedLoanCategoryList } from '../lib/loanCategories'
@@ -53,8 +53,6 @@ const parseRoi = (roi: string) => {
   return match ? parseFloat(match[0]) : Infinity
 }
 
-const FORM_ROUTE = '/cibil-score-loan'
-
 const field = (item: Record<string, unknown>, keys: string[]) => {
   const value = Object.entries(item).find(([key]) => keys.includes(key.toLowerCase()))?.[1]
   return value === undefined || value === null ? '' : String(value)
@@ -88,13 +86,15 @@ const apiOffersFrom = (payload: unknown): ApiOffer[] => {
   })
 }
 
-export default function LoanOffersPage() {
+export default function LoanOffersPage({ product = 'personal-loan' }: { product?: 'personal-loan' | 'credit-card' }) {
   const location = useLocation()
   const navigate = useNavigate()
   const state = (location.state ?? {}) as Partial<LoanFormData>
   const routeState = location.state as Record<string, unknown> | null
   const apiOffers = useMemo(() => apiOffersFrom(routeState?.bankPayload), [routeState?.bankPayload])
   const score = routeState?.score
+  const isCreditCard = product === 'credit-card'
+  const formRoute = isCreditCard ? '/apply-credit-card' : '/cibil-score-loan'
 
   const [sortMode, setSortMode] = useState<SortMode>('chance')
   const [ready, setReady] = useState(false)
@@ -112,18 +112,18 @@ export default function LoanOffersPage() {
 
   useEffect(() => {
     if (!hasData) {
-      navigate(FORM_ROUTE, { replace: true })
+      navigate(formRoute, { replace: true })
       return
     }
     const timer = window.setTimeout(() => setReady(true), 50)
     return () => window.clearTimeout(timer)
-  }, [hasData, navigate])
+  }, [formRoute, hasData, navigate])
 
   const sortedOffers = useMemo(() => {
-    const offers = apiOffers.length ? apiOffers : loanOffers
+    const offers = apiOffers.length ? apiOffers : isCreditCard ? [] : loanOffers
     if (sortMode === 'roi') return [...offers].sort((a, b) => parseRoi(a.roiStartingAt) - parseRoi(b.roiStartingAt))
     return [...offers].sort((a, b) => chanceScore[b.approvalChance] - chanceScore[a.approvalChance])
-  }, [apiOffers, sortMode])
+  }, [apiOffers, isCreditCard, sortMode])
 
   if (!hasData) return null
 
@@ -134,19 +134,20 @@ export default function LoanOffersPage() {
     setApplyingBank(offer.name)
 
     try {
-      // Resolve the category (prefer "Personal Loan" / shortCode "pl").
       const categories = getSavedLoanCategoryList()
-      const personalLoan = categories.find(
-        (c) => c.shortCode?.toLowerCase() === 'pl' || /personal/i.test(c.name)
+      const selectedCategory = categories.find(
+        (category) => category.shortCode?.toLowerCase() === (isCreditCard ? 'cc' : 'pl')
       )
-      const category = personalLoan ?? categories[0]
+      const categoryId = String(routeState?.categoryId ?? selectedCategory?._id ?? (!isCreditCard ? categories[0]?._id : '') ?? '')
+      const categoryCode = String(routeState?.categoryCode ?? selectedCategory?.shortCode ?? (!isCreditCard ? categories[0]?.shortCode : '') ?? '')
+      if (!categoryId) throw new Error(`Unable to find the ${isCreditCard ? 'Credit Card' : 'Personal Loan'} category.`)
 
       const payload = {
         name: fullName,
         mobile: state.phone ?? '',
         pincode: state.pincode ?? '',
-        categoryId: category?._id ?? '',
-        categoryCode: category?.shortCode ?? '',
+        categoryId,
+        categoryCode,
         bankId: offer.bankId ?? '',
         bankName: offer.bankName ?? offer.name,
         pan: state.pan ?? '',
@@ -186,12 +187,20 @@ export default function LoanOffersPage() {
   }
 
   const handleEdit = () => {
-    navigate(FORM_ROUTE, { state: { ...state } })
+    navigate(formRoute, { state: { ...state } })
   }
 
   return (
     <main className="min-h-screen bg-slate-50 pb-16">
       <div className="container-pb pt-8">
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
+          className="mb-4 inline-flex items-center gap-2 text-sm font-semibold text-blue-600 transition hover:text-blue-700"
+        >
+          <ArrowLeft size={17} /> Back
+        </button>
+
         {/* Top summary card */}
         <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
           <div className="flex items-center justify-between gap-4">
@@ -201,7 +210,7 @@ export default function LoanOffersPage() {
               </span>
               <div className="min-w-0">
                 <p className="truncate font-bold text-navy">{fullName}</p>
-                <p className="text-xs text-slate-500">all the bank list</p>
+                <p className="text-xs text-slate-500">{isCreditCard ? 'available credit-card issuers' : 'all the bank list'}</p>
                 <button
                   onClick={handleEdit}
                   className="mt-0.5 inline-flex items-center gap-1 text-sm font-medium text-blue-600 transition hover:underline"
@@ -224,7 +233,7 @@ export default function LoanOffersPage() {
         {/* Heading + Sort control */}
         <div className="mt-8 flex flex-wrap items-center justify-between gap-4">
           <h1 className="font-semibold text-blue-600">
-            {sortedOffers.length} Personalised Loan Offers For You
+            {sortedOffers.length} Personalised {isCreditCard ? 'Credit Card' : 'Loan'} Offers For You
           </h1>
           <div className="flex items-center gap-2">
             <ArrowUpDown size={15} className="text-slate-500" />
@@ -248,6 +257,11 @@ export default function LoanOffersPage() {
 
         {/* Offer cards */}
         <div className="mt-5 space-y-4">
+          {isCreditCard && sortedOffers.length === 0 && (
+            <div className="rounded-xl border border-slate-200 bg-white px-5 py-10 text-center text-sm text-slate-500 shadow-sm">
+              No credit-card offers are currently available for this pincode.
+            </div>
+          )}
           {sortedOffers.map((offer, index) => (
             <article
               key={offer.name}
