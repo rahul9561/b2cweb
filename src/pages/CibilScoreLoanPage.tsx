@@ -148,18 +148,46 @@ const creditCardFaqs = [
   },
 ]
 
-type CreditProduct = 'personal-loan' | 'credit-card'
+const businessLoanFaqs = [
+  {
+    q: 'Can I apply for a business loan without a CIBIL score?',
+    a: 'Some lenders may consider applications using the business profile, turnover, banking history and other eligibility information. Available offers depend on each lender\u2019s policy.',
+  },
+  {
+    q: 'What credit score is generally preferred for a business loan?',
+    a: 'There is no single score required by every lender. A stronger credit profile can improve approval chances, while turnover, business vintage, cash flow and existing obligations are also considered.',
+  },
+  {
+    q: 'What information is used to show business-loan offers?',
+    a: 'Available lenders are requested using the Business Loan category returned by the categories API and the pincode entered in the application form.',
+  },
+  {
+    q: 'Does checking eligibility guarantee approval?',
+    a: 'No. The displayed offers are indicative. Final approval, loan amount, interest rate and tenure are determined by the lender after completing its verification and underwriting process.',
+  },
+  {
+    q: 'What should I compare before choosing a business loan?',
+    a: 'Compare the interest rate, processing fee, repayment tenure, prepayment terms, eligible amount and documentation requirements before proceeding.',
+  },
+]
+
+type CreditProduct = 'personal-loan' | 'credit-card' | 'business-loan'
 
 export default function CibilScoreLoanPage({ product = 'personal-loan' }: { product?: CreditProduct }) {
   const navigate = useNavigate()
   const { isAuthenticated } = useAuth()
   const location = useLocation()
   const isCreditCard = product === 'credit-card'
-  const categoryCode = isCreditCard ? 'cc' : 'pl'
-  const categoryName = isCreditCard ? 'Credit Card' : 'Personal Loan'
-  const eligibilityRoute = isCreditCard ? '/apply-credit-card/eligible' : '/cibil-score-loan/eligible'
-  const offersRoute = isCreditCard ? '/credit-card-offers' : '/loan-offers'
-  const activeFaqs = isCreditCard ? creditCardFaqs : faqs
+  const isBusinessLoan = product === 'business-loan'
+  const categoryCode = isCreditCard ? 'cc' : isBusinessLoan ? 'bl' : 'pl'
+  const categoryName = isCreditCard ? 'Credit Card' : isBusinessLoan ? 'Business Loan' : 'Personal Loan'
+  const eligibilityRoute = isCreditCard
+    ? '/apply-credit-card/eligible'
+    : isBusinessLoan
+      ? '/business-loan/eligible'
+      : '/cibil-score-loan/eligible'
+  const offersRoute = isCreditCard ? '/credit-card-offers' : isBusinessLoan ? '/business-loan-offers' : '/loan-offers'
+  const activeFaqs = isCreditCard ? creditCardFaqs : isBusinessLoan ? businessLoanFaqs : faqs
   const incoming = (location.state ?? {}) as Partial<Details> | null
 
   const [details, setDetails] = useState<Details>({
@@ -186,7 +214,7 @@ export default function CibilScoreLoanPage({ product = 'personal-loan' }: { prod
   }, [loginToast])
 
   const redirectToLogin = () => {
-    const message = `Please log in first to check your credit score and ${isCreditCard ? 'credit-card' : 'loan'} eligibility.`
+    const message = `Please log in first to check your credit score and ${isCreditCard ? 'credit-card' : isBusinessLoan ? 'business-loan' : 'loan'} eligibility.`
     setLoginToast({ id: Date.now(), message })
     navigate('/login', { state: { authToast: message } })
   }
@@ -251,7 +279,7 @@ export default function CibilScoreLoanPage({ product = 'personal-loan' }: { prod
     const category = categories.find(
       (item) => item.shortCode?.toLowerCase() === categoryCode || item.name?.toLowerCase() === categoryName.toLowerCase()
     )
-    return category ?? (isCreditCard ? undefined : categories[0])
+    return category ?? (product === 'personal-loan' ? categories[0] : undefined)
   }
 
   const submit = async (event: React.FormEvent) => {
@@ -279,7 +307,7 @@ export default function CibilScoreLoanPage({ product = 'personal-loan' }: { prod
       let categories = getSavedLoanCategoryList()
       if (categories.length === 0) categories = await fetchLoanCategories()
       let category = pickCategory(categories)
-      if (!category && isCreditCard) {
+      if (!category && product !== 'personal-loan') {
         categories = await fetchLoanCategories()
         category = pickCategory(categories)
       }
@@ -335,15 +363,17 @@ export default function CibilScoreLoanPage({ product = 'personal-loan' }: { prod
       <section className="border-b border-blue-100 bg-gradient-to-br from-blue-50 via-white to-slate-50">
         <div className="container-pb grid gap-8 py-10 lg:grid-cols-[minmax(0,1fr)_380px]">
           <div>
-            <p className="text-sm font-semibold text-blue-600">{isCreditCard ? 'CREDIT CARD ELIGIBILITY' : 'PERSONAL LOAN ELIGIBILITY'}</p>
-            <h1 className="mt-2 font-serif text-3xl font-bold text-navy md:text-4xl">{isCreditCard ? 'Apply for Credit Card' : 'CIBIL Score for Personal Loan / Instant Loan'}</h1>
+            <p className="text-sm font-semibold text-blue-600">{isCreditCard ? 'CREDIT CARD ELIGIBILITY' : isBusinessLoan ? 'BUSINESS LOAN ELIGIBILITY' : 'PERSONAL LOAN ELIGIBILITY'}</p>
+            <h1 className="mt-2 font-serif text-3xl font-bold text-navy md:text-4xl">{isCreditCard ? 'Apply for Credit Card' : isBusinessLoan ? 'Apply for Business Loan' : 'Personal/Instant Loan'}</h1>
             <p className="mt-4 max-w-2xl leading-7 text-slate-600">
               {isCreditCard
                 ? 'Check your credit score and explore personalised credit-card offers from available issuers.'
-                : 'A stronger credit profile may help improve your personal-loan eligibility. Check your score and explore offers from leading lenders.'}
+                : isBusinessLoan
+                  ? 'Check your credit profile and explore personalised business-loan offers from available lenders.'
+                  : 'A stronger credit profile may help improve your personal-loan eligibility. Check your score and explore offers from leading lenders.'}
             </p>
             <div className="mt-6 grid gap-3 sm:grid-cols-3">
-              {['Check score from all 4 bureaus', isCreditCard ? 'Personalised card offers' : 'Personalised loan offers', 'Secure, paperless journey'].map((item) => (
+              {['Check score from all 4 bureaus', isCreditCard ? 'Personalised card offers' : isBusinessLoan ? 'Business-loan offers' : 'Personalised loan offers', 'Secure, paperless journey'].map((item) => (
                 <div key={item} className="flex items-center gap-2 rounded-xl border border-blue-100 bg-white p-3 text-sm font-medium text-navy">
                   <CheckCircle2 className="shrink-0 text-emerald-500" size={18} />
                   {item}
@@ -408,7 +438,9 @@ export default function CibilScoreLoanPage({ product = 'personal-loan' }: { prod
                 ? 'Checking your credit score...'
                 : isCreditCard
                   ? 'Apply for Credit Card'
-                  : 'Get Free Credit Score'}{' '}
+                  : isBusinessLoan
+                    ? 'Apply for Business Loan'
+                    : 'Get Free Credit Score'}{' '}
               <ArrowRight size={17} />
             </button>
             {submitError && <p className="mt-3 text-center text-xs text-red-600" role="alert">{submitError}</p>}
@@ -460,6 +492,46 @@ export default function CibilScoreLoanPage({ product = 'personal-loan' }: { prod
                   'Choose rewards and benefits that match how you expect to use the card.',
                   'Avoid making several card applications within a short period.',
                   'Pay bills on time and keep credit utilisation manageable after approval.',
+                ]} />
+              </Section>
+            </> : isBusinessLoan ? <>
+              <Section title="Why Your Credit Score Matters for a Business Loan">
+                <Copy>
+                  Business-loan lenders may review both your personal credit history and business profile. A stronger repayment record can support your application alongside turnover, cash flow, business vintage and existing obligations.
+                </Copy>
+              </Section>
+
+              <Section title="Business Loan Eligibility">
+                <Copy>Every lender applies its own underwriting rules, so there is no single credit score or eligibility standard used for all business loans.</Copy>
+                <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-5">
+                  <BulletList items={[
+                    'A stronger credit score and consistent repayment history may improve approval chances.',
+                    'Business vintage, turnover, banking activity and cash flow may affect the eligible amount.',
+                    'Existing EMIs and other financial obligations may be considered by the lender.',
+                    'Final approval and terms remain subject to lender verification and underwriting.',
+                  ]} />
+                </div>
+              </Section>
+
+              <Section title="How Business Loan Offers Are Selected">
+                <Copy>
+                  After checking your credit report, we request available lenders using the Business Loan category returned by the categories API and the pincode entered in your application.
+                </Copy>
+                <div className="mt-4">
+                  <BulletList items={[
+                    'Business Loan category with short code bl',
+                    'Your entered pincode and current credit profile',
+                    'Availability and eligibility rules from participating lenders',
+                  ]} />
+                </div>
+              </Section>
+
+              <Section title="Things to Keep in Mind Before Applying">
+                <BulletList items={[
+                  'Compare interest rates, processing fees and the total repayment amount.',
+                  'Choose a repayment tenure that suits your expected business cash flow.',
+                  'Review prepayment charges, documentation and lender-specific conditions.',
+                  'Avoid submitting several loan applications within a short period.',
                 ]} />
               </Section>
             </> : <>
@@ -590,7 +662,7 @@ export default function CibilScoreLoanPage({ product = 'personal-loan' }: { prod
             Credit Score
           </Link>
           <ChevronRight size={14} className="text-slate-400" />
-          <span className="text-slate-500">{isCreditCard ? 'Apply for Credit Card' : 'Cibil Score For Personal Loan'}</span>
+          <span className="text-slate-500">{isCreditCard ? 'Apply for Credit Card' : isBusinessLoan ? 'Business Loan' : 'Personal/Instant Loan'}</span>
         </nav>
 
         {/* FAQs */}

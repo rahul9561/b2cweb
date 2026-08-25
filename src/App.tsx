@@ -101,6 +101,7 @@ import DisputesPage from './pages/DisputesPage'
 import DisputeDetailPage from './pages/DisputeDetailPage'
 import DisputePreviewPage from './pages/DisputePreviewPage'
 import ScrollToTop from './components/ScrollToTop'
+import FloatingQuickActions from './components/FloatingQuickActions'
 const leadRoute = (slug: LandingSlug) => <LeadLanding slug={slug} />
 
 function FirstLoginGuard() {
@@ -188,8 +189,11 @@ export default function App() {
                   <Route path="/cibil-score-loan/eligible" element={<CibilLoanEligibilityPage />} />
                   <Route path="/apply-credit-card" element={<CibilScoreLoanPage product="credit-card" />} />
                   <Route path="/apply-credit-card/eligible" element={<CibilLoanEligibilityPage product="credit-card" />} />
+                  <Route path="/business-loan" element={<CibilScoreLoanPage product="business-loan" />} />
+                  <Route path="/business-loan/eligible" element={<CibilLoanEligibilityPage product="business-loan" />} />
                   <Route path="/loan-offers" element={<LoanOffersPage />} />
                   <Route path="/credit-card-offers" element={<LoanOffersPage product="credit-card" />} />
+                  <Route path="/business-loan-offers" element={<LoanOffersPage product="business-loan" />} />
                   <Route path="/wallet" element={<WalletPage />} />
                   <Route path="/wallet/add-money" element={<AddMoneyPage />} />
                   <Route path="/wallet/payment-status" element={<PaymentStatusPage />} />
@@ -263,6 +267,7 @@ export default function App() {
                 </Routes>
               </main>
               {!isCustomFlow && !isTermPayment && !location.pathname.startsWith('/sip-calculator') && !location.pathname.startsWith('/income-tax-calculator') && !location.pathname.startsWith('/education-loan') && !location.pathname.match(/^\/guaranteed-return-plans\/(details|review|payment)/) && !location.pathname.match(/^\/child-savings-plans\/(details|review|payment)/) && !location.pathname.match(/^\/retirement-plans\/(details|review|payment)/) && !location.pathname.match(/^\/employee-group-health-insurance\/(plans|thanks)/) && <Footer />}
+              <FloatingQuickActions />
             </div>
           </HealthFiltersProvider>
         </HealthProfileProvider>

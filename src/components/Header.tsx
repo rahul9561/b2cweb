@@ -69,23 +69,23 @@ export default function Header() {
   }
   return (
     <header className="sticky top-0 z-50 border-b border-gray-800 bg-black shadow-lg">
-      <div className="flex h-[70px] w-full items-center justify-between px-1 lg:px-4">
-        <div className="flex items-center gap-8">
+      <div className="flex h-[56px] w-full items-center justify-between px-2 sm:h-[70px] sm:px-3 lg:px-4">
+        <div className="flex min-w-0 items-center gap-2 sm:gap-8">
           <button
-            className="lg:hidden"
+            className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-white/80 transition hover:bg-white/10 hover:text-white lg:hidden"
             onClick={() => setMobileOpen(true)}
             aria-label="Open menu"
           >
-            <Menu size={22} className="text-navy" />
+            <Menu size={19} />
           </button>
 <Link
     to="/"
-   className="ml-1 flex shrink-0 items-center rounded-lg bg-black py-2 pr-3"
+   className="flex min-w-0 shrink items-center rounded-lg bg-black py-1 sm:ml-1 sm:shrink-0 sm:py-2 sm:pr-3"
 >
     <img
         src={logo}
         alt="AV Management"
-        className="h-14 w-auto object-contain"
+        className="h-10 max-w-[210px] object-contain sm:h-14 sm:max-w-none"
     />
 </Link>
            <nav className="hidden items-center gap-0 lg:flex">
@@ -246,7 +246,7 @@ export default function Header() {
           </nav>
         </div>
 
-        <div className="ml-auto flex shrink-0 items-center gap-3">
+        <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-3">
           <div className="group relative hidden xl:block">
             <button className="flex items-center gap-2 whitespace-nowrap rounded-full border border-brand px-4 py-2 text-[13px] font-medium text-brand transition-colors hover:bg-brand hover:text-white">
               <Phone size={14} />
@@ -307,11 +307,11 @@ export default function Header() {
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Download AV Management App from Google Play"
-            className="ml-3 mr-1 flex max-w-[104px] shrink-0 flex-col items-center gap-0.5 text-center text-white transition-colors hover:text-orange-400"
+            className="ml-1 flex max-w-[72px] shrink-0 flex-col items-center gap-0.5 text-center text-white transition-colors hover:text-orange-400 sm:ml-3 sm:mr-1 sm:max-w-[104px]"
           >
             <svg
               viewBox="0 0 24 24"
-              className="h-5 w-5"
+              className="h-4 w-4 sm:h-5 sm:w-5"
               aria-hidden="true"
             >
               <path d="M3 2.25v19.5L13.2 12 3 2.25Z" fill="#00D7FE" />
@@ -319,7 +319,7 @@ export default function Header() {
               <path d="m3 21.75 12.7-7.35-2.5-2.4L3 21.75Z" fill="#FFCE00" />
               <path d="m15.7 9.6 4.15 2.4-4.15 2.4-2.5-2.4 2.5-2.4Z" fill="#FF3A44" />
             </svg>
-            <span className="text-[10px] font-medium leading-[11px]">
+            <span className="text-[8px] font-medium leading-[9px] sm:text-[10px] sm:leading-[11px]">
               Download AV Management App
             </span>
           </a>

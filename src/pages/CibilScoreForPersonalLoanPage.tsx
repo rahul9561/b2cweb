@@ -97,7 +97,7 @@ export default function CibilScoreForPersonalLoanPage() {
           <ChevronRight className="mx-1 inline" size={13} />
           <Link to="/category/credit-score" className="text-blue-600 hover:underline">Credit Score</Link>
           <ChevronRight className="mx-1 inline" size={13} />
-          <span>Cibil Score For Personal Loan</span>
+          <span>Personal/Instant Loan</span>
         </div>
       </div>
 
@@ -105,7 +105,7 @@ export default function CibilScoreForPersonalLoanPage() {
       <section className="border-b border-blue-100 bg-gradient-to-br from-blue-50 via-white to-slate-50">
         <div className="container-pb py-10">
           <p className="text-sm font-semibold text-blue-600">CREDIT SCORE GUIDE</p>
-          <h1 className="mt-3 max-w-4xl font-serif text-3xl font-bold leading-tight text-navy md:text-5xl">CIBIL Score for Personal Loan</h1>
+          <h1 className="mt-3 max-w-4xl font-serif text-3xl font-bold leading-tight text-navy md:text-5xl">Personal/Instant Loan</h1>
           <p className="mt-6 max-w-3xl text-lg leading-8 text-slate-600">Understand how your CIBIL score affects personal-loan approval, interest rates and loan limits — and how to strengthen your profile before applying.</p>
         </div>
       </section>

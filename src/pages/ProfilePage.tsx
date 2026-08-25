@@ -148,30 +148,45 @@ export default function ProfilePage() {
         </div>
       </section>
 
-      <div className="container-pb -mt-1 grid max-w-5xl gap-6 py-8 lg:grid-cols-[300px_minmax(0,1fr)]">
-        <aside className="h-fit overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl shadow-blue-950/5">
-          <div className="bg-gradient-to-br from-blue-700 to-indigo-700 px-6 py-8 text-center text-white">
-            <div className="relative mx-auto h-28 w-28">
+      <div className="container-pb -mt-1 grid max-w-5xl gap-6 py-6 md:py-8 lg:grid-cols-[320px_minmax(0,1fr)]">
+        <aside className="h-fit overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-[0_18px_45px_rgba(15,23,42,0.08)]">
+          <div className="relative overflow-hidden bg-gradient-to-br from-blue-700 via-blue-700 to-indigo-700 px-5 py-6 text-white sm:px-6 lg:py-8">
+            <div className="absolute -right-14 -top-16 h-40 w-40 rounded-full bg-white/10" />
+            <div className="absolute -bottom-20 -left-16 h-40 w-40 rounded-full bg-indigo-400/20" />
+            <div className="relative flex items-center gap-4 lg:block lg:text-center">
+            <div className="relative h-20 w-20 shrink-0 lg:mx-auto lg:h-28 lg:w-28">
               <div className="grid h-full w-full place-items-center overflow-hidden rounded-full border-4 border-white/70 bg-blue-100 text-3xl font-bold text-blue-700 shadow-lg">
                 {imageUrl ? <img src={imageUrl} alt="Profile" className="h-full w-full object-cover" /> : initials}
               </div>
               {editing && (
-                <button type="button" onClick={() => fileInput.current?.click()} className="absolute bottom-0 right-0 grid h-10 w-10 place-items-center rounded-full border-2 border-white bg-white text-blue-700 shadow-md transition hover:scale-105" aria-label="Upload profile image">
-                  <Camera size={18} />
+                <button type="button" onClick={() => fileInput.current?.click()} className="absolute bottom-0 right-0 grid h-8 w-8 place-items-center rounded-full border-2 border-white bg-white text-blue-700 shadow-md transition hover:scale-105 lg:h-10 lg:w-10" aria-label="Upload profile image">
+                  <Camera size={16} />
                 </button>
               )}
               <input ref={fileInput} type="file" accept="image/png,image/jpeg,image/gif,image/webp" className="hidden" onChange={(event) => setProfileImage(event.target.files?.[0] ?? null)} />
             </div>
-            <h2 className="mt-5 text-xl font-bold">{displayName}</h2>
-            {/* <p className="mt-1 text-sm text-blue-100">{user?.role || 'CUSTOMER'}</p> */}
-            {editing && <p className="mt-3 text-xs text-blue-100">Tap the camera icon to upload a profile image</p>}
-          </div>
-          <div className="p-5">
-            <div className="flex items-center justify-between rounded-2xl bg-blue-50 p-4">
-              <span className="flex items-center gap-2 text-sm font-medium text-slate-600"><Wallet size={18} className="text-blue-600" /> Wallet balance</span>
-              <strong className="text-blue-700">{formatBalance(user?.wallet_balance)}</strong>
+            <div className="min-w-0 text-left lg:mt-5 lg:text-center">
+              {/* <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-blue-100">Account overview</p> */}
+              <h2 className="mt-1 truncate text-lg font-bold text-white lg:text-xl">{displayName}</h2>
+              <p className="mt-1 flex items-center gap-1.5 text-xs text-blue-100 lg:justify-center">
+                <CheckCircle2 size={14} className="text-emerald-300" /> Verified account
+              </p>
+              {editing && <p className="mt-2 text-[11px] leading-4 text-blue-100 lg:mt-3 lg:text-xs">Tap the camera icon to upload a profile image</p>}
             </div>
-            <button type="button" onClick={() => setShowLogoutConfirm(true)} className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-red-200 px-4 py-3 text-sm font-semibold text-red-600 transition hover:bg-red-50">
+            </div>
+          </div>
+          <div className="p-4 sm:p-5">
+            <div className="flex items-center justify-between gap-4 rounded-2xl border border-blue-100 bg-gradient-to-r from-blue-50 to-indigo-50 p-4">
+              <span className="flex min-w-0 items-center gap-3">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white text-blue-600 shadow-sm"><Wallet size={18} /></span>
+                <span className="min-w-0">
+                  <span className="block text-sm font-semibold text-slate-700">Wallet balance</span>
+                  <span className="block text-[11px] text-slate-500">Available balance</span>
+                </span>
+              </span>
+              <strong className="shrink-0 text-base text-blue-700">{formatBalance(user?.wallet_balance)}</strong>
+            </div>
+            <button type="button" onClick={() => setShowLogoutConfirm(true)} className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-red-200 bg-white px-4 py-3 text-sm font-semibold text-red-600 transition hover:border-red-300 hover:bg-red-50 active:scale-[0.99]">
               <LogOut size={17} /> Sign out
             </button>
           </div>

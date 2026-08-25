@@ -80,7 +80,7 @@ export const insuranceMenu: Record<MenuCategory, { title: string; links: { label
       { label: 'CRIF Report', to: '/crif-report' },
       { label: 'CIBIL Score', to: '/cibil-score' },
       { label: 'How to increase CIBIL Score', to: '/increase-cibil-score' },
-      { label: 'CIBIL Score for Personal Loan/Instant Loan', to: '/cibil-score-loan' },
+      { label: 'Personal/Instant Loan', to: '/cibil-score-loan' },
       { label: 'Apply For Credit Card', to: '/apply-credit-card' },
     ],
   },
@@ -127,12 +127,16 @@ export const creditScoreMenu = [
 ]
 export const loansMenu = [
   {
-    label: 'CIBIL Score for Personal Loan/Instant Loan',
+    label: 'Personal/Instant Loan',
     to: '/cibil-score-loan',
   },
     {
     label: 'Apply for Credit Card',
     to: '/apply-credit-card',
+  },
+  {
+    label: 'Business Loan',
+    to: '/business-loan',
   },
   {
     label: 'Education Loan',

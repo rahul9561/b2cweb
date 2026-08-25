@@ -86,7 +86,7 @@ const apiOffersFrom = (payload: unknown): ApiOffer[] => {
   })
 }
 
-export default function LoanOffersPage({ product = 'personal-loan' }: { product?: 'personal-loan' | 'credit-card' }) {
+export default function LoanOffersPage({ product = 'personal-loan' }: { product?: 'personal-loan' | 'credit-card' | 'business-loan' }) {
   const location = useLocation()
   const navigate = useNavigate()
   const state = (location.state ?? {}) as Partial<LoanFormData>
@@ -94,7 +94,10 @@ export default function LoanOffersPage({ product = 'personal-loan' }: { product?
   const apiOffers = useMemo(() => apiOffersFrom(routeState?.bankPayload), [routeState?.bankPayload])
   const score = routeState?.score
   const isCreditCard = product === 'credit-card'
-  const formRoute = isCreditCard ? '/apply-credit-card' : '/cibil-score-loan'
+  const isBusinessLoan = product === 'business-loan'
+  const categoryCode = isCreditCard ? 'cc' : isBusinessLoan ? 'bl' : 'pl'
+  const categoryName = isCreditCard ? 'Credit Card' : isBusinessLoan ? 'Business Loan' : 'Personal Loan'
+  const formRoute = isCreditCard ? '/apply-credit-card' : isBusinessLoan ? '/business-loan' : '/cibil-score-loan'
 
   const [sortMode, setSortMode] = useState<SortMode>('chance')
   const [ready, setReady] = useState(false)
@@ -120,10 +123,10 @@ export default function LoanOffersPage({ product = 'personal-loan' }: { product?
   }, [formRoute, hasData, navigate])
 
   const sortedOffers = useMemo(() => {
-    const offers = apiOffers.length ? apiOffers : isCreditCard ? [] : loanOffers
+    const offers = apiOffers.length ? apiOffers : product === 'personal-loan' ? loanOffers : []
     if (sortMode === 'roi') return [...offers].sort((a, b) => parseRoi(a.roiStartingAt) - parseRoi(b.roiStartingAt))
     return [...offers].sort((a, b) => chanceScore[b.approvalChance] - chanceScore[a.approvalChance])
-  }, [apiOffers, isCreditCard, sortMode])
+  }, [apiOffers, product, sortMode])
 
   if (!hasData) return null
 
@@ -136,18 +139,18 @@ export default function LoanOffersPage({ product = 'personal-loan' }: { product?
     try {
       const categories = getSavedLoanCategoryList()
       const selectedCategory = categories.find(
-        (category) => category.shortCode?.toLowerCase() === (isCreditCard ? 'cc' : 'pl')
+        (category) => category.shortCode?.toLowerCase() === categoryCode
       )
-      const categoryId = String(routeState?.categoryId ?? selectedCategory?._id ?? (!isCreditCard ? categories[0]?._id : '') ?? '')
-      const categoryCode = String(routeState?.categoryCode ?? selectedCategory?.shortCode ?? (!isCreditCard ? categories[0]?.shortCode : '') ?? '')
-      if (!categoryId) throw new Error(`Unable to find the ${isCreditCard ? 'Credit Card' : 'Personal Loan'} category.`)
+      const categoryId = String(routeState?.categoryId ?? selectedCategory?._id ?? (product === 'personal-loan' ? categories[0]?._id : '') ?? '')
+      const selectedCategoryCode = String(routeState?.categoryCode ?? selectedCategory?.shortCode ?? (product === 'personal-loan' ? categories[0]?.shortCode : '') ?? '')
+      if (!categoryId) throw new Error(`Unable to find the ${categoryName} category.`)
 
       const payload = {
         name: fullName,
         mobile: state.phone ?? '',
         pincode: state.pincode ?? '',
         categoryId,
-        categoryCode,
+        categoryCode: selectedCategoryCode,
         bankId: offer.bankId ?? '',
         bankName: offer.bankName ?? offer.name,
         pan: state.pan ?? '',
@@ -210,7 +213,7 @@ export default function LoanOffersPage({ product = 'personal-loan' }: { product?
               </span>
               <div className="min-w-0">
                 <p className="truncate font-bold text-navy">{fullName}</p>
-                <p className="text-xs text-slate-500">{isCreditCard ? 'available credit-card issuers' : 'all the bank list'}</p>
+                <p className="text-xs text-slate-500">{isCreditCard ? 'available credit-card issuers' : isBusinessLoan ? 'available business-loan lenders' : 'all the bank list'}</p>
                 <button
                   onClick={handleEdit}
                   className="mt-0.5 inline-flex items-center gap-1 text-sm font-medium text-blue-600 transition hover:underline"
@@ -233,7 +236,7 @@ export default function LoanOffersPage({ product = 'personal-loan' }: { product?
         {/* Heading + Sort control */}
         <div className="mt-8 flex flex-wrap items-center justify-between gap-4">
           <h1 className="font-semibold text-blue-600">
-            {sortedOffers.length} Personalised {isCreditCard ? 'Credit Card' : 'Loan'} Offers For You
+            {sortedOffers.length} Personalised {isCreditCard ? 'Credit Card' : isBusinessLoan ? 'Business Loan' : 'Loan'} Offers For You
           </h1>
           <div className="flex items-center gap-2">
             <ArrowUpDown size={15} className="text-slate-500" />
@@ -257,9 +260,9 @@ export default function LoanOffersPage({ product = 'personal-loan' }: { product?
 
         {/* Offer cards */}
         <div className="mt-5 space-y-4">
-          {isCreditCard && sortedOffers.length === 0 && (
+          {(isCreditCard || isBusinessLoan) && sortedOffers.length === 0 && (
             <div className="rounded-xl border border-slate-200 bg-white px-5 py-10 text-center text-sm text-slate-500 shadow-sm">
-              No credit-card offers are currently available for this pincode.
+              No {isCreditCard ? 'credit-card' : 'business-loan'} offers are currently available for this pincode.
             </div>
           )}
           {sortedOffers.map((offer, index) => (

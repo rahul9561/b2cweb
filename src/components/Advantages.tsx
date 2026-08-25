@@ -62,7 +62,7 @@ export default function Advantages() {
   return (
     <section className="bg-blueBGMuted py-14">
       <div className="container-pb">
-        <h2 className="text-center text-[22px] font-medium text-navy">AV Advantage</h2>
+        <h2 className="text-center text-[22px] font-medium text-navy">AV Management Advantage</h2>
         <span className="heading-accent mx-auto mt-2 block h-1 w-12 rounded-full bg-brand" />
         <p className="mx-auto mt-4 max-w-3xl text-center text-[13px] leading-6 text-slate2-secondary">
           When you buy insurance from us, you get more than just financial safety. You also get our
@@ -133,12 +133,12 @@ export default function Advantages() {
         </button>
 
         <h3 className="pr-8 text-xl font-semibold text-navy">
-          Finance & Loans at AVManagement.in
+          Finance & Loans at AVmanagementpvtltd.com
         </h3>
 
         <div className="mt-5 space-y-4 text-[13px] leading-6 text-slate2-secondary">
           <p>
-            AVManagement.in is a finance and loan advisory platform helping individuals
+            AVmanagementpvtltd.com is a finance and loan advisory platform helping individuals
             and businesses find the right lending and investment solutions. We offer an
             online platform where borrowers can easily compare{' '}
             <a href="#" className="text-brand hover:underline">personal loans</a>,{' '}
@@ -160,7 +160,7 @@ export default function Advantages() {
           </p>
 
           <p className="font-semibold text-navy">
-            Benefits of Applying Through AVManagement.in
+            Benefits of Applying Through AVmanagementpvtltd.com
           </p>
           <ul className="list-disc space-y-3 pl-5">
             <li>
@@ -206,7 +206,7 @@ export default function Advantages() {
 
           <p>
             No matter what type of financial product you intend to apply for — personal,
-            home, business, or gold loan among others, AVManagement.in offers an unbiased
+            home, business, or gold loan among others, AVmanagementpvtltd.com offers an unbiased
             and data-driven platform to secure financing hassle-free.
           </p>
         </div>
