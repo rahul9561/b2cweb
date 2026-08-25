@@ -9,7 +9,7 @@ import { formatReportPrice, useReportPurchaseGuard } from '../hooks/useReportPur
 import { ApiError } from '../lib/apiClient'
 import { useAuth } from '../context/AuthContext'
 
-export type ReportType = 'cibil' | 'equifax' | 'crif'
+export type ReportType = 'cibil' | 'experian' | 'equifax' | 'crif'
 
 const friendlyReportError = (error: unknown): string => {
   const message = error instanceof Error ? error.message.trim() : ''
@@ -41,7 +41,7 @@ interface CreditReportFlowProps {
 }
 
 /**
- * Reusable credit-report request flow used by CIBIL, Equifax and CRIF pages.
+ * Reusable credit-report request flow used by CIBIL, Experian, Equifax and CRIF pages.
  *
  * Flow:
  *   1. User fills the form and authorizes the live report-price deduction.
@@ -54,7 +54,7 @@ interface CreditReportFlowProps {
  *
  * For Equifax, four additional mandatory fields are collected:
  * DOB, Address, State Code, and Pincode. These are appended to the generate-
- * report payload ONLY for equifax so the CIBIL and CRIF APIs stay untouched.
+ * report payload ONLY for equifax so the CIBIL, Experian and CRIF APIs stay untouched.
  */
 const CreditReportFlow: React.FC<CreditReportFlowProps> = ({ reportType, reportName, bureauName }) => {
   const navigate = useNavigate()
@@ -73,7 +73,7 @@ const CreditReportFlow: React.FC<CreditReportFlowProps> = ({ reportType, reportN
   const submissionLock = React.useRef(false)
 
   const isEquifax = reportType === 'equifax'
-  const generatesBeforeOtp = reportType === 'cibil' || reportType === 'equifax' || reportType === 'crif'
+  const generatesBeforeOtp = reportType === 'cibil' || reportType === 'experian' || reportType === 'equifax' || reportType === 'crif'
   // Equifax-specific fields
   const [dob, setDob] = useState('')
   const [address, setAddress] = useState('')

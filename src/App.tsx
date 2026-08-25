@@ -70,6 +70,7 @@ import ReviewPayPage from './pages/ReviewPayPage'
 import SipCalculatorPage from './pages/SipCalculatorPage'
 import IncomeTaxCalculatorPage from './pages/IncomeTaxCalculatorPage'
 import CibilReportPage from './pages/CibilReportPage'
+import ExperianReportPage from './pages/ExperianReportPage'
 import EquifaxReportPage from './pages/EquifaxReportPage'
 import CrifReportPage from './pages/CrifReportPage'
 import CreditScoreInfoPage from './pages/CreditScoreInfoPage'
@@ -190,6 +191,7 @@ export default function App() {
                   <Route path="/investment-plans/payment" element={<InvestmentPaymentPage />} />
                   <Route path="/calculators" element={<Calculators />} />
                   <Route path="/cibil-report" element={<CibilReportPage />} />
+                  <Route path="/experian-report" element={<ExperianReportPage />} />
                   <Route path="/equifax-report" element={<EquifaxReportPage />} />
                   <Route path="/crif-report" element={<CrifReportPage />} />
                   <Route path="/cibil-score" element={<CreditScoreInfoPage kind="pan" />} />

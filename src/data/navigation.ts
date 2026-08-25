@@ -76,6 +76,7 @@ export const insuranceMenu: Record<MenuCategory, { title: string; links: { label
     links: [
       // { label: 'Credit Report', to: '/credit-score' },
       { label: 'Cibil Report', to: '/cibil-report' },
+      { label: 'Experian Report', to: '/experian-report' },
       { label: 'Equifax Report', to: '/equifax-report' },
       { label: 'CRIF Report', to: '/crif-report' },
       { label: 'CIBIL Score', to: '/cibil-score' },
@@ -119,6 +120,7 @@ export const claimMenu = [
 export const creditScoreMenu = [
   // { label: 'Credit Report', to: '/credit-report' },
   { label: 'Cibil Report', to: '/cibil-report' },
+  { label: 'Experian Report', to: '/experian-report' },
   { label: 'Equifax Report', to: '/equifax-report' },
   { label: 'CRIF Report', to: '/crif-report' },
   { label: 'CIBIL Score', to: '/cibil-score' },

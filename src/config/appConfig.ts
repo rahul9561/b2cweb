@@ -10,10 +10,11 @@ export const AppEndpoints = {
   updateCustomerProfile: '/accounts/update-profile/',
   resendOtp: '/auth/resend-otp/',
   // Credit bureau report generation (paid — deducts wallet balance).
-  // The same endpoint serves all three bureaus; the bureau is selected
+  // The same endpoint serves all four bureaus; the bureau is selected
   // by the `report_type` field in the request body:
-  //   report_type: 'cibil'   | 'equifax' | 'crif'
+  //   report_type: 'cibil' | 'experian' | 'equifax' | 'crif'
   cibilGenerateReport: '/cibil/generate-report/',
+  experianGenerateReport: '/cibil/generate-report/',
   cibilOnlyScoreReport: '/cibil/only-score/',
   cibilAdvancedReport: '/cibil/generate-report/v2/',
   cibilSendOtp: '/cibil/send-otp/',

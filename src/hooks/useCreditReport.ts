@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { ApiClient, ApiError } from '../lib/apiClient'
 import { AppEndpoints } from '../config/appConfig'
 
-export type ReportType = 'cibil' | 'equifax' | 'crif'
+export type ReportType = 'cibil' | 'experian' | 'equifax' | 'crif'
 
 interface GenerateReportParams {
   name: string
@@ -12,16 +12,16 @@ interface GenerateReportParams {
   reportType: ReportType
   consent: boolean
   // Equifax-specific fields — only sent for equifax reports so the CIBIL and
-  // CRIF APIs are not affected.
+  // Experian and CRIF APIs are not affected.
   dob?: string
   address?: string
   stateCode?: string
   pincode?: string
 }
 
-// Same payload shape used across all three bureaus — only `report_type`
+// Same payload shape used across all four bureaus — only `report_type`
 // changes:
-//   { name, mobile, pan, gender, report_type: 'cibil' | 'equifax' | 'crif', consent: true }
+//   { name, mobile, pan, gender, report_type: 'cibil' | 'experian' | 'equifax' | 'crif', consent: true }
 //
 // For Equifax the payload additionally includes: dob, address, state, pincode
 
@@ -62,7 +62,7 @@ export function useCreditReport() {
 
       // Equifax requires additional personal & address details: DOB, Address,
       // State, and Pincode. These are only sent for equifax reports so the
-      // CIBIL and CRIF APIs are not affected.
+      // CIBIL, Experian and CRIF APIs are not affected.
       if (reportType === 'equifax') {
         payload.dob = dob
         payload.address = address
@@ -74,6 +74,7 @@ export function useCreditReport() {
       // their wallet balance, so we send the auth token.
       const endpoint = {
         cibil: AppEndpoints.cibilGenerateReport,
+        experian: AppEndpoints.experianGenerateReport,
         crif: AppEndpoints.crifGenerateReport,
         equifax: AppEndpoints.equifaxGenerateReport,
       }[reportType]

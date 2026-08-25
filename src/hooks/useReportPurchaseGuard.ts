@@ -4,10 +4,11 @@ import { useToast } from '../context/ToastContext'
 import { useWallet } from '../context/WalletContext'
 import { getTotalBalance, type RechargePlan } from '../lib/walletApi'
 
-export type ReportProduct = 'cibil' | 'crif' | 'equifax' | 'only_score' | 'advanced_cibil' | 'prefill'
+export type ReportProduct = 'cibil' | 'experian' | 'crif' | 'equifax' | 'only_score' | 'advanced_cibil' | 'prefill'
 
 const priceFields: Record<ReportProduct, keyof RechargePlan> = {
   cibil: 'cibil_price',
+  experian: 'cibil_price',
   crif: 'crif_price',
   equifax: 'equifax_price',
   only_score: 'only_score_price',
@@ -16,7 +17,7 @@ const priceFields: Record<ReportProduct, keyof RechargePlan> = {
 }
 
 const STANDARD_REPORT_PRICE = 299
-const standardReportProducts: ReportProduct[] = ['cibil', 'crif', 'equifax']
+const standardReportProducts: ReportProduct[] = ['cibil', 'experian', 'crif', 'equifax']
 
 const numericPrice = (plans: RechargePlan | null, product: ReportProduct): number | null => {
   if (standardReportProducts.includes(product)) return STANDARD_REPORT_PRICE
