@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Camera, CheckCircle2, Edit3, Loader2, LockKeyhole, LogOut, Mail, Phone, UserRound, Wallet } from 'lucide-react'
+import { CalendarDays, Camera, CheckCircle2, CreditCard, Edit3, Loader2, LockKeyhole, LogOut, Mail, Phone, UserRound, Wallet } from 'lucide-react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useLoans } from '../context/LoansContext'
 import LogoutConfirmModal from '../components/LogoutConfirmModal'
 import { getProfileImageUrl } from '../lib/profileApi'
+import { getRequiredProfileWarning, isRequiredProfileComplete } from '../lib/profileApi'
+import { useToast } from '../context/ToastContext'
 
 const formatBalance = (value: unknown) =>
   new Intl.NumberFormat('en-IN', {
@@ -34,12 +36,15 @@ export default function ProfilePage() {
   const location = useLocation()
   const { user, isAuthenticated, refreshProfile, updateProfile, logout } = useAuth()
   const { refreshLoans } = useLoans()
+  const { showToast } = useToast()
   const firstLogin = Boolean((location.state as { firstLogin?: boolean } | null)?.firstLogin)
-    || (isAuthenticated && !String(user?.full_name ?? user?.name ?? '').trim())
+    || (isAuthenticated && !isRequiredProfileComplete(user))
   const [editing, setEditing] = useState(false)
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [email, setEmail] = useState('')
+  const [dateOfBirth, setDateOfBirth] = useState('')
+  const [pan, setPan] = useState('')
   const [profileImage, setProfileImage] = useState<File | null>(null)
   const [preview, setPreview] = useState('')
   const [loading, setLoading] = useState(false)
@@ -65,6 +70,8 @@ export default function ProfilePage() {
     setFirstName(names.firstName)
     setLastName(names.lastName)
     setEmail(String(user?.email ?? ''))
+    setDateOfBirth(String(user?.date_of_birth ?? ''))
+    setPan(String(user?.pan ?? '').toUpperCase())
   }, [user])
 
   useEffect(() => {
@@ -92,12 +99,19 @@ export default function ProfilePage() {
     event.preventDefault()
     setError('')
     setSuccess('')
-    if (!firstName.trim()) {
-      setError('Please enter your first name.')
+    const requiredWarning = getRequiredProfileWarning({
+      first_name: firstName,
+      last_name: lastName,
+      date_of_birth: dateOfBirth,
+      pan,
+    })
+    if (!firstName.trim() || !lastName.trim() || !dateOfBirth || !pan.trim()) {
+      setError(requiredWarning)
+      showToast(requiredWarning)
       return
     }
-    if (!lastName.trim()) {
-      setError('Please enter your last name.')
+    if (!/^[A-Z]{5}[0-9]{4}[A-Z]$/.test(pan.trim().toUpperCase())) {
+      setError('Please enter a valid PAN.')
       return
     }
     if (email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
@@ -112,6 +126,8 @@ export default function ProfilePage() {
         firstName,
         lastName,
         email,
+        dateOfBirth,
+        pan,
         profileImage,
       })
       setProfileImage(null)
@@ -133,6 +149,8 @@ export default function ProfilePage() {
     setFirstName(names.firstName)
     setLastName(names.lastName)
     setEmail(String(user?.email ?? ''))
+    setDateOfBirth(String(user?.date_of_birth ?? ''))
+    setPan(String(user?.pan ?? '').toUpperCase())
     setProfileImage(null)
     setError('')
     setEditing(false)
@@ -206,13 +224,13 @@ export default function ProfilePage() {
           </div>
 
           {success && <p className="mt-6 flex items-center gap-2 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700"><CheckCircle2 size={17} /> {success}</p>}
-          {firstLogin && <p className="mt-6 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm font-medium text-blue-700">Welcome! Please add your name to continue.</p>}
+          {firstLogin && <p className="mt-6 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm font-medium text-blue-700">Welcome! Please enter your first name, last name, DOB, and PAN to continue.</p>}
           {error && <p className="mt-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
 
           <form onSubmit={saveProfile} className="mt-7 space-y-5">
             <div className="grid gap-5 sm:grid-cols-2">
               <label className="block text-sm font-semibold text-slate-700">
-                First name
+                First name <span className="text-red-500">*</span>
                 <span className="relative mt-2 block">
                   <UserRound className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                   <input value={firstName} onChange={(event) => setFirstName(event.target.value)} disabled={!editing || loading} className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3.5 pl-12 pr-4 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100 disabled:text-slate-600" />
@@ -220,7 +238,7 @@ export default function ProfilePage() {
               </label>
 
               <label className="block text-sm font-semibold text-slate-700">
-                Last name
+                Last name <span className="text-red-500">*</span>
                 <span className="relative mt-2 block">
                   <UserRound className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                   <input value={lastName} onChange={(event) => setLastName(event.target.value)} disabled={!editing || loading} className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3.5 pl-12 pr-4 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100 disabled:text-slate-600" />
@@ -228,8 +246,26 @@ export default function ProfilePage() {
               </label>
             </div>
 
+            <div className="grid gap-5 sm:grid-cols-2">
+              <label className="block text-sm font-semibold text-slate-700">
+                Date of birth <span className="text-red-500">*</span>
+                <span className="relative mt-2 block">
+                  <CalendarDays className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                  <input type="date" value={dateOfBirth} max={new Date().toISOString().slice(0, 10)} onChange={(event) => setDateOfBirth(event.target.value)} disabled={!editing || loading} className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3.5 pl-12 pr-4 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100 disabled:text-slate-600" />
+                </span>
+              </label>
+
+              <label className="block text-sm font-semibold text-slate-700">
+                PAN <span className="text-red-500">*</span>
+                <span className="relative mt-2 block">
+                  <CreditCard className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                  <input value={pan} maxLength={10} onChange={(event) => setPan(event.target.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase())} disabled={!editing || loading} placeholder="ABCDE1234F" className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3.5 pl-12 pr-4 uppercase outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100 disabled:text-slate-600" />
+                </span>
+              </label>
+            </div>
+
             <label className="block text-sm font-semibold text-slate-700">
-              Email address
+              Email address <span className="font-normal text-slate-400">(Optional)</span>
               <span className="relative mt-2 block">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                 <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} disabled={!editing || loading} placeholder="Add your email address" className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3.5 pl-12 pr-4 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100 disabled:text-slate-600" />

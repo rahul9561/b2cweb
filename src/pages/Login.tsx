@@ -151,13 +151,14 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { ArrowLeft, CircleAlert, Loader2, Shield, Smartphone, X } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
+import { isRequiredProfileComplete } from '../lib/profileApi'
 
 const RESEND_COOLDOWN_SECONDS = 30
 
 export default function Login() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { sendOtp, verifyOtp, resendOtp } = useAuth()
+  const { sendOtp, verifyOtp, resendOtp, refreshProfile } = useAuth()
   const loginRouteState = location.state as { authToast?: string } | null
 
   const [phone, setPhone] = useState('')
@@ -221,8 +222,9 @@ const [showAppStorePopup, setShowAppStorePopup] = useState(false)
     setVerifying(true)
     try {
       const verifiedUser = await verifyOtp(phone, otp)
-      const existingName = String(verifiedUser.full_name ?? verifiedUser.name ?? '').trim()
-      navigate(existingName ? '/' : '/profile', existingName ? undefined : { state: { firstLogin: true } })
+      const currentUser = await refreshProfile().catch(() => verifiedUser)
+      const profileComplete = isRequiredProfileComplete(currentUser)
+      navigate(profileComplete ? '/' : '/profile', profileComplete ? undefined : { state: { firstLogin: true } })
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : 'Invalid or expired OTP. Please try again.')
     } finally {

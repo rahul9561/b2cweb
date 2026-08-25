@@ -9,12 +9,39 @@ export type CustomerProfile = {
   full_name?: string
   email?: string | null
   profile_image?: string | null
+  date_of_birth?: string | null
+  pan?: string | null
   role?: string
   wallet_balance?: number | string
   is_mobile_verified?: boolean
   date_joined?: string
   [key: string]: unknown
 }
+
+export type ExperianReportResponse = Record<string, unknown>
+
+export type RequiredProfileDetails = {
+  first_name?: unknown
+  last_name?: unknown
+  date_of_birth?: unknown
+  pan?: unknown
+}
+
+export const getMissingRequiredProfileFields = (profile: RequiredProfileDetails | null) => {
+  const fields = [
+    ['first name', profile?.first_name],
+    ['last name', profile?.last_name],
+    ['DOB', profile?.date_of_birth],
+    ['PAN', profile?.pan],
+  ] as const
+  return fields.filter(([, value]) => !String(value ?? '').trim()).map(([label]) => label)
+}
+
+export const isRequiredProfileComplete = (profile: RequiredProfileDetails | null) =>
+  getMissingRequiredProfileFields(profile).length === 0
+
+export const getRequiredProfileWarning = (profile: RequiredProfileDetails | null) =>
+  `Please enter ${getMissingRequiredProfileFields(profile).join(', ')}`
 
 const splitFullName = (fullName: string) => {
   const [firstName = '', ...lastNameParts] = fullName.trim().split(/\s+/).filter(Boolean)
@@ -58,6 +85,8 @@ export async function updateCustomerProfile(input: {
   firstName: string
   lastName: string
   email: string
+  dateOfBirth: string
+  pan: string
   profileImage?: File | null
 }): Promise<CustomerProfile> {
   const token = localStorage.getItem(AppConstants.tokenKey)
@@ -93,6 +122,8 @@ export async function updateCustomerProfile(input: {
     first_name: input.firstName.trim(),
     last_name: input.lastName.trim(),
     email: input.email.trim(),
+    date_of_birth: input.dateOfBirth,
+    pan: input.pan.trim().toUpperCase(),
   }
   if (input.id !== undefined) jsonPayload.id = input.id
   if (input.mobile) jsonPayload.mobile = input.mobile
@@ -106,9 +137,20 @@ export async function updateCustomerProfile(input: {
   imagePayload.append('first_name', input.firstName.trim())
   imagePayload.append('last_name', input.lastName.trim())
   imagePayload.append('email', input.email.trim())
+  imagePayload.append('date_of_birth', input.dateOfBirth)
+  imagePayload.append('pan', input.pan.trim().toUpperCase())
   imagePayload.append('profile_image', input.profileImage)
   return sendUpdate(imagePayload)
 }
+
+export const requestExperianProfileReport = (profile: CustomerProfile) =>
+  ApiClient.post<ExperianReportResponse>(AppEndpoints.experianProfileReport, {
+    mobile_no: String(profile.mobile ?? ''),
+    first_name: String(profile.first_name ?? '').trim(),
+    last_name: String(profile.last_name ?? '').trim(),
+    date_of_birth: String(profile.date_of_birth ?? ''),
+    pan: String(profile.pan ?? '').trim().toUpperCase(),
+  }, { auth: true })
 
 export const getProfileImageUrl = (path?: string | null) => {
   if (!path) return ''

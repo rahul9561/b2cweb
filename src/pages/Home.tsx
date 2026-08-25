@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from 'react'
 import { ArrowRight, ChevronLeft, ChevronRight, CheckCircle2, Zap } from 'lucide-react'
 import { useLocation } from 'react-router-dom'
 import { productTiles } from '../data/home'
-import { useAuth } from '../context/AuthContext'
 
 /* ── AV Management home sections ── */
 import QuickBuy from '../components/QuickBuy'
@@ -15,7 +14,7 @@ import DownloadApp from '../components/DownloadApp'
 import Testimonials from '../components/Testimonials'
 import Partners from '../components/Partners'
 import HelpCenter from '../components/HelpCenter'
-import ActiveLoansSection from '../components/loans/ActiveLoansSection'
+import ExperianCreditOverview from '../components/credit-score/ExperianCreditOverview'
 import { fetchLoanCategories } from '../lib/loanCategories'
 // import GroupBrands from '../components/GroupBrands'
 import ProductModal from '../components/ProductModal'
@@ -56,12 +55,6 @@ export default function Home() {
   const [modalOpen, setModalOpen] = useState(false)
   const [comingSoonFeature, setComingSoonFeature] = useState('')
   const location = useLocation()
-  const { isAuthenticated, refreshProfile } = useAuth()
-
-  useEffect(() => {
-    if (isAuthenticated) void refreshProfile().catch(() => undefined)
-  }, [isAuthenticated, refreshProfile])
-
   useEffect(() => {
     void fetchLoanCategories(true).catch(() => undefined)
   }, [])
@@ -95,7 +88,7 @@ export default function Home() {
   View all products <ArrowRight size={13} />
 </button>
         </div>
-      <ActiveLoansSection />
+      <ExperianCreditOverview />
       <QuickBuy
         onViewAll={() => {
           if (SHOW_HOME_SECTIONS_COMING_SOON) {

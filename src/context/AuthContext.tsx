@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useState, type React
 import { ApiClient, ApiError } from '../lib/apiClient'
 import { AppEndpoints, AppConstants } from '../config/appConfig'
 import { fetchLoanCategories } from '../lib/loanCategories'
-import { fetchCustomerProfile, updateCustomerProfile, type CustomerProfile } from '../lib/profileApi'
+import { fetchCustomerProfile, requestExperianProfileReport, updateCustomerProfile, type CustomerProfile, type ExperianReportResponse } from '../lib/profileApi'
 
 export interface AuthUser {
   id?: string | number
@@ -14,6 +14,8 @@ export interface AuthUser {
   last_name?: string
   full_name?: string
   profile_image?: string | null
+  date_of_birth?: string | null
+  pan?: string | null
   wallet_balance?: number | string
   roles?: string[]
   [key: string]: any
@@ -24,11 +26,15 @@ interface AuthContextValue {
   token: string | null
   isAuthenticated: boolean
   loading: boolean
+  experianReport: ExperianReportResponse | null
+  experianLoading: boolean
+  experianError: string
   sendOtp: (mobile: string) => Promise<void>
   verifyOtp: (mobile: string, otp: string) => Promise<AuthUser>
   resendOtp: (mobile: string) => Promise<void>
   refreshProfile: () => Promise<AuthUser>
-  updateProfile: (input: { id?: string | number; mobile?: string; firstName: string; lastName: string; email: string; profileImage?: File | null }) => Promise<AuthUser>
+  refreshExperianReport: (profile: CustomerProfile | AuthUser) => Promise<ExperianReportResponse>
+  updateProfile: (input: { id?: string | number; mobile?: string; firstName: string; lastName: string; email: string; dateOfBirth: string; pan: string; profileImage?: File | null }) => Promise<AuthUser>
   logout: () => void
 }
 
@@ -47,6 +53,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(() => localStorage.getItem(AppConstants.tokenKey))
   const [user, setUser] = useState<AuthUser | null>(() => readStoredUser())
   const [loading, setLoading] = useState(false)
+  const [experianReport, setExperianReport] = useState<ExperianReportResponse | null>(null)
+  const [experianLoading, setExperianLoading] = useState(false)
+  const [experianError, setExperianError] = useState('')
 
   const persistUser = useCallback((profile: CustomerProfile | AuthUser) => {
     const updatedUser = { ...readStoredUser(), ...profile } as AuthUser
@@ -129,21 +138,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return persistUser(await fetchCustomerProfile())
   }, [persistUser])
 
-  const updateProfile = useCallback(async (input: { id?: string | number; mobile?: string; firstName: string; lastName: string; email: string; profileImage?: File | null }) => {
+  const refreshExperianReport = useCallback(async (profile: CustomerProfile | AuthUser) => {
+    setExperianLoading(true)
+    setExperianError('')
+    setExperianReport(null)
+    try {
+      const report = await requestExperianProfileReport(profile)
+      setExperianReport(report)
+      return report
+    } catch (error) {
+      const message = normalizeError(error, 'We could not load your credit overview. Please try again.').message
+      setExperianError(message)
+      throw error
+    } finally {
+      setExperianLoading(false)
+    }
+  }, [])
+
+  const updateProfile = useCallback(async (input: { id?: string | number; mobile?: string; firstName: string; lastName: string; email: string; dateOfBirth: string; pan: string; profileImage?: File | null }) => {
     await updateCustomerProfile(input)
-    return persistUser(await fetchCustomerProfile())
-  }, [persistUser])
+    const profile = await fetchCustomerProfile()
+    const updatedUser = persistUser(profile)
+    void refreshExperianReport(profile).catch(() => undefined)
+    return updatedUser
+  }, [persistUser, refreshExperianReport])
 
   const logout = () => {
     localStorage.removeItem(AppConstants.tokenKey)
     localStorage.removeItem(AppConstants.userDataKey)
     localStorage.removeItem(AppConstants.creditRepairReportIdKey)
+    setExperianReport(null)
+    setExperianError('')
+    setExperianLoading(false)
     setToken(null)
     setUser(null)
   }
 
   return (
-    <AuthContext.Provider value={{ user, token, isAuthenticated: !!token, loading, sendOtp, verifyOtp, resendOtp, refreshProfile, updateProfile, logout }}>
+    <AuthContext.Provider value={{ user, token, isAuthenticated: !!token, loading, experianReport, experianLoading, experianError, sendOtp, verifyOtp, resendOtp, refreshProfile, refreshExperianReport, updateProfile, logout }}>
       {children}
     </AuthContext.Provider>
   )

@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Navigate, Routes, Route, useLocation } from 'react-router-dom'
 import { UserProfileProvider } from './context/UserProfileContext'
 import { FiltersProvider } from './context/FiltersContext'
@@ -85,6 +86,7 @@ import WalletPage from './pages/WalletPage'
 import AddMoneyPage from './pages/AddMoneyPage'
 import PaymentStatusPage from './pages/PaymentStatusPage'
 import ProfilePage from './pages/ProfilePage'
+import CreditAnalysisLoansPage from './pages/CreditAnalysisLoansPage'
 import EducationLoanPage from './pages/EducationLoanPage'
 import CareersPage from './pages/company/CareersPage'
 import AboutUsPage from './pages/company/AboutUsPage'
@@ -102,13 +104,23 @@ import DisputeDetailPage from './pages/DisputeDetailPage'
 import DisputePreviewPage from './pages/DisputePreviewPage'
 import ScrollToTop from './components/ScrollToTop'
 import FloatingQuickActions from './components/FloatingQuickActions'
+import { useToast } from './context/ToastContext'
+import { getRequiredProfileWarning, isRequiredProfileComplete } from './lib/profileApi'
 const leadRoute = (slug: LandingSlug) => <LeadLanding slug={slug} />
 
 function FirstLoginGuard() {
   const location = useLocation()
   const { isAuthenticated, user } = useAuth()
-  const hasName = Boolean(String(user?.full_name ?? user?.name ?? '').trim())
-  if (!isAuthenticated || hasName || location.pathname === '/login' || location.pathname === '/profile') return null
+  const { showToast } = useToast()
+  const shouldRedirect = isAuthenticated
+    && !isRequiredProfileComplete(user)
+    && location.pathname !== '/profile'
+
+  useEffect(() => {
+    if (shouldRedirect) showToast(getRequiredProfileWarning(user))
+  }, [shouldRedirect, location.pathname, showToast, user])
+
+  if (!shouldRedirect) return null
   return <Navigate to="/profile" replace state={{ firstLogin: true }} />
 }
 
@@ -134,10 +146,10 @@ export default function App() {
 
   return (
     <AuthProvider>
-    <FirstLoginGuard />
     <WalletProvider>
     <LoansProvider>
     <ToastProvider>
+    <FirstLoginGuard />
     <UserProfileProvider>
       <FiltersProvider>
         <HealthProfileProvider>
@@ -198,6 +210,7 @@ export default function App() {
                   <Route path="/wallet/add-money" element={<AddMoneyPage />} />
                   <Route path="/wallet/payment-status" element={<PaymentStatusPage />} />
                   <Route path="/profile" element={<ProfilePage />} />
+                  <Route path="/credit-analysis/loans" element={<CreditAnalysisLoansPage />} />
                   <Route path="/loans" element={<LoansListPage />} />
                   <Route path="/loans/disputes" element={<DisputesPage />} />
                   <Route path="/loans/disputes/:disputeId" element={<DisputeDetailPage />} />
