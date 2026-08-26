@@ -1,174 +1,241 @@
-import React, { useState } from 'react'
-import { ArrowLeft, CheckCircle2, Download, FileText, LockKeyhole, ShieldCheck, Sparkles, X } from 'lucide-react'
+import React, { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
+import { useNavigate } from 'react-router-dom'
+import {
+  ArrowLeft,
+  Check,
+  CheckCircle2,
+  Download,
+  FileCheck2,
+  FileText,
+  Home,
+  LockKeyhole,
+  RefreshCw,
+  ShieldCheck,
+  Sparkles,
+} from 'lucide-react'
 
 interface PDFViewerProps {
   onClose: () => void
   reportName?: string
   bureauName?: string
+  documentBytes?: Uint8Array | null
+  externalDocumentUrl?: string
+  mimeType?: string
+  otpVerified?: boolean
 }
 
 const PDFViewer: React.FC<PDFViewerProps> = ({
   onClose,
   reportName = 'CIBIL Report',
   bureauName = 'TransUnion CIBIL Limited',
+  documentBytes = null,
+  externalDocumentUrl = '',
+  mimeType = 'application/pdf',
+  otpVerified = true,
 }) => {
+  const navigate = useNavigate()
   const [downloaded, setDownloaded] = useState(false)
+  const [documentUrl, setDocumentUrl] = useState('')
+  const isPdf = mimeType.toLowerCase().includes('pdf')
+
+  useEffect(() => {
+    if (!documentBytes?.length) {
+      setDocumentUrl(externalDocumentUrl)
+      return
+    }
+
+    const stableBytes = new Uint8Array(documentBytes)
+    const objectUrl = URL.createObjectURL(new Blob([stableBytes.buffer], { type: mimeType }))
+    setDocumentUrl(objectUrl)
+    return () => URL.revokeObjectURL(objectUrl)
+  }, [documentBytes, externalDocumentUrl, mimeType])
+
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = previousOverflow
+    }
+  }, [])
+
   const downloadReport = () => {
+    if (!documentUrl) return
     const link = document.createElement('a')
-    link.href = URL.createObjectURL(new Blob([`${reportName} Preview`], { type: 'application/pdf' }))
-    link.download = `${reportName.replace(/\s+/g, '_')}.pdf`
+    link.href = documentUrl
+    link.download = `${reportName.replace(/\s+/g, '_')}${isPdf ? '.pdf' : '.json'}`
+    if (externalDocumentUrl) {
+      link.target = '_blank'
+      link.rel = 'noopener noreferrer'
+    }
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
-    URL.revokeObjectURL(link.href)
     setDownloaded(true)
   }
 
-  return (
-    <section className="min-h-screen bg-gradient-to-b from-slate-50 via-blue-50/40 to-white py-10 md:py-14">
-      <div className="mx-auto max-w-6xl px-4">
-        <div className="mb-8 flex items-center justify-between">
-          <div>
-            <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-blue-600">
-              <Sparkles size={14} /> Your report is ready
-            </p>
-            <h1 className="mt-2 text-3xl font-bold text-navy md:text-4xl">Your {reportName}</h1>
-            <p className="mt-2 text-sm text-slate-500">A secure preview of your credit information report.</p>
-          </div>
-          <button
-            onClick={onClose}
-            className="rounded-full border border-slate-200 bg-white p-3 text-slate-500 shadow-sm transition hover:-translate-y-0.5 hover:border-blue-200 hover:text-blue-600"
-            aria-label="Close report"
-          >
-            <X size={21} />
-          </button>
-        </div>
+  const goHome = () => {
+    onClose()
+    navigate('/')
+  }
 
-        <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl shadow-blue-950/10">
-          {/* Report header banner */}
-          <div className="relative overflow-hidden bg-gradient-to-r from-[#073b86] via-blue-700 to-indigo-600 px-6 py-7 text-white md:px-10">
-            <div className="absolute -right-12 -top-20 h-64 w-64 rounded-full bg-white/10" />
-            <div className="relative flex flex-wrap items-center justify-between gap-5">
+  return createPortal(
+    <div className="fixed inset-0 z-[110] overflow-y-auto bg-[#f4f7fc] text-slate-800">
+      <style>{`
+        @keyframes reportPageEnter {
+          from { opacity: 0; transform: translateY(16px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes reportGlow {
+          0%, 100% { transform: scale(1); opacity: .45; }
+          50% { transform: scale(1.08); opacity: .7; }
+        }
+        .report-page-enter { animation: reportPageEnter .5s cubic-bezier(.2,.8,.2,1) both; }
+        .report-glow { animation: reportGlow 6s ease-in-out infinite; }
+        @media (prefers-reduced-motion: reduce) {
+          .report-page-enter, .report-glow { animation: none; }
+        }
+      `}</style>
+
+      <div className="pointer-events-none fixed inset-0 overflow-hidden" aria-hidden="true">
+        <div className="report-glow absolute -left-28 top-16 h-72 w-72 rounded-full bg-blue-300/30 blur-3xl" />
+        <div className="report-glow absolute -right-24 top-1/3 h-80 w-80 rounded-full bg-indigo-300/25 blur-3xl [animation-delay:1.2s]" />
+      </div>
+
+      <main className="report-page-enter relative mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 md:py-10 lg:px-8">
+        <button
+          type="button"
+          onClick={onClose}
+          className="group mb-6 inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition-all duration-300 hover:-translate-x-1 hover:border-blue-300 hover:text-blue-700 hover:shadow-md"
+        >
+          <ArrowLeft size={18} className="transition-transform duration-300 group-hover:-translate-x-0.5" />
+          Back to {reportName}
+        </button>
+
+        <header className="mb-7 text-center">
+          <span className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-xs font-bold uppercase tracking-[0.14em] text-emerald-700 shadow-sm">
+            <CheckCircle2 size={15} /> {otpVerified ? 'Verification complete' : 'Report generated'}
+          </span>
+          <h1 className="mt-4 font-serif text-3xl font-bold tracking-tight text-navy sm:text-4xl md:text-5xl">
+            Your report is ready
+          </h1>
+          <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">
+            Your {reportName} has been generated securely and is ready to preview or download.
+          </p>
+        </header>
+
+        <section className="overflow-hidden rounded-[28px] border border-white/80 bg-white shadow-[0_24px_70px_rgba(30,64,175,0.14)]">
+          <div className="relative overflow-hidden bg-gradient-to-r from-[#082e6d] via-[#1457c9] to-[#5438df] px-5 py-6 text-white sm:px-8 md:px-10">
+            <div className="absolute -right-10 -top-20 h-56 w-56 rounded-full border border-white/10 bg-white/10" />
+            <div className="absolute -bottom-24 right-32 h-48 w-48 rounded-full bg-cyan-300/10 blur-2xl" />
+            <div className="relative flex flex-col justify-between gap-5 sm:flex-row sm:items-center">
               <div className="flex items-center gap-4">
-                <span className="rounded-2xl bg-white/15 p-3 backdrop-blur-sm">
-                  <FileText size={30} />
+                <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl border border-white/20 bg-white/15 shadow-inner backdrop-blur-sm">
+                  <FileCheck2 size={29} />
                 </span>
                 <div>
-                  <p className="text-sm text-blue-100">{bureauName}</p>
-                  <h2 className="text-xl font-bold md:text-2xl">Credit Information Report</h2>
+                  <p className="text-sm font-medium text-blue-100">{bureauName}</p>
+                  <h2 className="mt-1 text-xl font-bold sm:text-2xl">{reportName}</h2>
                 </div>
               </div>
-              <span className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-3 py-1.5 text-xs font-semibold">
-                <ShieldCheck size={15} /> Secure document
+              <span className="inline-flex w-fit items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3.5 py-2 text-xs font-semibold backdrop-blur-sm">
+                <ShieldCheck size={15} /> {otpVerified ? 'OTP verified & protected' : 'Securely generated'}
               </span>
             </div>
           </div>
 
-          <div className="grid gap-8 p-5 md:grid-cols-[minmax(0,1fr)_260px] md:p-9">
-            {/* Report preview */}
-            <div className="rounded-2xl bg-slate-100 p-4 shadow-inner md:p-7">
-              <article className="mx-auto max-w-2xl rounded-lg bg-white p-6 shadow-lg shadow-slate-300/50 md:p-9">
-                <div className="flex items-start justify-between border-b border-slate-200 pb-5">
+          <div className="grid gap-6 p-4 sm:p-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:p-8">
+            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-100 p-2 shadow-inner sm:p-3">
+              {documentUrl && isPdf ? (
+                <iframe
+                  src={documentUrl}
+                  title={`${reportName} preview`}
+                  className="h-[62vh] min-h-[480px] w-full rounded-xl border-0 bg-white shadow-sm md:min-h-[620px]"
+                />
+              ) : (
+                <div className="grid h-[62vh] min-h-[480px] place-items-center rounded-xl bg-white px-6 text-center md:min-h-[620px]">
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-widest text-blue-600">CIR / 2026</p>
-                    <h3 className="mt-2 text-xl font-bold text-navy">Credit Information Report</h3>
-                    <p className="mt-1 text-sm text-slate-500">
-                      Generated on {new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                    <span className="mx-auto grid h-20 w-20 place-items-center rounded-3xl bg-blue-50 text-blue-600">
+                      <FileText size={38} />
+                    </span>
+                    <h3 className="mt-5 text-xl font-bold text-navy">Secure report document</h3>
+                    <p className="mt-2 max-w-sm text-sm leading-6 text-slate-500">
+                      Preview is unavailable for this file type, but your verified report can still be downloaded securely.
                     </p>
                   </div>
-                  <FileText className="text-blue-500" size={29} />
                 </div>
-
-                <div className="grid grid-cols-2 gap-x-8 gap-y-5 border-b border-slate-200 py-6 text-sm">
-                  <div>
-                    <p className="text-slate-500">Report ID</p>
-                    <p className="mt-1 font-semibold text-navy">CIB-4BE8B2CKI</p>
-                  </div>
-                  <div>
-                    <p className="text-slate-500">Report status</p>
-                    <p className="mt-1 inline-flex items-center gap-1 font-semibold text-emerald-600">
-                      <CheckCircle2 size={15} /> Generated
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-slate-500">Full name</p>
-                    <p className="mt-1 font-semibold text-navy">REPORT HOLDER</p>
-                  </div>
-                  <div>
-                    <p className="text-slate-500">PAN</p>
-                    <p className="mt-1 font-semibold text-navy">ABCDE••••F</p>
-                  </div>
-                </div>
-
-                <div className="pt-6">
-                  <div className="flex items-center justify-between">
-                    <h4 className="font-semibold text-navy">Credit score overview</h4>
-                    <span className="rounded-full bg-yellow-100 px-2.5 py-1 text-xs font-bold text-yellow-700">Good</span>
-                  </div>
-                  <div className="mt-4 flex items-end gap-5">
-                    <strong className="text-5xl leading-none text-navy">750</strong>
-                    <div className="flex-1 pb-1">
-                      <div className="h-3 overflow-hidden rounded-full bg-gradient-to-r from-red-500 via-yellow-400 to-emerald-500">
-                        <div className="ml-[72%] h-full w-1.5 bg-navy shadow-[0_0_0_3px_white]" />
-                      </div>
-                      <div className="mt-2 flex justify-between text-[10px] font-medium text-slate-400">
-                        <span>300</span>
-                        <span>900</span>
-                      </div>
-                    </div>
-                  </div>
-                  <p className="mt-7 border-t border-slate-100 pt-5 text-center text-xs text-slate-400">
-                    Preview only · Download the PDF for the complete document.
-                  </p>
-                </div>
-              </article>
+              )}
             </div>
 
-            {/* Download sidebar */}
-            <aside className="flex flex-col justify-between rounded-2xl border border-blue-100 bg-blue-50/70 p-6">
+            <aside className="flex flex-col justify-between rounded-2xl border border-blue-100 bg-gradient-to-b from-blue-50 to-white p-6 sm:p-7">
               <div>
-                <span className="inline-flex rounded-xl bg-white p-3 text-blue-600 shadow-sm">
-                  <Download size={23} />
+                <span className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-3 py-2 text-xs font-bold uppercase tracking-wider text-white shadow-lg shadow-blue-600/20">
+                  <Sparkles size={14} /> Ready now
                 </span>
-                <h3 className="mt-5 text-xl font-bold text-navy">Download your report</h3>
+                <h3 className="mt-5 text-2xl font-bold text-navy">Download your report</h3>
                 <p className="mt-2 text-sm leading-6 text-slate-600">
-                  Save a PDF copy of your {reportName} for your records or to share with lenders.
+                  Keep a secure copy for your records, financial planning, or future credit applications.
                 </p>
-                <ul className="mt-6 space-y-3 text-sm text-slate-600">
-                  {['Complete report summary', 'Secure PDF format', 'Available immediately'].map((item) => (
-                    <li key={item} className="flex gap-2">
-                      <CheckCircle2 size={17} className="shrink-0 text-emerald-500" />
+
+                <div className="mt-6 space-y-3">
+                  {[
+                    'Complete bureau report',
+                    otpVerified ? 'OTP-verified document' : 'Securely generated document',
+                    'Secure and private download',
+                  ].map((item) => (
+                    <div key={item} className="flex items-center gap-3 rounded-xl border border-slate-100 bg-white px-3.5 py-3 text-sm font-medium text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md">
+                      <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-emerald-100 text-emerald-600">
+                        <Check size={15} strokeWidth={3} />
+                      </span>
                       {item}
-                    </li>
+                    </div>
                   ))}
-                </ul>
+                </div>
               </div>
+
               <div className="mt-8">
                 <button
+                  type="button"
                   onClick={downloadReport}
-                  className={`flex w-full items-center justify-center gap-3 rounded-xl px-6 py-3.5 text-sm font-semibold text-white shadow-lg transition ${
-                    downloaded ? 'bg-emerald-600 shadow-emerald-600/20' : 'bg-blue-600 shadow-blue-600/20 hover:-translate-y-0.5 hover:bg-blue-700'
+                  disabled={!documentUrl}
+                  className={`group flex w-full items-center justify-center gap-2.5 rounded-xl px-5 py-4 text-sm font-bold text-white shadow-lg transition-all duration-300 disabled:cursor-not-allowed disabled:bg-slate-400 disabled:shadow-none ${
+                    downloaded
+                      ? 'bg-emerald-600 shadow-emerald-600/20 hover:bg-emerald-700'
+                      : 'bg-blue-600 shadow-blue-600/25 hover:-translate-y-1 hover:bg-blue-700 hover:shadow-xl'
                   }`}
                 >
-                  <Download size={18} className="shrink-0" />
-                  {downloaded ? 'PDF Downloaded' : `Download ${reportName} PDF`}
+                  {downloaded ? <CheckCircle2 size={19} /> : <Download size={19} className="transition-transform duration-300 group-hover:translate-y-0.5" />}
+                  {downloaded ? 'Report downloaded' : `Download ${reportName}`}
                 </button>
-                <p className="mt-4 flex items-center justify-center gap-1.5 text-center text-[11px] text-slate-500">
-                  <LockKeyhole size={12} /> Your document is protected and private.
+                <p className="mt-4 flex items-center justify-center gap-1.5 text-center text-[11px] leading-5 text-slate-500">
+                  <LockKeyhole size={13} /> Your report is handled securely and privately.
                 </p>
               </div>
             </aside>
           </div>
-        </div>
+        </section>
 
-        <button
-          onClick={onClose}
-          className="mx-auto mt-7 flex items-center gap-2 text-sm font-semibold text-blue-600 transition hover:-translate-x-1 hover:text-blue-800"
-        >
-          <ArrowLeft size={17} /> Back to {reportName}
-        </button>
-      </div>
-    </section>
+        <div className="mt-6 grid gap-3 sm:grid-cols-2">
+          <button
+            type="button"
+            onClick={goHome}
+            className="group flex items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white px-5 py-4 text-sm font-bold text-slate-700 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-blue-300 hover:text-blue-700 hover:shadow-lg"
+          >
+            <Home size={19} className="text-blue-600 transition-transform duration-300 group-hover:scale-110" />
+            Go to Home Page
+          </button>
+          <button
+            type="button"
+            onClick={onClose}
+            className="group flex items-center justify-center gap-3 rounded-2xl border border-blue-200 bg-blue-50 px-5 py-4 text-sm font-bold text-blue-700 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-blue-400 hover:bg-blue-100 hover:shadow-lg"
+          >
+            <RefreshCw size={19} className="transition-transform duration-500 group-hover:rotate-180" />
+            Download another {reportName}
+          </button>
+        </div>
+      </main>
+    </div>,
+    document.body
   )
 }
 

@@ -9,21 +9,27 @@ export const AppEndpoints = {
   customerProfile: '/accounts/profile/',
   updateCustomerProfile: '/accounts/update-profile/',
   resendOtp: '/auth/resend-otp/',
+
+
+  //Fetch CRIF Report
+  fetchCrifReport: '/credit-repair/report/fetch/',
   // Credit bureau report generation (paid — deducts wallet balance).
-  // The same endpoint serves all four bureaus; the bureau is selected
-  // by the `report_type` field in the request body:
-  //   report_type: 'cibil' | 'experian' | 'equifax' | 'crif'
   cibilGenerateReport: '/cibil/generate-report/',
-  experianGenerateReport: '/cibil/generate-report/',
+  
+  experianGenerateReport: '/cibil/generate-report/v2/',
   cibilOnlyScoreReport: '/cibil/only-score/',
   cibilAdvancedReport: '/cibil/generate-report/v2/',
   cibilSendOtp: '/cibil/send-otp/',
   cibilVerifyOtp: '/cibil/verify-otp/',
-  // Aliases for clarity — same URLs, bureau is chosen by `report_type`.
-  equifaxGenerateReport: '/cibil/generate-report/',
-  crifGenerateReport: '/cibil/generate-report/',
+  // Bureau-specific generation routes and their OTP endpoint aliases.
+  equifaxGenerateReport:  '/cibil/generate-report/v2/',
+  crifGenerateReport: '/cibil/generate-report/crif/',
+  experianSendOtp: '/cibil/send-otp/',
+  experianVerifyOtp: '/cibil/verify-otp/',
   equifaxSendOtp: '/cibil/send-otp/',
+  equifaxVerifyOtp: '/cibil/verify-otp/',
   crifSendOtp: '/cibil/send-otp/',
+  crifVerifyOtp: '/cibil/verify-otp/',
   // "How to Increase CIBIL Score" analysis flow.
   cibilAnalysisGenerateReport: '/analysis/credit-analysis/cibil/',
   cibilAnalysisUpload: '/analysis/credit-analysis/upload/',

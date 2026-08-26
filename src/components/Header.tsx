@@ -18,6 +18,18 @@ import {
   Briefcase,
   Home,
   Wallet,
+  Ship,
+  BookOpen,
+  Headphones,
+  LockKeyhole,
+  LifeBuoy,
+  Gauge,
+  FileSearch,
+  BarChart3,
+  ArrowUpRight,
+  CreditCard,
+  Building2,
+  GraduationCap,
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'          // ← add
 import { useWallet } from '../context/WalletContext'
@@ -44,6 +56,47 @@ const renewIcons: Record<string, typeof Shield> = {
   motor: Car,
   twoWheeler: Bike,
   home: Home,
+}
+
+const insuranceLinks = [
+  {
+    label: 'Marine Insurance',
+    href: 'https://www.policyboss.com/marine-insurance',
+    icon: Ship,
+  },
+  {
+    label: 'Health Insurance',
+    href: 'https://www.policyboss.com/health-insurance',
+    icon: HeartPulse,
+  },
+  {
+    label: 'Two-Wheeler Insurance',
+    href: 'https://www.policyboss.com/two-wheeler-insurance',
+    icon: Bike,
+  },
+]
+
+const supportIcons: Record<string, typeof Shield> = {
+  Articles: BookOpen,
+  'Contact Us': Headphones,
+  'Terms & Conditions': FileText,
+  'Privacy Policy': LockKeyhole,
+}
+
+const creditReportIcons: Record<string, typeof Shield> = {
+  'Cibil Report': Gauge,
+  'Experian Report': FileSearch,
+  'Equifax Report': BarChart3,
+  'CRIF Report': Shield,
+  'CIBIL Score': TrendingUp,
+  'How to increase CIBIL Score': ArrowUpRight,
+}
+
+const loanIcons: Record<string, typeof Shield> = {
+  'Personal/Instant Loan': Wallet,
+  'Apply for Credit Card': CreditCard,
+  'Business Loan': Building2,
+  'Education Loan': GraduationCap,
 }
 
 export default function Header() {
@@ -94,19 +147,32 @@ export default function Header() {
                 Credit Report
                 <ChevronDown size={14} />
               </button>
-              <div className="invisible absolute left-0 top-full z-50 w-72 bg-white opacity-0 shadow-card transition-all duration-150 group-hover:visible group-hover:opacity-100">
-                <ul className="p-2">
-                  {creditScoreMenu.map((item) => (
-                    <li key={item.label}>
-                      <Link
-                        to={item.to}
-                        className="flex items-center gap-3 px-3 py-2.5 text-[12px] text-slate2-secondary hover:bg-blueBG hover:text-brand"
-                      >
-                        <TrendingUp size={16} className="text-brand" />
-                        {item.label}
-                      </Link>
-                    </li>
-                  ))}
+              <div className="invisible absolute left-0 top-full z-50 w-72 overflow-hidden rounded-b-xl border border-t-0 border-slate2-border bg-white opacity-0 shadow-card transition-all duration-150 group-hover:visible group-hover:opacity-100">
+                <div className="border-b border-slate2-border bg-blueBG/60 px-4 py-3">
+                  <h3 className="flex items-center gap-2 text-[13px] font-semibold text-navy">
+                    <span className="grid h-8 w-8 place-items-center rounded-lg bg-brand text-white shadow-sm">
+                      <TrendingUp size={17} />
+                    </span>
+                    Credit Report Services
+                  </h3>
+                </div>
+                <ul className="space-y-0.5 p-2">
+                  {creditScoreMenu.map((item) => {
+                    const Icon = creditReportIcons[item.label] ?? TrendingUp
+                    return (
+                      <li key={item.label}>
+                        <Link
+                          to={item.to}
+                          className="group/item flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-[12px] font-medium text-slate2-secondary transition-all hover:bg-blueBG hover:text-brand"
+                        >
+                          <span className="grid h-7 w-7 shrink-0 place-items-center rounded-md bg-blueBG text-brand transition-colors group-hover/item:bg-brand group-hover/item:text-white">
+                            <Icon size={15} />
+                          </span>
+                          {item.label}
+                        </Link>
+                      </li>
+                    )
+                  })}
                 </ul>
               </div>
             </div>
@@ -116,22 +182,71 @@ export default function Header() {
     <ChevronDown size={14} />
   </button>
 
-  <div className="invisible absolute left-0 top-full z-50 w-80 bg-white opacity-0 shadow-card transition-all duration-150 group-hover:visible group-hover:opacity-100">
-    <ul className="p-2">
-      {loansMenu.map((item) => (
-        <li key={item.label}>
-          <Link
-            to={item.to}
-            className="flex items-center gap-3 px-3 py-2.5 text-[12px] text-slate2-secondary hover:bg-blueBG hover:text-brand"
-          >
-            <Briefcase size={16} className="text-brand" />
-            {item.label}
-          </Link>
-        </li>
-      ))}
+  <div className="invisible absolute left-0 top-full z-50 w-72 overflow-hidden rounded-b-xl border border-t-0 border-slate2-border bg-white opacity-0 shadow-card transition-all duration-150 group-hover:visible group-hover:opacity-100">
+    <div className="border-b border-slate2-border bg-blueBG/60 px-4 py-3">
+      <h3 className="flex items-center gap-2 text-[13px] font-semibold text-navy">
+        <span className="grid h-8 w-8 place-items-center rounded-lg bg-brand text-white shadow-sm">
+          <Briefcase size={17} />
+        </span>
+        Loan Services
+      </h3>
+    </div>
+    <ul className="space-y-0.5 p-2">
+      {loansMenu.map((item) => {
+        const Icon = loanIcons[item.label] ?? Briefcase
+        return (
+          <li key={item.label}>
+            <Link
+              to={item.to}
+              className="group/item flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-[12px] font-medium text-slate2-secondary transition-all hover:bg-blueBG hover:text-brand"
+            >
+              <span className="grid h-7 w-7 shrink-0 place-items-center rounded-md bg-blueBG text-brand transition-colors group-hover/item:bg-brand group-hover/item:text-white">
+                <Icon size={15} />
+              </span>
+              {item.label}
+            </Link>
+          </li>
+        )
+      })}
     </ul>
   </div>
 </div>
+            <div className="group relative">
+              <button className="flex items-center gap-1 whitespace-nowrap px-3 py-5 text-[14px] font-medium text-white hover:text-orange-400">
+                Insurance
+                <ChevronDown size={14} />
+              </button>
+              <div className="invisible absolute left-0 top-full z-50 w-72 overflow-hidden rounded-b-xl border border-t-0 border-slate2-border bg-white opacity-0 shadow-card transition-all duration-150 group-hover:visible group-hover:opacity-100">
+                <div className="border-b border-slate2-border bg-blueBG/60 px-4 py-3">
+                  <h3 className="flex items-center gap-2 text-[13px] font-semibold text-navy">
+                    <span className="grid h-8 w-8 place-items-center rounded-lg bg-brand text-white shadow-sm">
+                      <Shield size={17} />
+                    </span>
+                    Insurance Services
+                  </h3>
+                </div>
+                <ul className="space-y-0.5 p-2">
+                  {insuranceLinks.map((item) => {
+                    const Icon = item.icon
+                    return (
+                      <li key={item.label}>
+                        <a
+                          href={item.href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="group/item flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-[12px] font-medium text-slate2-secondary transition-all hover:bg-blueBG hover:text-brand"
+                        >
+                          <span className="grid h-7 w-7 shrink-0 place-items-center rounded-md bg-blueBG text-brand transition-colors group-hover/item:bg-brand group-hover/item:text-white">
+                            <Icon size={15} />
+                          </span>
+                          {item.label}
+                        </a>
+                      </li>
+                    )
+                  })}
+                </ul>
+              </div>
+            </div>
             {SHOW_INSURANCE_HEADER_ITEMS && <>
             <div className="group relative">
               <button className="flex items-center gap-1 whitespace-nowrap px-3 py-5 text-[14px] font-medium text-white hover:text-orange-400">
@@ -223,24 +338,33 @@ export default function Header() {
                 Support
                 <ChevronDown size={14} />
               </button>
-              <div className="invisible absolute left-0 top-full z-50 w-80 bg-white opacity-0 shadow-card transition-all duration-150 group-hover:visible group-hover:opacity-100">
-                <div className="p-6">
-                    <h3 className="mb-3 text-[14px] font-semibold text-navy">
-                      Account & Service Help
-                    </h3>
-                    <ul className="space-y-1.5">
-                      {supportMenu.accountService.map((l) => (
-                        <li key={l.label}>
-                          <Link
-                            to={l.to}
-                            className="block rounded-lg px-3 py-2.5 text-[12px] text-slate2-secondary transition-colors hover:bg-blueBG hover:text-brand"
-                          >
-                            {l.label}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
+              <div className="invisible absolute left-0 top-full z-50 w-80 overflow-hidden rounded-b-xl border border-t-0 border-slate2-border bg-white opacity-0 shadow-card transition-all duration-150 group-hover:visible group-hover:opacity-100">
+                <div className="border-b border-slate2-border bg-blueBG/60 px-4 py-3">
+                  <h3 className="flex items-center gap-2 text-[13px] font-semibold text-navy">
+                    <span className="grid h-8 w-8 place-items-center rounded-lg bg-brand text-white shadow-sm">
+                      <LifeBuoy size={17} />
+                    </span>
+                    Account &amp; Service Help
+                  </h3>
                 </div>
+                <ul className="space-y-0.5 p-2">
+                  {supportMenu.accountService.map((l) => {
+                    const Icon = supportIcons[l.label] ?? LifeBuoy
+                    return (
+                      <li key={l.label}>
+                        <Link
+                          to={l.to}
+                          className="group/item flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-[12px] font-medium text-slate2-secondary transition-all hover:bg-blueBG hover:text-brand"
+                        >
+                          <span className="grid h-7 w-7 shrink-0 place-items-center rounded-md bg-blueBG text-brand transition-colors group-hover/item:bg-brand group-hover/item:text-white">
+                            <Icon size={15} />
+                          </span>
+                          {l.label}
+                        </Link>
+                      </li>
+                    )
+                  })}
+                </ul>
               </div>
             </div>
           </nav>
@@ -417,6 +541,54 @@ export default function Header() {
                       {item.label}
                     </Link>
                   ))}
+                </div>
+              </div>
+              <div className="mt-3 border-t border-slate2-border pt-3">
+                <p className="mb-2 flex items-center gap-2 text-[13px] font-semibold text-navy">
+                  <Shield size={14} className="text-brand" />
+                  Insurance
+                </p>
+                <div className="space-y-1.5 pl-5">
+                  {insuranceLinks.map((item) => {
+                    const Icon = item.icon
+                    return (
+                      <a
+                        key={item.label}
+                        href={item.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={() => setMobileOpen(false)}
+                        className="flex items-center gap-2 text-[12px] text-slate2-secondary hover:text-brand"
+                      >
+                        <Icon size={14} className="text-brand" />
+                        {item.label}
+                      </a>
+                    )
+                  })}
+                </div>
+              </div>
+              <div className="mt-3 border-t border-slate2-border pt-3">
+                <p className="mb-2 flex items-center gap-2 text-[13px] font-semibold text-navy">
+                  <LifeBuoy size={14} className="text-brand" />
+                  Support
+                </p>
+                <div className="space-y-1">
+                  {supportMenu.accountService.map((item) => {
+                    const Icon = supportIcons[item.label] ?? LifeBuoy
+                    return (
+                      <Link
+                        key={item.label}
+                        to={item.to}
+                        onClick={() => setMobileOpen(false)}
+                        className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-[12px] font-medium text-slate2-secondary hover:bg-blueBG hover:text-brand"
+                      >
+                        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-blueBG text-brand">
+                          <Icon size={15} />
+                        </span>
+                        {item.label}
+                      </Link>
+                    )
+                  })}
                 </div>
               </div>
               {SHOW_INSURANCE_HEADER_ITEMS && <div className="mt-3 border-t border-slate2-border pt-3">

@@ -45,11 +45,10 @@ interface CreditReportFlowProps {
  *
  * Flow:
  *   1. User fills the form and authorizes the live report-price deduction.
- *   2. On submit we hit  POST /cibil/generate-report/  (same endpoint for every bureau;
- *      the bureau is selected by the `report_type` field in the body).
- *   3. We extract  `report_id`  from the response and hit  POST /cibil/send-otp/  with
- *      { mobile, report_id } to dispatch the OTP.
- *   4. The user enters the OTP in OTPModal → we call  POST /accounts/verify-otp/.
+ *   2. On submit we hit the selected bureau's generation endpoint.
+ *   3. We preserve the returned report bytes, extract `report_id`, and send
+ *      { mobile, report_id } to the configured OTP endpoint.
+ *   4. The user enters the OTP in OTPModal and we verify { report_id, otp }.
  *   5. On success the PDFViewer preview is shown so the report can be downloaded.
  *
  * For Equifax, four additional mandatory fields are collected:
@@ -69,11 +68,14 @@ const CreditReportFlow: React.FC<CreditReportFlowProps> = ({ reportType, reportN
   const [showPDFViewer, setShowPDFViewer] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [reportId, setReportId] = useState<string | undefined>()
+  const [documentMimeType, setDocumentMimeType] = useState('application/pdf')
+  const [reportDocumentUrl, setReportDocumentUrl] = useState('')
   const [loginToast, setLoginToast] = useState<{ id: number; message: string } | null>(null)
   const submissionLock = React.useRef(false)
+  const documentBytes = React.useRef<Uint8Array | null>(null)
 
   const isEquifax = reportType === 'equifax'
-  const generatesBeforeOtp = reportType === 'cibil' || reportType === 'experian' || reportType === 'equifax' || reportType === 'crif'
+  const isCrif = reportType === 'crif'
   // Equifax-specific fields
   const [dob, setDob] = useState('')
   const [address, setAddress] = useState('')
@@ -105,8 +107,7 @@ const CreditReportFlow: React.FC<CreditReportFlowProps> = ({ reportType, reportN
   const canSubmit =
     fullName &&
     phone.length === 10 &&
-    pan.length === 10 &&
-    gender &&
+    (isCrif || (pan.length === 10 && gender)) &&
     consent &&
     (!isEquifax || (dob && address && stateCode && pincode))
 
@@ -122,40 +123,53 @@ const CreditReportFlow: React.FC<CreditReportFlowProps> = ({ reportType, reportN
 
     submissionLock.current = true
     setIsSubmitting(true)
+    documentBytes.current = null
+    setReportDocumentUrl('')
+    setReportId(undefined)
     try {
-      // Step 1: Hit /cibil/generate-report/ → get report_id
-      // Step 2: Hit /cibil/send-otp/ → sends OTP to mobile
-      if (generatesBeforeOtp) {
-        const reportData = await generateReport({
-          name: fullName,
-          mobile: phone,
-          pan,
-          gender,
-          reportType,
-          consent,
-          dob,
-          address,
-          stateCode,
-          pincode,
-        })
-        const id = reportData?.report_id ?? reportData?.reportId ?? reportData?.id
-        const generatedReportId = id === undefined || id === null ? undefined : String(id)
-        setReportId(generatedReportId)
-        await reportPurchased()
-        await sendOtp(phone, generatedReportId)
-      } else {
-        await sendOtp(phone)
+      const reportData = await generateReport({
+        name: fullName,
+        mobile: phone,
+        pan,
+        gender,
+        reportType,
+        consent,
+        dob,
+        address,
+        stateCode,
+        pincode,
+      })
+      const generatedReportId = reportData.reportId
+      documentBytes.current = reportData.documentBytes
+      setDocumentMimeType(reportData.mimeType)
+      setReportDocumentUrl(reportData.creditReportLink)
+
+      if (isCrif) {
+        setShowPDFViewer(true)
+        void reportPurchased()
+        return
       }
+
+      if (!generatedReportId) {
+        documentBytes.current = null
+        throw new Error('OTP verification cannot start because the report service did not return a report ID. Please try again.')
+      }
+      setReportId(generatedReportId)
+      await reportPurchased()
+      await sendOtp(reportType, phone, generatedReportId)
 
       // Step 3: Show OTP modal for user to enter & verify OTP
       setShowOTPModal(true)
     } catch (error) {
+      documentBytes.current = null
+      setReportDocumentUrl('')
+      setReportId(undefined)
       if (isAuthenticationError(error)) {
         redirectToLogin()
         return
       }
       if (await handleInsufficientApiError(error)) setError('')
-      else setError(generatesBeforeOtp ? friendlyCibilError(error) : friendlyReportError(error))
+      else setError(friendlyCibilError(error))
     } finally {
       submissionLock.current = false
       setIsSubmitting(false)
@@ -164,40 +178,44 @@ const CreditReportFlow: React.FC<CreditReportFlowProps> = ({ reportType, reportN
 
   const handleVerifyOtp = async (otp: string) => {
     try {
-      await verifyOtp(phone, generatesBeforeOtp ? reportId : undefined, otp)
-      if (!generatesBeforeOtp) {
-        await generateReport({
-          name: fullName,
-          mobile: phone,
-          pan,
-          gender,
-          reportType,
-          consent,
-          dob,
-          address,
-          stateCode,
-          pincode,
-        })
-        await reportPurchased()
-      }
+      if (!reportId) throw new Error('The report ID is unavailable. Please generate the report again.')
+      await verifyOtp(reportType, reportId, otp)
       setShowOTPModal(false)
       setShowPDFViewer(true)
     } catch (error) {
+      documentBytes.current = null
+      setReportDocumentUrl('')
+      setReportId(undefined)
       if (isAuthenticationError(error)) {
         redirectToLogin()
         return
       }
       if (await handleInsufficientApiError(error)) setError('')
-      else setError(generatesBeforeOtp ? friendlyCibilError(error) : friendlyReportError(error))
+      else setError(friendlyCibilError(error))
       setShowOTPModal(false)
     }
   }
 
   const handleResendOtp = async () => {
-    await sendOtp(phone, generatesBeforeOtp ? reportId : undefined)
+    if (!reportId) throw new Error('The report ID is unavailable. Please generate the report again.')
+    await sendOtp(reportType, phone, reportId)
   }
 
-  if (showPDFViewer) return <PDFViewer onClose={() => setShowPDFViewer(false)} reportName={reportName} bureauName={bureauName} />
+  const closeOtp = () => {
+    documentBytes.current = null
+    setReportDocumentUrl('')
+    setReportId(undefined)
+    setShowOTPModal(false)
+  }
+
+  const closePdf = () => {
+    documentBytes.current = null
+    setReportDocumentUrl('')
+    setReportId(undefined)
+    setShowPDFViewer(false)
+  }
+
+  if (showPDFViewer) return <PDFViewer onClose={closePdf} reportName={reportName} bureauName={bureauName} documentBytes={documentBytes.current} externalDocumentUrl={reportDocumentUrl} mimeType={documentMimeType} otpVerified={!isCrif} />
 
   return (
     <>
@@ -240,18 +258,18 @@ const CreditReportFlow: React.FC<CreditReportFlowProps> = ({ reportType, reportN
               <input required type="tel" value={phone} onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))} placeholder="Enter 10-digit number" className="w-full rounded-lg border border-slate-300 py-3 pl-9 pr-3 outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100" />
             </div>
           </label>
-          <label className="block text-sm font-medium text-slate-700">
+          {!isCrif && <label className="block text-sm font-medium text-slate-700">
             PAN Number
             <input required value={pan} onChange={(e) => setPan(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 10))} placeholder="Enter PAN number" className="mt-1.5 w-full rounded-lg border border-slate-300 px-3 py-3 font-mono outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100" />
-          </label>
-          <fieldset>
+          </label>}
+          {!isCrif && <fieldset>
             <legend className="text-sm font-medium text-slate-700">Gender</legend>
             <div className="mt-2 grid grid-cols-3 gap-2">
               {['male', 'female', 'Other'].map((option) => (
                 <button type="button" onClick={() => setGender(option)} key={option} className={`rounded-lg border py-2.5 text-sm font-medium transition ${gender === option ? 'border-blue-600 bg-blue-600 text-white' : 'border-slate-300 text-slate-600 hover:border-blue-400'}`}>{option}</button>
               ))}
             </div>
-          </fieldset>
+          </fieldset>}
 
           {/* ── Equifax-specific fields: DOB, Address, State Code, Pincode ── */}
           {isEquifax && (
@@ -306,7 +324,9 @@ const CreditReportFlow: React.FC<CreditReportFlowProps> = ({ reportType, reportN
               Please fill in all the required details (DOB, Address, State Code, Pincode) to continue.
             </p>
           )}
-          <p className="text-xs text-slate-500">An OTP will be sent to the mobile number provided.</p>
+          <p className="text-xs text-slate-500">
+            {isCrif ? 'Your report will be available to download after generation.' : 'An OTP will be sent to the mobile number provided.'}
+          </p>
 
           {/* ── Mandatory consent ── */}
           <label className="flex items-start gap-2.5 rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs leading-5 text-slate-600">
@@ -328,7 +348,7 @@ const CreditReportFlow: React.FC<CreditReportFlowProps> = ({ reportType, reportN
           )}
 
           <button
-            disabled={isSubmitting || generating || price === null || !consent || !fullName || !phone || !pan || !gender || (isEquifax && (!dob || !address || !stateCode || !pincode))}
+            disabled={isSubmitting || generating || price === null || !consent || !fullName || !phone || (!isCrif && (!pan || !gender)) || (isEquifax && (!dob || !address || !stateCode || !pincode))}
             className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 py-3.5 font-semibold text-white transition hover:bg-blue-700 disabled:opacity-60"
           >
             {isSubmitting || generating ? (
@@ -341,7 +361,7 @@ const CreditReportFlow: React.FC<CreditReportFlowProps> = ({ reportType, reportN
         </div>
       </form>
 
-      {showOTPModal && <OTPModal phoneNumber={phone} onVerify={handleVerifyOtp} onResendOtp={handleResendOtp} onClose={() => setShowOTPModal(false)} />}
+      {showOTPModal && <OTPModal phoneNumber={phone} onVerify={handleVerifyOtp} onResendOtp={handleResendOtp} onClose={closeOtp} />}
       <InsufficientBalanceModal {...insufficientModalProps} />
     </>
   )

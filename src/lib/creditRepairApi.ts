@@ -124,6 +124,13 @@ export type ReviewAccountInput = {
   notes?: string
 }
 
+export type FetchCrifReportInput = {
+  mobile: string
+  first_name: string
+  last_name: string
+  name_lookup: number
+}
+
 const base = AppEndpoints.creditRepairBase
 const path = (suffix: string) => `${base}${suffix}`
 
@@ -402,6 +409,10 @@ const errorMessage = (data: unknown, fallback: string): string => {
   if (!isRecord(data)) return fallback
   const message = pick(data, ['message', 'detail', 'error'])
   return typeof message === 'string' ? message : fallback
+}
+
+export async function fetchCrifReport(input: FetchCrifReportInput): Promise<JsonResult> {
+  return ApiClient.post<JsonResult>(AppEndpoints.fetchCrifReport, input, { auth: true })
 }
 
 export async function uploadDisputeDocument(

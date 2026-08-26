@@ -1,6 +1,6 @@
 import { useMemo, useState, type ReactNode } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { Briefcase, CheckCircle2, CreditCard, FileSearch, Landmark, Loader2, ShieldCheck, User, XCircle } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Briefcase, CheckCircle2, CreditCard, FileSearch, Landmark, Loader2, ShieldCheck, User, XCircle } from 'lucide-react'
 import { useCreditAnalysis } from '../hooks/useCreditAnalysis'
 import { saveCibilAnalysisSession } from '../lib/cibilAnalysisSession'
 
@@ -186,7 +186,7 @@ function extractSections(data: Record<string, unknown>, reportId = getReportId(d
     {
       key: 'active_loans',
       type: 'active_loan',
-      title: 'Active Loan',
+      title: 'Active Loans',
       icon: <CreditCard size={20} />,
       fieldDefs: [
         ['bank_name', 'Bank Name'],
@@ -200,7 +200,7 @@ function extractSections(data: Record<string, unknown>, reportId = getReportId(d
     {
       key: 'close_loans',
       type: 'close_loan',
-      title: 'Close Loan',
+      title: 'Closed Loans',
       icon: <Briefcase size={20} />,
       fieldDefs: [
         ['bank_name', 'Bank Name'],
@@ -378,6 +378,7 @@ export default function CibilCrossVerifyPage() {
   )
 
   const [verification, setVerification] = useState<Record<string, 'yes' | 'no'>>({})
+  const [activeSectionIndex, setActiveSectionIndex] = useState(0)
   const [submitting, setSubmitting] = useState(false)
   const { submitVerification, loading, error: submitError } = useCreditAnalysis()
 
@@ -395,6 +396,15 @@ export default function CibilCrossVerifyPage() {
     allFields.length > 0 &&
     allFields.every((field) => verification[field.uniqueKey] === 'yes' || verification[field.uniqueKey] === 'no')
 
+  const isSectionAnswered = (section: VerificationSection) =>
+    section.cards.every((card) => card.fields.every((field) =>
+      verification[field.uniqueKey] === 'yes' || verification[field.uniqueKey] === 'no'
+    ))
+
+  const currentSection = sections[Math.min(activeSectionIndex, sections.length - 1)]
+  const currentSectionAnswered = currentSection ? isSectionAnswered(currentSection) : false
+  const isLastSection = activeSectionIndex === sections.length - 1
+
   const handleSubmit = async () => {
     if (!allAnswered || submitting) return
     setSubmitting(true)
@@ -408,6 +418,13 @@ export default function CibilCrossVerifyPage() {
     } finally {
       setSubmitting(false)
     }
+  }
+
+  const goToSection = (index: number) => {
+    setActiveSectionIndex(index)
+    window.requestAnimationFrame(() => {
+      document.getElementById('verification-workspace')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    })
   }
 
   if (allFields.length === 0) {
@@ -434,11 +451,11 @@ export default function CibilCrossVerifyPage() {
 
   return (
     <section className="min-h-screen bg-gradient-to-b from-slate-50 via-blue-50/40 to-white py-10 md:py-14">
-      <div className="mx-auto max-w-3xl px-4">
+      <div className="mx-auto max-w-6xl px-4">
         {/* Heading */}
         <div className="mb-8 text-center">
           <span className="inline-flex items-center gap-2 rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
-            <ShieldCheck size={14} /> Verification step
+            <ShieldCheck size={14} /> Verification step {activeSectionIndex + 1} of {sections.length}
           </span>
           <h1 className="mt-4 font-serif text-3xl font-bold text-navy md:text-4xl">Cross Verify Information</h1>
           <p className="mt-3 text-sm leading-6 text-slate-600">
@@ -446,27 +463,53 @@ export default function CibilCrossVerifyPage() {
           </p>
         </div>
 
-        {/* Separate containers for each section */}
-        <div className="space-y-8">
-          {sections.map((section) => (
+        <div id="verification-workspace" className="scroll-mt-24 grid items-start gap-6 lg:grid-cols-[250px_minmax(0,1fr)]">
+          <aside className="overflow-x-auto rounded-2xl border border-slate-200 bg-white p-2 shadow-xl shadow-blue-950/5 lg:sticky lg:top-24 lg:overflow-visible lg:p-3">
+            <p className="hidden px-3 pb-2 pt-1 text-[10px] font-bold uppercase tracking-widest text-slate-400 lg:block">Verification sections</p>
+            <nav className="flex min-w-max gap-1 lg:min-w-0 lg:flex-col" aria-label="Verification sections">
+              {sections.map((section, index) => {
+                const complete = isSectionAnswered(section)
+                const selected = index === activeSectionIndex
+                const accessible = index <= activeSectionIndex || sections.slice(0, index).every(isSectionAnswered)
+                return (
+                  <button
+                    key={section.type}
+                    type="button"
+                    onClick={() => accessible && goToSection(index)}
+                    disabled={!accessible}
+                    className={`flex items-center gap-3 rounded-xl px-3 py-3 text-left text-xs font-semibold transition lg:w-full ${selected ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20' : accessible ? 'text-slate-600 hover:bg-blue-50 hover:text-blue-700' : 'cursor-not-allowed text-slate-300'}`}
+                  >
+                    <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg ${selected ? 'bg-white/15' : complete ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100'}`}>
+                      {complete && !selected ? <CheckCircle2 size={17} /> : section.icon}
+                    </span>
+                    <span className="whitespace-nowrap">{section.title}</span>
+                    <span className="ml-auto hidden text-[10px] lg:block">{complete ? 'Done' : index + 1}</span>
+                  </button>
+                )
+              })}
+            </nav>
+          </aside>
+
+          <div className="space-y-5">
+          {currentSection && (
             <div
-              key={section.type}
+              key={currentSection.type}
               className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl shadow-blue-950/5"
             >
               {/* Section heading */}
               <header className="flex items-center gap-3 border-b border-slate-200 bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-5">
                 <span className="rounded-xl bg-white p-2.5 text-blue-600 shadow-sm">
-                  {section.icon}
+                  {currentSection.icon}
                 </span>
                 <div>
-                  <h2 className="text-xl font-bold text-navy">{section.title}</h2>
+                  <h2 className="text-xl font-bold text-navy">{currentSection.title}</h2>
                   <p className="text-xs text-slate-500">Confirm each detail below as Yes or No</p>
                 </div>
               </header>
 
               {/* Cards within the section */}
               <div className="space-y-4 p-4 md:p-6">
-                {section.cards.map((card) => (
+                {currentSection.cards.map((card) => (
                   <div
                     key={`${card.loanId}_${card.heading || 'details'}`}
                     className="overflow-hidden rounded-2xl border border-slate-200 shadow-sm"
@@ -487,7 +530,7 @@ export default function CibilCrossVerifyPage() {
                         </div>
                       ))}
                       <div className="flex flex-col gap-3 bg-slate-50/70 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-                        <p className="text-sm font-semibold text-navy">Are these details are correct</p>
+                        <p className="text-sm font-semibold text-navy">Are these details correct?</p>
                         <div className="flex shrink-0 gap-2.5">
                           <button
                             type="button"
@@ -518,35 +561,47 @@ export default function CibilCrossVerifyPage() {
                 ))}
               </div>
             </div>
-          ))}
-        </div>
+          )}
 
-        {!allAnswered && (
-          <p className="mt-5 text-center text-sm font-medium text-amber-600">
-            Please confirm all details with Yes / No before submitting.
+        {!currentSectionAnswered && (
+          <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-700">
+            Please confirm every card in this section before continuing.
           </p>
         )}
 
-        {submitError && (
-          <p className="mt-5 rounded-lg border border-red-200 bg-red-50 px-4 py-2.5 text-center text-sm font-medium text-red-600">
+        {submitError && isLastSection && (
+          <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-600">
             {submitError}
           </p>
         )}
 
         {/* Submit Verification button — outside the container */}
-        <div className="mt-8 flex justify-center">
+        <div className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-xl shadow-blue-950/5">
           <button
-            onClick={handleSubmit}
-            disabled={!allAnswered || submitting || loading}
-            className="flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-10 py-4 text-base font-semibold text-white shadow-xl shadow-blue-600/20 transition hover:-translate-y-0.5 hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+            type="button"
+            onClick={() => goToSection(activeSectionIndex - 1)}
+            disabled={activeSectionIndex === 0 || submitting || loading}
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-blue-400 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            <ArrowLeft size={17} /> Back
+          </button>
+          <button
+            type="button"
+            onClick={() => isLastSection ? void handleSubmit() : goToSection(activeSectionIndex + 1)}
+            disabled={!currentSectionAnswered || (isLastSection && !allAnswered) || submitting || loading}
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-600/20 transition hover:-translate-y-0.5 hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {submitting || loading ? (
               <><Loader2 size={19} className="animate-spin" /> Submitting…</>
+            ) : isLastSection ? (
+              <>Submit <ShieldCheck size={17} /></>
             ) : (
-              <>Submit Verification</>
+              <>Next <ArrowRight size={17} /></>
             )}
           </button>
         </div>
+      </div>
+      </div>
       </div>
     </section>
   )

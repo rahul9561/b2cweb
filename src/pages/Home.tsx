@@ -74,7 +74,7 @@ export default function Home() {
       />
       <Hero />
       <ProductGrid onComingSoon={setComingSoonFeature} />
-       <div className="mt-5 text-center">
+      <div className="mt-5 mb-10 text-center">
           <button
   onClick={() => {
     if (SHOW_HOME_SECTIONS_COMING_SOON) {

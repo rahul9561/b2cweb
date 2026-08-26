@@ -8,6 +8,9 @@ import {
   Loader2,
   SearchCheck,
   ShieldCheck,
+  IndianRupee,
+  LockKeyhole,
+  Sparkles,
   TrendingUp,
   WalletCards,
 } from 'lucide-react'
@@ -16,6 +19,8 @@ import improveScoreIllustration from '../../assets/images/illustration-thumbs-up
 import { useAuth } from '../../context/AuthContext'
 import { useLoans } from '../../context/LoansContext'
 import { useWallet } from '../../context/WalletContext'
+import { fetchCrifReport } from '../../lib/creditRepairApi'
+import { formatExperianDate, parseExperianReport } from '../../lib/experianReport'
 import { isRequiredProfileComplete, type ExperianReportResponse } from '../../lib/profileApi'
 
 type JsonRecord = Record<string, unknown>
@@ -90,6 +95,8 @@ const findAccounts = (records: JsonRecord[]): JsonRecord[] => {
 }
 
 const normalizeOverview = (response: ExperianReportResponse): CreditOverview => {
+  const parsedOverview = parseExperianReport(response).overview
+  if (Object.values(parsedOverview).some((value) => value !== null && value !== '')) return parsedOverview
   const records = responseRecords(response)
   const accounts = findAccounts(records)
   const activeFromAccounts = accounts.filter((account) => /active|open|current/i.test(textValue(account.status))).length
@@ -218,12 +225,17 @@ export default function ExperianCreditOverview() {
     setSubmitting(true)
     setSubmissionError('')
     try {
-      await refreshExperianReport(user)
+      await fetchCrifReport({
+        mobile: String(user.mobile ?? ''),
+        first_name: String(user.first_name ?? '').trim(),
+        last_name: String(user.last_name ?? '').trim(),
+        name_lookup: 0,
+      })
       await Promise.all([
         refreshLoans().catch(() => undefined),
         refreshBalance().catch(() => undefined),
       ])
-      navigate('/credit-analysis/loans')
+      navigate('/credit-analysis/deep-analysis')
     } catch (error) {
       setSubmissionError(error instanceof Error ? error.message : 'We could not start your credit analysis. Please try again.')
     } finally {
@@ -293,7 +305,7 @@ export default function ExperianCreditOverview() {
               <MetricCard icon={<CalendarDays size={19} />} label="Overdue Accounts" value={data.overdueAccounts ?? '—'} detail={data.overdueAccounts === 0 ? 'Great! No active overdues' : 'Review overdue accounts'} tone="orange" />
               <MetricCard icon={<SearchCheck size={19} />} label="Recent Enquiries" value={data.recentEnquiries ?? '—'} detail="In the latest report period" tone="green" />
               <MetricCard icon={<TrendingUp size={19} />} label="Credit Mix" value={data.creditMix || '—'} detail="Based on your credit accounts" />
-              <MetricCard icon={<ShieldCheck size={19} />} label="Report Date" value={formatDate(data.reportDate)} detail={data.reference ? `Ref: ${data.reference}` : 'Latest available report'} tone="violet" />
+              <MetricCard icon={<ShieldCheck size={19} />} label="Report Date" value={formatExperianDate(data.reportDate) || '—'} detail={data.reference ? `Ref: ${data.reference}` : 'Latest available report'} tone="violet" />
             </div>
           </div>
         </div>
@@ -315,18 +327,37 @@ export default function ExperianCreditOverview() {
                 })}
               </div>
 
-              <div className="mt-6 border-t border-blue-200/70 pt-5">
-                <p className="text-sm font-bold text-blue-950">Do you want a deep analysis of your credit score and want to improve it?</p>
-                <label className="mt-3 flex cursor-pointer items-start gap-3 text-sm text-slate-700">
-                  <input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} disabled={submitting} className="mt-0.5 h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
-                  <span>I consent to this analysis and the applicable wallet deduction. The price of this analysis is Rupees 150.</span>
+              <div className="mt-6 overflow-hidden rounded-2xl border border-blue-200 bg-white/90 shadow-sm">
+                <div className="flex flex-col gap-4 bg-gradient-to-r from-blue-700 to-indigo-600 px-5 py-5 text-white sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-start gap-3">
+                    <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-white/15 ring-1 ring-white/20"><Sparkles size={21} /></span>
+                    <div>
+                      <p className="text-base font-bold text-white">Unlock your deep credit analysis</p>
+                      <p className="mt-1 max-w-xl text-xs leading-5 text-blue-100">Get a detailed review of your credit profile and identify opportunities to improve your score.</p>
+                    </div>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-2 self-start rounded-xl bg-white px-4 py-2.5 text-blue-700 shadow-lg sm:self-auto">
+                    <IndianRupee size={18} strokeWidth={2.5} />
+                    <div><strong className="block text-xl font-black leading-none">150</strong><span className="text-[9px] font-semibold uppercase tracking-wide text-slate-500">One-time charge</span></div>
+                  </div>
+                </div>
+                <div className="p-5">
+                <label className={`flex cursor-pointer items-start gap-3 rounded-xl border p-4 transition ${consent ? 'border-blue-400 bg-blue-50 ring-2 ring-blue-100' : 'border-slate-200 bg-slate-50/70 hover:border-blue-300 hover:bg-blue-50/50'}`}>
+                  <input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} disabled={submitting} className="mt-0.5 h-5 w-5 shrink-0 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
+                  <span><strong className="block text-sm font-semibold text-blue-950">I agree to continue with the analysis</strong><span className="mt-1 block text-xs leading-5 text-slate-600">I consent to this analysis and authorize a wallet deduction of <strong className="font-bold text-blue-700">₹150</strong>.</span></span>
                 </label>
-                {submissionError && <p className="mt-3 text-sm font-medium text-red-600">{submissionError}</p>}
+                <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <span className="inline-flex items-center gap-2 text-[11px] font-medium text-slate-500"><LockKeyhole size={14} className="text-emerald-600" /> Secure wallet transaction</span>
                 {consent && (
-                  <button type="button" onClick={() => void handleDeepAnalysis()} disabled={submitting} className="mt-4 inline-flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-60">
-                    {submitting && <Loader2 size={16} className="animate-spin" />} {submitting ? 'Submitting…' : 'Submit'}
-                  </button>
+                  <div className="sm:text-right">
+                    <button type="button" onClick={() => void handleDeepAnalysis()} disabled={submitting} className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-7 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-600/20 transition hover:-translate-y-0.5 hover:bg-blue-700 disabled:translate-y-0 disabled:opacity-60">
+                      {submitting && <Loader2 size={16} className="animate-spin" />} {submitting ? 'Submitting…' : 'Submit'}
+                    </button>
+                  </div>
                 )}
+                </div>
+                {submissionError && consent && <p className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-sm font-medium text-red-600">{submissionError}</p>}
+                </div>
               </div>
             </div>
           </div>

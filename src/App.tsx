@@ -88,6 +88,7 @@ import AddMoneyPage from './pages/AddMoneyPage'
 import PaymentStatusPage from './pages/PaymentStatusPage'
 import ProfilePage from './pages/ProfilePage'
 import CreditAnalysisLoansPage from './pages/CreditAnalysisLoansPage'
+import CreditDeepAnalysisPage from './pages/CreditDeepAnalysisPage'
 import EducationLoanPage from './pages/EducationLoanPage'
 import CareersPage from './pages/company/CareersPage'
 import AboutUsPage from './pages/company/AboutUsPage'
@@ -213,6 +214,7 @@ export default function App() {
                   <Route path="/wallet/payment-status" element={<PaymentStatusPage />} />
                   <Route path="/profile" element={<ProfilePage />} />
                   <Route path="/credit-analysis/loans" element={<CreditAnalysisLoansPage />} />
+                  <Route path="/credit-analysis/deep-analysis" element={<CreditDeepAnalysisPage />} />
                   <Route path="/loans" element={<LoansListPage />} />
                   <Route path="/loans/disputes" element={<DisputesPage />} />
                   <Route path="/loans/disputes/:disputeId" element={<DisputeDetailPage />} />

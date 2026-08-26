@@ -8,6 +8,11 @@ export default defineConfig({
     port: 5173,
     allowedHosts: ['.monkeycode-ai.live'],
     proxy: {
+      '/b2c-cibil': {
+        target: 'https://apib2c.avmanagementpvtltd.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/b2c-cibil/, '/api/cibil'),
+      },
       '/api': {
         target: 'http://localhost:3001',
         changeOrigin: true,
