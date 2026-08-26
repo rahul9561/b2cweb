@@ -99,6 +99,12 @@ const loanIcons: Record<string, typeof Shield> = {
   'Education Loan': GraduationCap,
 }
 
+const desktopNavButtonClass = 'group/nav flex items-center gap-1.5 whitespace-nowrap rounded-xl px-3.5 py-2.5 text-[13px] font-semibold text-slate-200 transition-all duration-300 hover:bg-white/[0.08] hover:text-white'
+const desktopDropdownClass = 'invisible absolute left-0 top-[calc(100%-1px)] z-50 w-72 origin-top-left translate-y-2 scale-[0.98] overflow-hidden rounded-2xl border border-slate-200/90 bg-white opacity-0 shadow-[0_24px_65px_rgba(15,23,42,0.22)] transition-all duration-200 group-hover:visible group-hover:translate-y-0 group-hover:scale-100 group-hover:opacity-100'
+const dropdownHeaderClass = 'border-b border-slate-100 bg-gradient-to-r from-blue-50 via-white to-indigo-50 px-4 py-3.5'
+const dropdownLinkClass = 'group/item flex items-center gap-3 rounded-xl px-3 py-2.5 text-[12px] font-semibold text-slate-600 transition-all duration-200 hover:translate-x-0.5 hover:bg-blue-50 hover:text-blue-700'
+const dropdownIconClass = 'grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-blue-100 bg-blue-50 text-blue-600 transition-all duration-200 group-hover/item:border-blue-600 group-hover/item:bg-blue-600 group-hover/item:text-white group-hover/item:shadow-md'
+
 export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const { isAuthenticated, refreshProfile } = useAuth()
@@ -121,11 +127,12 @@ export default function Header() {
     navigate('/wallet')
   }
   return (
-    <header className="sticky top-0 z-50 border-b border-gray-800 bg-black shadow-lg">
-      <div className="flex h-[56px] w-full items-center justify-between px-2 sm:h-[70px] sm:px-3 lg:px-4">
-        <div className="flex min-w-0 items-center gap-2 sm:gap-8">
+    <header className="sticky top-0 z-50 border-b border-white/10 bg-[#05070b]/95 shadow-[0_12px_35px_rgba(2,6,23,0.24)] backdrop-blur-xl">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-500/70 to-transparent" />
+      <div className="mx-auto flex h-[60px] w-full max-w-[1920px] items-center justify-between px-3 sm:h-[74px] sm:px-5 lg:px-6 xl:px-8">
+        <div className="flex min-w-0 items-center gap-2 sm:gap-7 xl:gap-10">
           <button
-            className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-white/80 transition hover:bg-white/10 hover:text-white lg:hidden"
+            className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-white/10 bg-white/[0.05] text-white/80 shadow-sm transition-all duration-300 hover:border-blue-400/50 hover:bg-blue-500/15 hover:text-white lg:hidden"
             onClick={() => setMobileOpen(true)}
             aria-label="Open menu"
           >
@@ -133,22 +140,22 @@ export default function Header() {
           </button>
 <Link
     to="/"
-   className="flex min-w-0 shrink items-center rounded-lg bg-black py-1 sm:ml-1 sm:shrink-0 sm:py-2 sm:pr-3"
+   className="group/logo flex min-w-0 shrink items-center rounded-xl py-1 transition-opacity duration-300 hover:opacity-90 sm:ml-1 sm:shrink-0 sm:py-2"
 >
     <img
         src={logo}
         alt="AV Management"
-        className="h-10 max-w-[210px] object-contain sm:h-14 sm:max-w-none"
+        className="h-10 max-w-[210px] object-contain transition-transform duration-300 group-hover/logo:scale-[1.015] sm:h-[58px] sm:max-w-none"
     />
 </Link>
-           <nav className="hidden items-center gap-0 lg:flex">
+           <nav className="hidden items-center gap-1 lg:flex">
             <div className="group relative">
-              <button className="flex items-center gap-1 whitespace-nowrap px-3 py-5 text-[14px] font-medium text-white hover:text-orange-400">
+              <button className={desktopNavButtonClass}>
                 Credit Report
-                <ChevronDown size={14} />
+                <ChevronDown size={14} className="transition-transform duration-300 group-hover/nav:rotate-180" />
               </button>
-              <div className="invisible absolute left-0 top-full z-50 w-72 overflow-hidden rounded-b-xl border border-t-0 border-slate2-border bg-white opacity-0 shadow-card transition-all duration-150 group-hover:visible group-hover:opacity-100">
-                <div className="border-b border-slate2-border bg-blueBG/60 px-4 py-3">
+              <div className={desktopDropdownClass}>
+                <div className={dropdownHeaderClass}>
                   <h3 className="flex items-center gap-2 text-[13px] font-semibold text-navy">
                     <span className="grid h-8 w-8 place-items-center rounded-lg bg-brand text-white shadow-sm">
                       <TrendingUp size={17} />
@@ -163,9 +170,9 @@ export default function Header() {
                       <li key={item.label}>
                         <Link
                           to={item.to}
-                          className="group/item flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-[12px] font-medium text-slate2-secondary transition-all hover:bg-blueBG hover:text-brand"
+                          className={dropdownLinkClass}
                         >
-                          <span className="grid h-7 w-7 shrink-0 place-items-center rounded-md bg-blueBG text-brand transition-colors group-hover/item:bg-brand group-hover/item:text-white">
+                          <span className={dropdownIconClass}>
                             <Icon size={15} />
                           </span>
                           {item.label}
@@ -177,13 +184,13 @@ export default function Header() {
               </div>
             </div>
 <div className="group relative">
-  <button className="flex items-center gap-1 whitespace-nowrap px-3 py-5 text-[14px] font-medium text-white hover:text-orange-400">
+  <button className={desktopNavButtonClass}>
     Loans
-    <ChevronDown size={14} />
+    <ChevronDown size={14} className="transition-transform duration-300 group-hover/nav:rotate-180" />
   </button>
 
-  <div className="invisible absolute left-0 top-full z-50 w-72 overflow-hidden rounded-b-xl border border-t-0 border-slate2-border bg-white opacity-0 shadow-card transition-all duration-150 group-hover:visible group-hover:opacity-100">
-    <div className="border-b border-slate2-border bg-blueBG/60 px-4 py-3">
+  <div className={desktopDropdownClass}>
+    <div className={dropdownHeaderClass}>
       <h3 className="flex items-center gap-2 text-[13px] font-semibold text-navy">
         <span className="grid h-8 w-8 place-items-center rounded-lg bg-brand text-white shadow-sm">
           <Briefcase size={17} />
@@ -198,9 +205,9 @@ export default function Header() {
           <li key={item.label}>
             <Link
               to={item.to}
-              className="group/item flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-[12px] font-medium text-slate2-secondary transition-all hover:bg-blueBG hover:text-brand"
+              className={dropdownLinkClass}
             >
-              <span className="grid h-7 w-7 shrink-0 place-items-center rounded-md bg-blueBG text-brand transition-colors group-hover/item:bg-brand group-hover/item:text-white">
+              <span className={dropdownIconClass}>
                 <Icon size={15} />
               </span>
               {item.label}
@@ -212,12 +219,12 @@ export default function Header() {
   </div>
 </div>
             <div className="group relative">
-              <button className="flex items-center gap-1 whitespace-nowrap px-3 py-5 text-[14px] font-medium text-white hover:text-orange-400">
+              <button className={desktopNavButtonClass}>
                 Insurance
-                <ChevronDown size={14} />
+                <ChevronDown size={14} className="transition-transform duration-300 group-hover/nav:rotate-180" />
               </button>
-              <div className="invisible absolute left-0 top-full z-50 w-72 overflow-hidden rounded-b-xl border border-t-0 border-slate2-border bg-white opacity-0 shadow-card transition-all duration-150 group-hover:visible group-hover:opacity-100">
-                <div className="border-b border-slate2-border bg-blueBG/60 px-4 py-3">
+              <div className={desktopDropdownClass}>
+                <div className={dropdownHeaderClass}>
                   <h3 className="flex items-center gap-2 text-[13px] font-semibold text-navy">
                     <span className="grid h-8 w-8 place-items-center rounded-lg bg-brand text-white shadow-sm">
                       <Shield size={17} />
@@ -234,9 +241,9 @@ export default function Header() {
                           href={item.href}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="group/item flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-[12px] font-medium text-slate2-secondary transition-all hover:bg-blueBG hover:text-brand"
+                          className={dropdownLinkClass}
                         >
-                          <span className="grid h-7 w-7 shrink-0 place-items-center rounded-md bg-blueBG text-brand transition-colors group-hover/item:bg-brand group-hover/item:text-white">
+                          <span className={dropdownIconClass}>
                             <Icon size={15} />
                           </span>
                           {item.label}
@@ -249,11 +256,11 @@ export default function Header() {
             </div>
             {SHOW_INSURANCE_HEADER_ITEMS && <>
             <div className="group relative">
-              <button className="flex items-center gap-1 whitespace-nowrap px-3 py-5 text-[14px] font-medium text-white hover:text-orange-400">
+              <button className={desktopNavButtonClass}>
                 Insurance Products
-                <ChevronDown size={14} />
+                <ChevronDown size={14} className="transition-transform duration-300 group-hover/nav:rotate-180" />
               </button>
-              <div className="invisible absolute left-0 top-full z-50 w-[880px] bg-white opacity-0 shadow-card transition-all duration-150 group-hover:visible group-hover:opacity-100">
+              <div className="invisible absolute left-0 top-[calc(100%-1px)] z-50 w-[880px] origin-top-left translate-y-2 scale-[0.98] overflow-hidden rounded-2xl border border-slate-200 bg-white opacity-0 shadow-[0_24px_65px_rgba(15,23,42,0.22)] transition-all duration-200 group-hover:visible group-hover:translate-y-0 group-hover:scale-100 group-hover:opacity-100">
                 <div className="grid grid-cols-4 gap-6 p-6">
                   {categoryMeta.map((cat) => {
                     const data = insuranceMenu[cat.key]
@@ -286,11 +293,11 @@ export default function Header() {
             </div>
 
             <div className="group relative">
-              <button className="flex items-center gap-1 whitespace-nowrap px-3 py-5 text-[14px] font-medium text-white hover:text-orange-400">
+              <button className={desktopNavButtonClass}>
                 Renew Your Policy
-                <ChevronDown size={14} />
+                <ChevronDown size={14} className="transition-transform duration-300 group-hover/nav:rotate-180" />
               </button>
-              <div className="invisible absolute left-0 top-full z-50 w-60 bg-white opacity-0 shadow-card transition-all duration-150 group-hover:visible group-hover:opacity-100">
+              <div className={`${desktopDropdownClass} w-60`}>
                 <ul className="p-2">
                   {renewMenu.map((item) => {
                     const Icon = renewIcons[item.icon]
@@ -311,11 +318,11 @@ export default function Header() {
             </div>
 
             <div className="group relative">
-              <button className="flex items-center gap-1 whitespace-nowrap px-3 py-5 text-[14px] font-medium text-white hover:text-orange-400">
+              <button className={desktopNavButtonClass}>
                 Claim
-                <ChevronDown size={14} />
+                <ChevronDown size={14} className="transition-transform duration-300 group-hover/nav:rotate-180" />
               </button>
-              <div className="invisible absolute left-0 top-full z-50 w-72 bg-white opacity-0 shadow-card transition-all duration-150 group-hover:visible group-hover:opacity-100">
+              <div className={desktopDropdownClass}>
                 <ul className="p-2">
                   {claimMenu.map((item) => (
                     <li key={item}>
@@ -334,12 +341,12 @@ export default function Header() {
             </>}
 
             <div className="group relative">
-              <button className="flex items-center gap-1 whitespace-nowrap px-3 py-5 text-[14px] font-medium text-white hover:text-orange-400">
+              <button className={desktopNavButtonClass}>
                 Support
-                <ChevronDown size={14} />
+                <ChevronDown size={14} className="transition-transform duration-300 group-hover/nav:rotate-180" />
               </button>
-              <div className="invisible absolute left-0 top-full z-50 w-80 overflow-hidden rounded-b-xl border border-t-0 border-slate2-border bg-white opacity-0 shadow-card transition-all duration-150 group-hover:visible group-hover:opacity-100">
-                <div className="border-b border-slate2-border bg-blueBG/60 px-4 py-3">
+              <div className={`${desktopDropdownClass} w-80`}>
+                <div className={dropdownHeaderClass}>
                   <h3 className="flex items-center gap-2 text-[13px] font-semibold text-navy">
                     <span className="grid h-8 w-8 place-items-center rounded-lg bg-brand text-white shadow-sm">
                       <LifeBuoy size={17} />
@@ -354,9 +361,9 @@ export default function Header() {
                       <li key={l.label}>
                         <Link
                           to={l.to}
-                          className="group/item flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-[12px] font-medium text-slate2-secondary transition-all hover:bg-blueBG hover:text-brand"
+                          className={dropdownLinkClass}
                         >
-                          <span className="grid h-7 w-7 shrink-0 place-items-center rounded-md bg-blueBG text-brand transition-colors group-hover/item:bg-brand group-hover/item:text-white">
+                          <span className={dropdownIconClass}>
                             <Icon size={15} />
                           </span>
                           {l.label}
@@ -370,13 +377,16 @@ export default function Header() {
           </nav>
         </div>
 
-        <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-3">
+        <div className="ml-auto flex shrink-0 items-center gap-1.5 sm:gap-2.5">
           <div className="group relative hidden xl:block">
-            <button className="flex items-center gap-2 whitespace-nowrap rounded-full border border-brand px-4 py-2 text-[13px] font-medium text-brand transition-colors hover:bg-brand hover:text-white">
-              <Phone size={14} />
+            <button className="flex items-center gap-2 whitespace-nowrap rounded-xl border border-blue-500/50 bg-blue-500/10 px-4 py-2.5 text-[13px] font-semibold text-blue-300 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-blue-400 hover:bg-blue-600 hover:text-white hover:shadow-lg hover:shadow-blue-950/30">
+              <Phone size={15} />
               Talk to Expert
             </button>
-            <div className="invisible absolute right-0 top-full z-50 w-80 bg-white opacity-0 shadow-card transition-all duration-150 group-hover:visible group-hover:opacity-100">
+            <div className="invisible absolute right-0 top-[calc(100%-1px)] z-50 w-80 origin-top-right translate-y-2 scale-[0.98] overflow-hidden rounded-2xl border border-slate-200 bg-white opacity-0 shadow-[0_24px_65px_rgba(15,23,42,0.22)] transition-all duration-200 group-hover:visible group-hover:translate-y-0 group-hover:scale-100 group-hover:opacity-100">
+              <div className={dropdownHeaderClass}>
+                <p className="flex items-center gap-2 text-[13px] font-bold text-navy"><Headphones size={16} className="text-blue-600" /> Speak with our experts</p>
+              </div>
               <ul className="p-3">
                 {[
                   { t: 'Helpline for buying a new policy', n: '9917500023' },
@@ -386,9 +396,9 @@ export default function Header() {
                   <li key={p.t}>
                     <a
                       href={`tel:${p.n.replace(/-/g, '')}`}
-                      className="flex items-center gap-3 rounded-lg px-3 py-2.5 hover:bg-blueBG"
+                      className="group/call flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all hover:bg-blue-50"
                     >
-                      <Phone size={16} className="text-brand" />
+                      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-blue-50 text-blue-600 transition group-hover/call:bg-blue-600 group-hover/call:text-white"><Phone size={16} /></span>
                       <div>
                         <p className="text-[10px] text-slate2-muted">{p.t}</p>
                         <p className="text-[13px] font-semibold text-navy">{p.n}</p>
@@ -402,7 +412,7 @@ export default function Header() {
 {isAuthenticated ? (
   <button
     onClick={openProfile}
-    className="hidden items-center gap-2 whitespace-nowrap rounded-full border border-brand px-4 py-2 text-[13px] font-medium text-brand transition-colors hover:bg-brand hover:text-white sm:flex"
+    className="hidden items-center gap-2 whitespace-nowrap rounded-xl border border-white/15 bg-white/[0.06] px-4 py-2.5 text-[13px] font-semibold text-slate-200 transition-all duration-300 hover:-translate-y-0.5 hover:border-blue-400/60 hover:bg-white/[0.11] hover:text-white sm:flex"
   >
     <User size={14} />
     Profile
@@ -410,7 +420,7 @@ export default function Header() {
 ) : (
   <Link
     to="/login"
-    className="hidden items-center gap-2 whitespace-nowrap rounded-full border border-brand px-4 py-2 text-[13px] font-medium text-brand transition-colors hover:bg-brand hover:text-white sm:flex"
+    className="hidden items-center gap-2 whitespace-nowrap rounded-xl border border-white/15 bg-white/[0.06] px-4 py-2.5 text-[13px] font-semibold text-slate-200 transition-all duration-300 hover:-translate-y-0.5 hover:border-blue-400/60 hover:bg-white/[0.11] hover:text-white sm:flex"
   >
     <User size={14} />
     Sign in
@@ -419,7 +429,7 @@ export default function Header() {
           {isAuthenticated && (
             <button
               onClick={openWallet}
-              className="hidden items-center gap-2 whitespace-nowrap rounded-full border border-brand px-4 py-2 text-[13px] font-medium text-brand transition-colors hover:bg-brand hover:text-white sm:flex"
+              className="hidden items-center gap-2 whitespace-nowrap rounded-xl border border-blue-500/60 bg-gradient-to-r from-blue-600/25 to-indigo-600/20 px-4 py-2.5 text-[13px] font-bold text-blue-200 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-blue-400 hover:from-blue-600 hover:to-indigo-600 hover:text-white hover:shadow-lg hover:shadow-blue-950/30 sm:flex"
               aria-label={`Wallet balance ${formattedWalletTotal}`}
             >
               <Wallet size={14} />
@@ -431,7 +441,7 @@ export default function Header() {
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Download AV Management App from Google Play"
-            className="ml-1 flex max-w-[72px] shrink-0 flex-col items-center gap-0.5 text-center text-white transition-colors hover:text-orange-400 sm:ml-3 sm:mr-1 sm:max-w-[104px]"
+            className="ml-1 flex max-w-[78px] shrink-0 flex-col items-center gap-1 rounded-xl border border-transparent px-2 py-1.5 text-center text-slate-200 transition-all duration-300 hover:border-white/10 hover:bg-white/[0.06] hover:text-white sm:ml-1 sm:max-w-[112px]"
           >
             <svg
               viewBox="0 0 24 24"
@@ -459,26 +469,28 @@ export default function Header() {
 
       {mobileOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setMobileOpen(false)} />
-          <div className="absolute left-0 top-0 h-full w-80 overflow-y-auto bg-white p-5">
-                   <div className="-mx-5 -mt-5 mb-6 flex items-center justify-between bg-black px-5 py-4">
+          <div className="absolute inset-0 bg-slate-950/70 backdrop-blur-sm" onClick={() => setMobileOpen(false)} />
+          <div className="absolute left-0 top-0 h-full w-[min(88vw,360px)] overflow-y-auto border-r border-white/10 bg-slate-50 p-5 shadow-[24px_0_70px_rgba(2,6,23,0.35)]">
+                   <div className="-mx-5 -mt-5 mb-5 flex items-center justify-between border-b border-white/10 bg-gradient-to-r from-[#05070b] to-[#0c1630] px-5 py-4 shadow-lg">
   <Link to="/" onClick={() => setMobileOpen(false)}>
     <img
       src={logo}
       alt="AV Management"
-      className="h-12 w-auto object-contain"
+      className="h-12 w-auto object-contain transition-transform hover:scale-[1.02]"
     />
   </Link>
 
   <button
     onClick={() => setMobileOpen(false)}
     aria-label="Close menu"
+    className="grid h-10 w-10 place-items-center rounded-xl border border-white/10 bg-white/[0.07] transition hover:bg-white/[0.14]"
   >
     <X size={22} className="text-white" />
   </button>
 </div>
             <nav className="space-y-3">
-              <Link to="/" onClick={() => setMobileOpen(false)} className="block font-medium text-navy">
+              <Link to="/" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-[13px] font-bold text-navy shadow-sm transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700">
+                <span className="grid h-8 w-8 place-items-center rounded-lg bg-blue-50 text-blue-600"><Home size={16} /></span>
                 Home
               </Link>
               {[
@@ -500,14 +512,14 @@ export default function Header() {
                     key={item.label}
                     to={item.to}
                     onClick={() => setMobileOpen(false)}
-                    className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] text-navy hover:bg-blueBG"
+                    className="flex items-center gap-3 rounded-xl border border-transparent px-3 py-2.5 text-[13px] font-semibold text-navy transition hover:border-blue-100 hover:bg-blue-50 hover:text-blue-700"
                   >
                     <Icon size={16} className="text-brand" />
                     {item.label}
                   </Link>
                 )
               })}
-              <div className="mt-3 border-t border-slate2-border pt-3">
+              <div className="mt-3 rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm">
                 <p className="mb-2 flex items-center gap-2 text-[13px] font-semibold text-navy">
                   <TrendingUp size={14} className="text-brand" />
                   Credit Report
@@ -518,14 +530,14 @@ export default function Header() {
                       key={item.label}
                       to={item.to}
                       onClick={() => setMobileOpen(false)}
-                      className="block text-[12px] text-slate2-secondary hover:text-brand"
+                      className="block rounded-lg px-2 py-1.5 text-[12px] font-medium text-slate2-secondary transition hover:bg-blue-50 hover:text-brand"
                     >
                       {item.label}
                     </Link>
                   ))}
                 </div>
               </div>
-              <div className="mt-3 border-t border-slate2-border pt-3">
+              <div className="mt-3 rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm">
                 <p className="mb-2 flex items-center gap-2 text-[13px] font-semibold text-navy">
                   <Briefcase size={14} className="text-brand" />
                   Loans
@@ -536,14 +548,14 @@ export default function Header() {
                       key={item.label}
                       to={item.to}
                       onClick={() => setMobileOpen(false)}
-                      className="block text-[12px] text-slate2-secondary hover:text-brand"
+                      className="block rounded-lg px-2 py-1.5 text-[12px] font-medium text-slate2-secondary transition hover:bg-blue-50 hover:text-brand"
                     >
                       {item.label}
                     </Link>
                   ))}
                 </div>
               </div>
-              <div className="mt-3 border-t border-slate2-border pt-3">
+              <div className="mt-3 rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm">
                 <p className="mb-2 flex items-center gap-2 text-[13px] font-semibold text-navy">
                   <Shield size={14} className="text-brand" />
                   Insurance
@@ -558,7 +570,7 @@ export default function Header() {
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={() => setMobileOpen(false)}
-                        className="flex items-center gap-2 text-[12px] text-slate2-secondary hover:text-brand"
+                        className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-[12px] font-medium text-slate2-secondary transition hover:bg-blue-50 hover:text-brand"
                       >
                         <Icon size={14} className="text-brand" />
                         {item.label}
@@ -567,7 +579,7 @@ export default function Header() {
                   })}
                 </div>
               </div>
-              <div className="mt-3 border-t border-slate2-border pt-3">
+              <div className="mt-3 rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm">
                 <p className="mb-2 flex items-center gap-2 text-[13px] font-semibold text-navy">
                   <LifeBuoy size={14} className="text-brand" />
                   Support
@@ -580,7 +592,7 @@ export default function Header() {
                         key={item.label}
                         to={item.to}
                         onClick={() => setMobileOpen(false)}
-                        className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-[12px] font-medium text-slate2-secondary hover:bg-blueBG hover:text-brand"
+                        className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-[12px] font-medium text-slate2-secondary transition hover:bg-blue-50 hover:text-brand"
                       >
                         <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-blueBG text-brand">
                           <Icon size={15} />
@@ -613,7 +625,7 @@ export default function Header() {
                 <button
                   type="button"
                   onClick={openWallet}
-                  className="flex items-center justify-between rounded-lg border border-brand px-3 py-2.5 text-[13px] font-medium text-brand"
+                  className="flex w-full items-center justify-between rounded-xl border border-blue-200 bg-blue-50 px-3.5 py-3 text-[13px] font-bold text-blue-700 shadow-sm transition hover:border-blue-400"
                 >
                   <span className="flex items-center gap-2"><Wallet size={16} /> Wallet</span>
                   <span>{formattedWalletTotal}</span>
@@ -623,7 +635,7 @@ export default function Header() {
                 {isAuthenticated ? (
   <button
     onClick={openProfile}
-    className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-brand py-2.5 text-[13px] font-medium text-brand"
+    className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-blue-200 bg-white py-3 text-[13px] font-bold text-blue-700 shadow-sm transition hover:border-blue-400 hover:bg-blue-50"
   >
     <User size={14} />
     Profile
@@ -632,7 +644,7 @@ export default function Header() {
   <Link
     to="/login"
     onClick={() => setMobileOpen(false)}
-    className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-brand py-2.5 text-[13px] font-medium text-brand"
+    className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-blue-200 bg-white py-3 text-[13px] font-bold text-blue-700 shadow-sm transition hover:border-blue-400 hover:bg-blue-50"
   >
     <User size={14} />
     Sign in
@@ -646,7 +658,7 @@ export default function Header() {
                   <User size={14} />
                   Sign in
                 </Link> */}
-                <button className="flex flex-1 items-center justify-center gap-2 rounded-lg border-2 border-green-cta bg-green-cta py-2.5 text-[13px] font-bold text-white">
+                <button className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-emerald-500 bg-emerald-500 py-3 text-[13px] font-bold text-white shadow-md shadow-emerald-500/20 transition hover:-translate-y-0.5 hover:bg-emerald-600">
                   <Smartphone size={14} />
                   Get App
                 </button>
