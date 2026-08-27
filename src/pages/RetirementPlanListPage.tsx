@@ -322,7 +322,7 @@ function RetirementPlanCard({
           )}
 
           {/* Key Metrics */}
-          <div className="grid grid-cols-3 gap-4 text-sm">
+          <div className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-3 sm:gap-4">
             <div>
               <p className="text-xs text-slate-600 font-semibold mb-0.5">7-Year Returns</p>
               <p className="font-bold text-green-600">{plan.returns7yr}%</p>

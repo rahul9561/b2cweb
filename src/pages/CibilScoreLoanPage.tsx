@@ -32,13 +32,30 @@ type Details = {
   pincode: string
 }
 
+// const MAX_INELIGIBLE_DPD = 30
+// const INELIGIBLE_SCORE_MIN = 399
+// const INELIGIBLE_SCORE_MAX = 699
+
+// const isLoanEligible = (score: number | null, dpd: number | null) => {
+//   // DPD <= 30 means NOT eligible
+//   const hasIneligibleDpd = dpd !== null && dpd <= MAX_INELIGIBLE_DPD
+
+//   // Score between 399 and 699 means NOT eligible
+//   const hasIneligibleScore =
+//     score !== null &&
+//     score >= INELIGIBLE_SCORE_MIN &&
+//     score <= INELIGIBLE_SCORE_MAX
+
+//   return !hasIneligibleDpd && !hasIneligibleScore
+// }
+
 const MAX_INELIGIBLE_DPD = 30
 const INELIGIBLE_SCORE_MIN = 399
 const INELIGIBLE_SCORE_MAX = 699
 
 const isLoanEligible = (score: number | null, dpd: number | null) => {
-  // DPD <= 30 means NOT eligible
-  const hasIneligibleDpd = dpd !== null && dpd <= MAX_INELIGIBLE_DPD
+  // DPD > 30 means NOT eligible
+  const hasIneligibleDpd = dpd !== null && dpd > MAX_INELIGIBLE_DPD
 
   // Score between 399 and 699 means NOT eligible
   const hasIneligibleScore =
@@ -68,10 +85,10 @@ const isAuthenticationError = (error: unknown) => {
 // }
 
 const BulletList = ({ items }: { items: string[] }) => (
-  <ul className="space-y-3">
+  <ul className="mt-5 space-y-4 rounded-2xl bg-slate-50/50 p-6">
     {items.map((item) => (
-      <li key={item} className="flex gap-3 text-sm leading-6 text-slate-700">
-        <Check className="mt-1 h-4 w-4 shrink-0 rounded-full bg-blue-600 p-0.5 text-white" />
+      <li key={item} className="flex gap-4 text-sm leading-7 text-slate-700">
+        <Check className="mt-1 h-5 w-5 shrink-0 rounded-full bg-blue-100 p-1 text-blue-600" />
         {item}
       </li>
     ))}
@@ -79,14 +96,14 @@ const BulletList = ({ items }: { items: string[] }) => (
 )
 
 const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
-  <section>
-    <h2 className="font-serif text-2xl font-bold text-navy md:text-3xl">{title}</h2>
+  <section className="scroll-mt-8">
+    <h2 className="font-sans text-2xl font-extrabold tracking-tight text-navy md:text-3xl">{title}</h2>
     <div className="mt-5">{children}</div>
   </section>
 )
 
 const Copy = ({ children }: { children: React.ReactNode }) => (
-  <p className="text-sm leading-7 text-slate-700 md:text-base">{children}</p>
+  <p className="mt-4 text-sm leading-8 text-slate-700 md:text-base">{children}</p>
 )
 
 const relatedArticles = [
@@ -360,12 +377,21 @@ export default function CibilScoreLoanPage({ product = 'personal-loan' }: { prod
         </div>
       )}
       {/* ===== HERO + "Let's Get Started" FORM — UNTOUCHED ===== */}
-      <section className="border-b border-blue-100 bg-gradient-to-br from-blue-50 via-white to-slate-50">
-        <div className="container-pb grid gap-8 py-10 lg:grid-cols-[minmax(0,1fr)_380px]">
+      <section className="relative overflow-hidden border-b border-blue-100 bg-gradient-to-br from-blue-950 via-slate-900 to-indigo-950 text-white">
+        <div className="pointer-events-none absolute -right-20 -top-20 h-96 w-96 rounded-full bg-blue-500/20 blur-3xl" />
+        <div className="pointer-events-none absolute bottom-0 left-0 h-64 w-64 rounded-full bg-indigo-500/10 blur-3xl" />
+        <div className="container-pb relative z-10 grid gap-8 py-12 lg:grid-cols-[minmax(0,1fr)_380px] lg:items-start">
           <div>
-            <p className="text-sm font-semibold text-blue-600">{isCreditCard ? 'CREDIT CARD ELIGIBILITY' : isBusinessLoan ? 'BUSINESS LOAN ELIGIBILITY' : 'PERSONAL LOAN ELIGIBILITY'}</p>
-            <h1 className="mt-2 font-serif text-3xl font-bold text-navy md:text-4xl">{isCreditCard ? 'Apply for Credit Card' : isBusinessLoan ? 'Apply for Business Loan' : 'Personal/Instant Loan'}</h1>
-            <p className="mt-4 max-w-2xl leading-7 text-slate-600">
+            <span className="inline-flex items-center gap-2 rounded-full border border-blue-400/30 bg-blue-500/20 px-3.5 py-1.5 text-xs font-extrabold uppercase tracking-wider text-blue-300 backdrop-blur-md">
+              {isCreditCard ? '💳 Credit Card Eligibility' : isBusinessLoan ? '🏢 Business Loan Eligibility' : '💰 Personal Loan Eligibility'}
+            </span>
+            <h1 className="mt-3 font-sans text-3xl font-extrabold tracking-tight text-white md:text-4xl">
+              {isCreditCard ? 'Apply for ' : isBusinessLoan ? 'Apply for ' : ''}
+              <span className="bg-gradient-to-r from-blue-400 via-indigo-300 to-sky-400 bg-clip-text text-transparent">
+                {isCreditCard ? 'Credit Card' : isBusinessLoan ? 'Business Loan' : 'Personal / Instant Loan'}
+              </span>
+            </h1>
+            <p className="mt-4 max-w-2xl text-xs font-medium leading-relaxed text-slate-300 sm:text-base">
               {isCreditCard
                 ? 'Check your credit score and explore personalised credit-card offers from available issuers.'
                 : isBusinessLoan
@@ -374,30 +400,34 @@ export default function CibilScoreLoanPage({ product = 'personal-loan' }: { prod
             </p>
             <div className="mt-6 grid gap-3 sm:grid-cols-3">
               {['Check score from all 4 bureaus', isCreditCard ? 'Personalised card offers' : isBusinessLoan ? 'Business-loan offers' : 'Personalised loan offers', 'Secure, paperless journey'].map((item) => (
-                <div key={item} className="flex items-center gap-2 rounded-xl border border-blue-100 bg-white p-3 text-sm font-medium text-navy">
-                  <CheckCircle2 className="shrink-0 text-emerald-500" size={18} />
-                  {item}
+                <div key={item} className="flex items-center gap-2 rounded-2xl border border-white/15 bg-white/10 p-3 text-xs font-bold text-white backdrop-blur-sm">
+                  <CheckCircle2 className="shrink-0 text-emerald-300" size={17} />
+                  <span>{item}</span>
                 </div>
               ))}
             </div>
-            <div className="mt-7 rounded-2xl bg-white p-5 shadow-sm">
-              <p className="font-semibold text-navy">Why your credit score matters</p>
-              <p className="mt-2 max-w-xl text-sm leading-6 text-slate-600">
+            <div className="mt-7 rounded-2xl border border-white/15 bg-white/10 p-5 backdrop-blur-sm">
+              <p className="font-extrabold text-white">Why your credit score matters</p>
+              <p className="mt-2 max-w-xl text-xs font-medium leading-6 text-slate-300 sm:text-sm">
                 Lenders may review your repayment history, credit use and recent applications along with income and other eligibility requirements.
               </p>
             </div>
           </div>
-          <form onSubmit={submit} noValidate className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xl shadow-blue-950/10">
-            <div className="flex items-center gap-3">
-              <span className="rounded-xl bg-blue-100 p-3 text-blue-600">
-                <ShieldCheck size={22} />
-              </span>
-              <div>
-                <h2 className="font-serif text-2xl font-bold text-navy">Let&apos;s Get Started</h2>
-                <p className="text-xs text-slate-500">Complete your details to view offers</p>
+          <form onSubmit={submit} noValidate className="overflow-hidden rounded-3xl border border-white/20 bg-slate-900/60 shadow-2xl shadow-black/40 backdrop-blur-xl ring-1 ring-white/10">
+            {/* Form header */}
+            <div className="border-b border-white/10 bg-gradient-to-r from-blue-600/30 via-indigo-600/20 to-blue-500/20 px-7 py-5 backdrop-blur-md">
+              <div className="flex items-center gap-3">
+                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-blue-400/30 bg-gradient-to-br from-blue-500/30 to-indigo-500/20 text-blue-300 shadow-inner">
+                  <ShieldCheck size={20} />
+                </span>
+                <div>
+                  <h2 className="font-sans text-xl font-bold tracking-tight text-white">Let&apos;s Get Started</h2>
+                  <p className="mt-0.5 text-xs font-medium text-blue-200/80">Complete your details to view offers</p>
+                </div>
               </div>
             </div>
-            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+            <div className="p-7">
+              <div className="grid gap-3 sm:grid-cols-2">
               {(
                 [
                   { key: 'firstName', label: 'First Name', icon: UserRound, type: 'text' },
@@ -408,7 +438,7 @@ export default function CibilScoreLoanPage({ product = 'personal-loan' }: { prod
                   { key: 'pincode', label: 'Pincode', icon: MapPin, type: 'text' },
                 ] as const
               ).map(({ key, label, icon: Icon, type }) => (
-                <label key={key} className="text-xs font-semibold text-slate-700">
+                <label key={key} className="text-xs font-semibold uppercase tracking-wider text-slate-200">
                   {label}
                   <span className="relative mt-1 block">
                     <Icon size={16} className="absolute left-3 top-3 text-slate-400" />
@@ -425,26 +455,27 @@ export default function CibilScoreLoanPage({ product = 'personal-loan' }: { prod
                             : e.target.value
                         )
                       }
-                      className="w-full rounded-lg border border-slate-300 py-2.5 pl-9 pr-3 text-sm font-normal outline-none focus:border-blue-600"
+                      className="w-full rounded-xl border border-white/15 bg-white/[0.07] py-2.5 pl-9 pr-3 text-sm font-normal text-white placeholder:text-slate-400 outline-none transition focus:border-blue-400 focus:bg-white/[0.12] focus:ring-2 focus:ring-blue-400/25 [color-scheme:dark]"
                       placeholder={label}
                     />
                   </span>
-                  {submitted && errors[key] && <small className="text-xs text-red-600">{errors[key]}</small>}
+                  {submitted && errors[key] && <small className="text-xs font-medium text-red-400">{errors[key]}</small>}
                 </label>
               ))}
+              </div>
+              <button disabled={isSubmitting} className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600 py-3.5 font-bold text-white shadow-lg shadow-blue-600/30 transition hover:shadow-blue-600/50 hover:brightness-110 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-70">
+                {isSubmitting
+                  ? 'Checking your credit score...'
+                  : isCreditCard
+                    ? 'Apply for Credit Card'
+                    : isBusinessLoan
+                      ? 'Apply for Business Loan'
+                      : 'Get Free Credit Score'}{' '}
+                <ArrowRight size={17} />
+              </button>
+              {submitError && <p className="mt-3 text-center text-xs font-medium text-red-400" role="alert">{submitError}</p>}
+              <p className="mt-3 text-center text-[11px] text-slate-400">By continuing, you agree to the terms of use and privacy policy.</p>
             </div>
-            <button disabled={isSubmitting} className="mt-5 flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70">
-              {isSubmitting
-                ? 'Checking your credit score...'
-                : isCreditCard
-                  ? 'Apply for Credit Card'
-                  : isBusinessLoan
-                    ? 'Apply for Business Loan'
-                    : 'Get Free Credit Score'}{' '}
-              <ArrowRight size={17} />
-            </button>
-            {submitError && <p className="mt-3 text-center text-xs text-red-600" role="alert">{submitError}</p>}
-            <p className="mt-3 text-center text-[11px] text-slate-500">By continuing, you agree to the terms of use and privacy policy.</p>
           </form>
         </div>
       </section>
@@ -503,7 +534,7 @@ export default function CibilScoreLoanPage({ product = 'personal-loan' }: { prod
 
               <Section title="Business Loan Eligibility">
                 <Copy>Every lender applies its own underwriting rules, so there is no single credit score or eligibility standard used for all business loans.</Copy>
-                <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-5">
+                <div className="mt-6">
                   <BulletList items={[
                     'A stronger credit score and consistent repayment history may improve approval chances.',
                     'Business vintage, turnover, banking activity and cash flow may affect the eligible amount.',
@@ -545,7 +576,7 @@ export default function CibilScoreLoanPage({ product = 'personal-loan' }: { prod
 
             <Section title="What is the Minimum CIBIL Score Required for a Personal Loan?">
               <Copy>Generally, a CIBIL score of 760 and above is considered good for getting a personal loan approved without many difficulties.</Copy>
-              <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-5">
+              <div className="mt-6">
                 <BulletList
                   items={[
                     'Some lenders may also approve your personal loan application even if your score is below 760.',

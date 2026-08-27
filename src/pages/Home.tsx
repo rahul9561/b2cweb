@@ -20,7 +20,7 @@ import { fetchLoanCategories } from '../lib/loanCategories'
 import ProductModal from '../components/ProductModal'
 import ComingSoonModal from '../components/ComingSoonModal'
 import { SHOW_HOME_SECTIONS_COMING_SOON } from '../config/featureFlags'
-/* ── Hero banners ── */
+/* ── Hero banners with real image visuals ── */
 const heroBanners = [
   {
     title: '₹1 Crore',
@@ -28,7 +28,9 @@ const heroBanners = [
     price: 'Starting at ₹410/month*',
     badge1: 'Get online discount upto 15%*',
     badge2: 'Now 0% GST**',
-    bg: 'from-[#1a1a5e] via-[#2d2d8e] to-[#4a3fb5]',
+    image: '/images/products/term_life_hero_1787806044322.jpg',
+    overlay: 'from-blue-950/90 via-blue-900/80 to-indigo-950/90',
+    accentColor: 'from-blue-500 to-indigo-500',
     cta: 'View plans',
   },
   {
@@ -37,7 +39,9 @@ const heroBanners = [
     price: 'Starting at ₹980/month*',
     badge1: 'Cashless claims at 18,000+ hospitals',
     badge2: 'No medical check-up below 45',
-    bg: 'from-[#0d3b2e] via-[#1a5c47] to-[#2d8b6a]',
+    image: '/images/products/health_insurance_card_1787806059389.jpg',
+    overlay: 'from-emerald-950/90 via-teal-900/80 to-slate-950/90',
+    accentColor: 'from-emerald-500 to-teal-500',
     cta: 'View plans',
   },
   {
@@ -46,7 +50,9 @@ const heroBanners = [
     price: 'Investment Plans',
     badge1: 'Tax-free maturity benefits',
     badge2: 'Flexible tenure options',
-    bg: 'from-[#5c1a1a] via-[#8b3a2d] to-[#b55a3f]',
+    image: '/images/products/investment_plans_card_1787806075608.jpg',
+    overlay: 'from-slate-950/90 via-amber-950/80 to-violet-950/90',
+    accentColor: 'from-amber-500 to-orange-500',
     cta: 'View plans',
   },
 ]
@@ -65,7 +71,7 @@ export default function Home() {
   }, [location.hash])
 
   return (
-    <div>
+    <div className="bg-slate-50/50">
       <ProductModal isOpen={modalOpen} onClose={() => setModalOpen(false)} />
       <ComingSoonModal
         isOpen={Boolean(comingSoonFeature)}
@@ -74,20 +80,20 @@ export default function Home() {
       />
       <Hero />
       <ProductGrid onComingSoon={setComingSoonFeature} />
-      <div className="mt-5 mb-10 text-center">
-          <button
-  onClick={() => {
-    if (SHOW_HOME_SECTIONS_COMING_SOON) {
-      setComingSoonFeature('All products')
-      return
-    }
-    setModalOpen(true)
-  }}
-  className="inline-flex items-center gap-1 text-[13px] font-medium text-brand hover:underline"
->
-  View all products <ArrowRight size={13} />
-</button>
-        </div>
+      <div className="mt-2 mb-10 text-center">
+        <button
+          onClick={() => {
+            if (SHOW_HOME_SECTIONS_COMING_SOON) {
+              setComingSoonFeature('All products')
+              return
+            }
+            setModalOpen(true)
+          }}
+          className="group inline-flex items-center gap-2 rounded-full border border-blue-200 bg-white px-5 py-2.5 text-xs font-bold text-brand shadow-sm transition-all duration-300 hover:border-brand hover:bg-blue-50/50 hover:shadow-md"
+        >
+          View all products <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" />
+        </button>
+      </div>
       <ExperianCreditOverview />
       <QuickBuy
         onViewAll={() => {
@@ -101,7 +107,7 @@ export default function Home() {
       />
       <PromoCards onComingSoon={setComingSoonFeature} />
       <WhyChooseUs />
-      <MiniBannerSlider />
+      <MiniBannerSlider onComingSoon={setComingSoonFeature} />
       <PopularCalculators onComingSoon={setComingSoonFeature} />
       <Advantages />
       <DownloadApp />
@@ -126,96 +132,144 @@ function Hero() {
   }, [])
 
   useEffect(() => {
-    const timer = setInterval(nextBanner, 4000)
+    const timer = setInterval(nextBanner, 4500)
     return () => clearInterval(timer)
   }, [nextBanner])
 
   const banner = heroBanners[currentBanner]
 
   return (
-    <section className="bg-blueBG">
-      <div className="container-pb flex flex-col items-center gap-8 py-10 lg:flex-row lg:items-start lg:py-14">
-        {/* Left side */}
-        <div className="flex-1 pt-4">
-          <h1 className="text-[32px] font-light leading-snug text-navy lg:text-[40px]">
-            Let's find you
-            <br />
-            the <span className="font-bold">Best Insurance</span>
+    <section className="relative overflow-hidden bg-gradient-to-b from-blue-50/80 via-white to-slate-50 py-10 lg:py-14">
+      {/* Background ambient lighting blobs */}
+      <div className="pointer-events-none absolute -top-24 left-1/4 h-96 w-96 rounded-full bg-blue-400/10 blur-3xl" />
+      <div className="pointer-events-none absolute top-1/2 -right-24 h-96 w-96 rounded-full bg-indigo-400/10 blur-3xl" />
+
+      <div className="container-pb relative z-10 flex flex-col items-center gap-10 lg:flex-row lg:items-center">
+        {/* Left side info */}
+        <div className="flex-1 text-left">
+          <div className="inline-flex items-center gap-2 rounded-full border border-blue-200/80 bg-white/80 px-3.5 py-1.5 backdrop-blur-md shadow-sm">
+            <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-[11px] font-semibold tracking-wide text-blue-900 uppercase">
+              ⚡ India's #1 Insurance Marketplace
+            </span>
+          </div>
+
+          <h1 className="mt-5 text-3xl font-extrabold tracking-tight text-navy sm:text-4xl lg:text-5xl lg:leading-tight">
+            Let's find you <br />
+            the{' '}
+            <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 bg-clip-text text-transparent">
+              Best Insurance
+            </span>
           </h1>
-          <div className="mt-8 flex items-center gap-8">
-            <div className="flex items-center gap-3">
-              <span className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-brand/30">
-                <CheckCircle2 size={20} className="text-brand" />
+
+          <p className="mt-4 max-w-lg text-sm leading-relaxed text-slate-600 sm:text-base">
+            Compare quotes from 51+ leading insurers instantly. Get unbiased advice, lowest prices, and 100% paperless claim support.
+          </p>
+
+          <div className="mt-8 flex flex-wrap items-center gap-4">
+            <div className="flex items-center gap-3 rounded-2xl border border-slate-200/80 bg-white p-3 shadow-sm transition-all hover:border-blue-300 hover:shadow-md">
+              <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-600 ring-1 ring-blue-100">
+                <CheckCircle2 size={22} />
               </span>
               <div>
-                <p className="text-[13px] font-semibold text-navy">51 insurers offering</p>
-                <p className="text-[12px] text-slate2-secondary">lowest prices</p>
+                <p className="text-xs font-bold text-navy">51+ Partner Insurers</p>
+                <p className="text-[11px] text-slate-500">Guaranteed lowest prices</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <span className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-green-cta/30">
-                <Zap size={20} className="text-green-cta" />
+
+            <div className="flex items-center gap-3 rounded-2xl border border-slate-200/80 bg-white p-3 shadow-sm transition-all hover:border-emerald-300 hover:shadow-md">
+              <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100">
+                <Zap size={22} />
               </span>
               <div>
-                <p className="text-[13px] font-semibold text-navy">Quick, easy &amp;</p>
-                <p className="text-[12px] text-slate2-secondary">hassle free</p>
+                <p className="text-xs font-bold text-navy">Quick &amp; Hassle Free</p>
+                <p className="text-[11px] text-slate-500">Instant policy issuing</p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Right side - banner carousel */}
-        <div className="w-full max-w-[520px]">
-          <div
-            className={`relative overflow-hidden rounded-2xl bg-gradient-to-r ${banner.bg} p-8 text-white transition-all duration-500`}
-            style={{ minHeight: '280px' }}
-          >
-            <div className="relative z-10">
-              <p className="text-[36px] font-bold leading-tight">{banner.title}</p>
-              <p className="mt-1 text-[16px] font-semibold tracking-wide">{banner.subtitle}</p>
-              <p className="mt-3 text-[15px]">{banner.price}</p>
-              <div className="mt-4 flex flex-wrap gap-2">
-                <span className="rounded-full bg-white/20 px-3 py-1 text-[11px] font-medium backdrop-blur-sm">
-                  {banner.badge1}
-                </span>
-                <span className="rounded-full bg-white/20 px-3 py-1 text-[11px] font-medium backdrop-blur-sm">
-                  {banner.badge2}
-                </span>
+        {/* Right side - hero carousel card */}
+        <div className="w-full max-w-[540px]">
+          <div className="relative overflow-hidden rounded-3xl border border-white/20 bg-slate-900 shadow-2xl transition-all duration-500">
+            {/* Real background image with gradient overlay */}
+            <div className="absolute inset-0 z-0">
+              <img
+                src={banner.image}
+                alt={banner.subtitle}
+                className="h-full w-full object-cover opacity-60 transition-all duration-700 scale-105"
+              />
+              <div className={`absolute inset-0 bg-gradient-to-r ${banner.overlay}`} />
+            </div>
+
+            <div className="relative z-10 flex min-h-[300px] flex-col justify-between p-5 text-white sm:p-8">
+              <div>
+                <div className="flex items-center justify-between">
+                  <span className="rounded-full bg-white/20 px-3.5 py-1 text-[11px] font-bold uppercase tracking-wider backdrop-blur-md ring-1 ring-white/30">
+                    {banner.subtitle}
+                  </span>
+                  <span className="text-[11px] font-medium text-slate-200">
+                    {currentBanner + 1} / {heroBanners.length}
+                  </span>
+                </div>
+
+                <p className="mt-4 text-3xl font-black tracking-tight sm:text-4xl text-white drop-shadow-md">
+                  {banner.title}
+                </p>
+                <p className="mt-1 text-sm font-semibold text-blue-200">
+                  {banner.price}
+                </p>
+
+                <div className="mt-5 flex flex-wrap gap-2">
+                  <span className="rounded-xl bg-white/15 px-3 py-1.5 text-xs font-medium backdrop-blur-md border border-white/15">
+                    {banner.badge1}
+                  </span>
+                  <span className="rounded-xl bg-white/15 px-3 py-1.5 text-xs font-medium backdrop-blur-md border border-white/15">
+                    {banner.badge2}
+                  </span>
+                </div>
               </div>
-              <button className="mt-5 flex items-center gap-2 rounded-lg bg-white px-6 py-2.5 text-[13px] font-semibold text-navy transition-colors hover:bg-white/90">
-                {banner.cta} <ArrowRight size={14} />
-              </button>
+
+              <div className="mt-6 flex items-center justify-between">
+                <button className="group flex items-center gap-2 rounded-xl bg-white px-6 py-3 text-xs font-bold text-navy shadow-lg transition-all duration-300 hover:bg-blue-50 hover:shadow-xl hover:scale-[1.02]">
+                  {banner.cta} <ArrowRight size={15} className="transition-transform group-hover:translate-x-1" />
+                </button>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={prevBanner}
+                    aria-label="Previous Banner"
+                    className="flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-black/30 text-white backdrop-blur-md transition-all hover:bg-white hover:text-navy"
+                  >
+                    <ChevronLeft size={18} />
+                  </button>
+                  <button
+                    onClick={nextBanner}
+                    aria-label="Next Banner"
+                    className="flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-black/30 text-white backdrop-blur-md transition-all hover:bg-white hover:text-navy"
+                  >
+                    <ChevronRight size={18} />
+                  </button>
+                </div>
+              </div>
             </div>
-            <div className="absolute -bottom-10 -right-10 h-40 w-40 rounded-full bg-white/5" />
-            <div className="absolute -top-8 -right-8 h-32 w-32 rounded-full bg-white/5" />
           </div>
-          <div className="mt-4 flex items-center justify-center gap-3">
-            <button
-              onClick={prevBanner}
-              className="flex h-8 w-8 items-center justify-center rounded-full border border-slate2-border bg-white text-slate2-secondary hover:border-brand hover:text-brand"
-            >
-              <ChevronLeft size={16} />
-            </button>
-            <div className="flex gap-2">
-              {heroBanners.map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setCurrentBanner(i)}
-                  className={`h-2.5 w-2.5 rounded-full transition-colors ${
-                    i === currentBanner ? 'bg-brand' : 'bg-slate2-border'
-                  }`}
-                />
-              ))}
-            </div>
-            <button
-              onClick={nextBanner}
-              className="flex h-8 w-8 items-center justify-center rounded-full border border-slate2-border bg-white text-slate2-secondary hover:border-brand hover:text-brand"
-            >
-              <ChevronRight size={16} />
-            </button>
+
+          <div className="mt-4 flex items-center justify-center gap-2">
+            {heroBanners.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setCurrentBanner(i)}
+                aria-label={`Go to slide ${i + 1}`}
+                className={`h-2 rounded-full transition-all duration-300 ${
+                  i === currentBanner ? 'w-8 bg-brand' : 'w-2 bg-slate-300 hover:bg-slate-400'
+                }`}
+              />
+            ))}
           </div>
-          <p className="mt-3 text-center text-[10px] text-slate2-muted">
-            *Standard T&C Apply | IRDAI Regd. PB Insurance Brokers | IRDAI Reg. No. 442
+
+          <p className="mt-2 text-center text-[10px] font-medium text-slate-400">
+            *Standard T&C Apply | IRDAI Regd. Insurance Brokers | Reg. No. 442
           </p>
         </div>
       </div>
@@ -226,7 +280,14 @@ function Hero() {
 /* ═══════════════════════ PRODUCT GRID ═══════════════════════ */
 function ProductGrid({ onComingSoon }: { onComingSoon: (featureName: string) => void }) {
   return (
-    <section className="container-pb py-10">
+    <section className="container-pb py-8">
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-bold text-navy sm:text-2xl">Insurance Products</h2>
+          <p className="text-xs text-slate-500 mt-0.5">Explore best plans tailored for you and your family</p>
+        </div>
+      </div>
+
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7">
         {productTiles.map((p) => (
           <a
@@ -237,33 +298,62 @@ function ProductGrid({ onComingSoon }: { onComingSoon: (featureName: string) => 
               event.preventDefault()
               onComingSoon(p.name)
             }}
-            className="group relative flex flex-col items-center rounded-xl bg-white p-4 text-center shadow-[0_2px_12px_rgba(0,0,0,0.06)] transition-all hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(0,0,0,0.1)]"
+            className="group relative flex flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white text-center shadow-sm transition-all duration-300 hover:-translate-y-1.5 hover:border-brand/40 hover:shadow-xl"
           >
+            {/* Tag Badge */}
             {p.tag && (
               <span
-                className="absolute -top-2.5 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-full px-2.5 py-0.5 text-[9px] font-bold text-white"
-                style={{ backgroundColor: p.tagColor }}
+                className="absolute top-2 left-2 z-20 rounded-md px-2 py-0.5 text-[9px] font-extrabold text-white shadow-md backdrop-blur-sm"
+                style={{ backgroundColor: p.tagColor || '#49cc76' }}
               >
                 {p.tag}
               </span>
             )}
-            <div
-              className="mb-3 flex h-16 w-16 items-center justify-center rounded-2xl transition-transform group-hover:scale-110"
-              style={{ backgroundColor: p.bgColor }}
-            >
-              <img
-                src={p.icon}
-                alt={p.name}
-                className="h-10 w-10 object-contain"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement
-                  target.style.display = 'none'
-                }}
-              />
+
+            {/* Real Photographic Card Image Banner */}
+            <div className="relative h-28 w-full overflow-hidden bg-slate-100">
+              {p.image ? (
+                <img
+                  src={p.image}
+                  alt={p.name}
+                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  onError={(e) => {
+                    // Fallback to solid background color if image link fails
+                    const target = e.target as HTMLImageElement
+                    target.style.display = 'none'
+                  }}
+                />
+              ) : null}
+              {/* Subtle dark bottom gradient on image for contrast */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+
+              {/* Product Icon Badge Overlaid */}
+              <div
+                className="absolute bottom-2 left-1/2 z-10 flex h-11 w-11 -translate-x-1/2 items-center justify-center rounded-xl bg-white/95 p-2 shadow-lg backdrop-blur-md ring-2 ring-white transition-transform duration-300 group-hover:scale-110"
+                style={{ backgroundColor: p.bgColor || '#ffffff' }}
+              >
+                <img
+                  src={p.icon}
+                  alt=""
+                  className="h-7 w-7 object-contain"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement
+                    target.style.display = 'none'
+                  }}
+                />
+              </div>
             </div>
-            <p className="text-[11px] font-medium leading-tight text-navy group-hover:text-brand">
-              {p.name}
-            </p>
+
+            {/* Product Title */}
+            <div className="flex flex-1 flex-col justify-between p-3.5 pt-3">
+              <p className="text-[12px] font-bold leading-snug text-navy transition-colors group-hover:text-brand">
+                {p.name}
+              </p>
+              <div className="mt-2 flex items-center justify-center gap-1 text-[10px] font-semibold text-brand opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                <span>View Plans</span>
+                <ArrowRight size={10} />
+              </div>
+            </div>
           </a>
         ))}
       </div>

@@ -82,14 +82,14 @@ export default function ChildSavingsPlanListPage() {
       <header className="sticky top-0 z-30 border-b-2 border-slate-900 bg-slate-900 shadow-md">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5">
           <img src={logo} alt="AV Management" className="h-10 w-auto object-contain" />
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             <button className="flex items-center gap-2 text-sm font-bold text-blue-400 hover:text-blue-300">
               <Headphones size={16} />
-              Talk to an Expert
+              <span className="hidden sm:inline">Talk to an Expert</span>
             </button>
             <button
               onClick={() => navigate(-1)}
-              className="px-4 py-2 border-2 border-blue-400 text-blue-400 font-bold text-sm rounded-lg hover:bg-blue-400/10 transition-colors"
+              className="rounded-lg border-2 border-blue-400 px-2.5 py-2 text-xs font-bold text-blue-400 transition-colors hover:bg-blue-400/10 sm:px-4 sm:text-sm"
             >
               ✎ Edit Details
             </button>
@@ -100,7 +100,7 @@ export default function ChildSavingsPlanListPage() {
       {/* Details Summary */}
       <div className="bg-white border-b border-slate-200 py-4">
         <div className="mx-auto max-w-6xl px-5">
-          <div className="grid grid-cols-4 gap-4 text-center">
+          <div className="grid grid-cols-2 gap-4 text-center sm:grid-cols-4">
             <div>
               <p className="text-xs text-slate-600 font-medium">Child Age</p>
               <p className="text-lg font-bold text-navy">{childDetails?.childAge || 0} Years</p>
@@ -179,7 +179,7 @@ export default function ChildSavingsPlanListPage() {
 
                 {/* Expanded Children */}
                 {expandedIndex === idx && plan.children && (
-                  <div className="mt-4 space-y-4 ml-4 border-l-2 border-blue-300 pl-4">
+                  <div className="mt-4 space-y-4 border-l-2 border-blue-300 pl-2 sm:ml-4 sm:pl-4">
                     {plan.children.map((childPlan) => (
                       <ChildSavingsPlanCard
                         key={childPlan.id}

@@ -10,6 +10,7 @@ import {
   PiggyBank,
   ShieldCheck,
   Stethoscope,
+  Calculator,
 } from 'lucide-react'
 
 import 'swiper/css'
@@ -34,8 +35,8 @@ const calculatorGroups: CalcGroup[] = [
     title: 'Investment calculators',
     icon: PiggyBank,
     theme: {
-      bg: 'bg-gradient-to-br from-emerald-50 to-emerald-100',
-      iconBg: 'bg-emerald-500',
+      bg: 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white',
+      iconBg: 'bg-white/20 backdrop-blur-md text-white ring-1 ring-white/30',
       iconColor: 'text-white',
     },
     links: ['SIP Calculator', 'Income Tax Calculator', 'ULIP Calculator', 'NPS Calculator'],
@@ -45,8 +46,8 @@ const calculatorGroups: CalcGroup[] = [
     title: 'Health & Wellness calculators',
     icon: HeartPulse,
     theme: {
-      bg: 'bg-gradient-to-br from-sky-50 to-sky-100',
-      iconBg: 'bg-sky-500',
+      bg: 'bg-gradient-to-r from-sky-600 to-blue-600 text-white',
+      iconBg: 'bg-white/20 backdrop-blur-md text-white ring-1 ring-white/30',
       iconColor: 'text-white',
     },
     links: ['BMI Calculator', 'Ideal Weight Calculator', 'Calorie Calculator', 'Body Fat Calculator'],
@@ -55,8 +56,8 @@ const calculatorGroups: CalcGroup[] = [
     title: 'Term Insurance calculators',
     icon: ShieldCheck,
     theme: {
-      bg: 'bg-gradient-to-br from-violet-50 to-violet-100',
-      iconBg: 'bg-violet-500',
+      bg: 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white',
+      iconBg: 'bg-white/20 backdrop-blur-md text-white ring-1 ring-white/30',
       iconColor: 'text-white',
     },
     links: [
@@ -70,8 +71,8 @@ const calculatorGroups: CalcGroup[] = [
     title: 'Policy premium calculators',
     icon: Stethoscope,
     theme: {
-      bg: 'bg-gradient-to-br from-purple-50 to-purple-100',
-      iconBg: 'bg-purple-500',
+      bg: 'bg-gradient-to-r from-purple-600 to-pink-600 text-white',
+      iconBg: 'bg-white/20 backdrop-blur-md text-white ring-1 ring-white/30',
       iconColor: 'text-white',
     },
     links: [
@@ -88,17 +89,19 @@ export default function PopularCalculators({ onComingSoon }: { onComingSoon?: (f
   const nextRef = useRef<HTMLButtonElement>(null)
 
   return (
-    <section className="bg-white py-14">
+    <section className="bg-white py-12 lg:py-16">
       <div className="container-pb">
-        <h2 className="text-center text-[22px] font-semibold text-navy">
-          Popular calculators
-        </h2>
-        <span className="heading-accent mx-auto mt-2 block h-1 w-12 rounded-full bg-brand" />
-        <p className="mx-auto mt-4 max-w-2xl text-center text-[13px] leading-6 text-slate2-secondary">
-          Discover our user-friendly calculators tailored to help you make informed
-          financial decisions. Our diverse range of insurance calculators ensures you
-          find the perfect fit for your needs.
-        </p>
+        <div className="text-center">
+          <div className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3.5 py-1 text-xs font-bold text-brand">
+            <Calculator size={14} /> Smart Financial Planning
+          </div>
+          <h2 className="mt-3 text-2xl font-extrabold text-navy sm:text-3xl">
+            Popular Insurance Calculators
+          </h2>
+          <p className="mx-auto mt-3 max-w-2xl text-xs leading-relaxed text-slate-500 sm:text-sm">
+            Discover our user-friendly calculators tailored to help you make informed financial decisions. Our diverse range ensures you find the exact plan for your goals.
+          </p>
+        </div>
 
         <div className="relative mt-10">
           <Swiper
@@ -123,27 +126,27 @@ export default function PopularCalculators({ onComingSoon }: { onComingSoon?: (f
               768: { slidesPerView: 2 },
               1024: { slidesPerView: 3 },
             }}
-            className="calc-slider !pb-2"
+            className="calc-slider !pb-3"
           >
             {calculatorGroups.map((g) => {
               const Icon = g.icon
               return (
                 <SwiperSlide key={g.title}>
-                  <div className="h-full overflow-hidden rounded-2xl border border-slate2-border bg-white shadow-sm transition-shadow duration-300 hover:shadow-lg">
-                    <div className={`flex items-center gap-3 p-5 ${g.theme.bg}`}>
+                  <div className="h-full overflow-hidden rounded-3xl border border-slate-200/90 bg-white shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+                    <div className={`flex items-center gap-3.5 p-5 ${g.theme.bg}`}>
                       <span
-                        className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${g.theme.iconBg} shadow-sm`}
+                        className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${g.theme.iconBg} shadow-md`}
                       >
-                        <Icon size={20} className={g.theme.iconColor} />
+                        <Icon size={22} className={g.theme.iconColor} />
                       </span>
-                      <h3 className="text-[15px] font-semibold leading-snug text-navy">
+                      <h3 className="text-base font-extrabold leading-snug text-white">
                         {g.title}
                       </h3>
                     </div>
 
-                    <ul>
+                    <ul className="p-2">
                       {g.links.map((l, i) => (
-                        <li key={l} className="border-b border-slate2-border/60 last:border-0">
+                        <li key={l}>
                           <Link
                             to={g.linksTo?.[i] ?? '/calculators'}
                             onClick={(event) => {
@@ -151,12 +154,12 @@ export default function PopularCalculators({ onComingSoon }: { onComingSoon?: (f
                               event.preventDefault()
                               onComingSoon?.(l)
                             }}
-                            className="group flex items-center justify-between px-5 py-3.5 text-[13px] text-slate2-secondary transition-colors hover:bg-blueBG/60 hover:text-brand"
+                            className="group flex items-center justify-between rounded-xl px-4 py-3 text-xs font-semibold text-slate-700 transition-all duration-200 hover:bg-blue-50/80 hover:text-brand"
                           >
-                            {l}
+                            <span>{l}</span>
                             <ArrowRight
                               size={14}
-                              className="text-slate2-muted transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-brand"
+                              className="text-slate-400 transition-transform duration-200 group-hover:translate-x-1 group-hover:text-brand"
                             />
                           </Link>
                         </li>
@@ -172,23 +175,23 @@ export default function PopularCalculators({ onComingSoon }: { onComingSoon?: (f
           <button
             ref={prevRef}
             aria-label="Previous"
-            className="absolute -left-4 top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-slate2-border bg-white text-slate2-secondary shadow-md transition-colors hover:border-brand hover:text-brand md:flex"
+            className="absolute -left-4 top-1/2 z-10 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200 bg-white text-navy shadow-lg transition-all hover:bg-brand hover:text-white md:flex"
           >
-            <ChevronLeft size={18} />
+            <ChevronLeft size={20} />
           </button>
           <button
             ref={nextRef}
             aria-label="Next"
-            className="absolute -right-4 top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-slate2-border bg-white text-slate2-secondary shadow-md transition-colors hover:border-brand hover:text-brand md:flex"
+            className="absolute -right-4 top-1/2 z-10 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200 bg-white text-navy shadow-lg transition-all hover:bg-brand hover:text-white md:flex"
           >
-            <ChevronRight size={18} />
+            <ChevronRight size={20} />
           </button>
 
-          {/* Line-style progress scroller (replaces dots) */}
-          <div className="calc-progressbar mx-auto mt-6 h-[3px] w-40 overflow-hidden rounded-full bg-slate2-border" />
+          {/* Line-style progress scroller */}
+          <div className="calc-progressbar mx-auto mt-6 h-1 w-44 overflow-hidden rounded-full bg-slate-200" />
         </div>
 
-        <div className="mt-10 flex flex-wrap justify-center gap-3">
+        <div className="mt-8 flex flex-wrap justify-center gap-3">
           <Link
             to="/calculators"
             onClick={(event) => {
@@ -196,9 +199,9 @@ export default function PopularCalculators({ onComingSoon }: { onComingSoon?: (f
               event.preventDefault()
               onComingSoon?.('All health calculators')
             }}
-            className="rounded-lg border border-brand px-5 py-2 text-[12px] font-medium text-brand transition-colors hover:bg-brand hover:text-white"
+            className="rounded-xl border border-blue-200 bg-white px-5 py-2.5 text-xs font-bold text-brand shadow-sm transition-all hover:border-brand hover:bg-blue-50"
           >
-            View all health calculators
+            View all health calculators →
           </Link>
           <Link
             to="/calculators"
@@ -207,9 +210,9 @@ export default function PopularCalculators({ onComingSoon }: { onComingSoon?: (f
               event.preventDefault()
               onComingSoon?.('All financial calculators')
             }}
-            className="rounded-lg border border-brand px-5 py-2 text-[12px] font-medium text-brand transition-colors hover:bg-brand hover:text-white"
+            className="rounded-xl border border-blue-200 bg-white px-5 py-2.5 text-xs font-bold text-brand shadow-sm transition-all hover:border-brand hover:bg-blue-50"
           >
-            View all financial calculators
+            View all financial calculators →
           </Link>
         </div>
       </div>

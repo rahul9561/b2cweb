@@ -63,7 +63,7 @@ export default {
         pill: '50px',
       },
       maxWidth: {
-        container: '1140px',
+        container: '1980px',
       },
     },
   },

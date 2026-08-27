@@ -52,7 +52,7 @@ export default function ChildSavingsPlanCard({
         )}
 
         {/* Main Card Content */}
-        <div className="p-6 grid grid-cols-6 gap-6 items-center">
+        <div className="grid grid-cols-1 items-center gap-5 p-4 sm:grid-cols-2 sm:p-6 lg:grid-cols-6 lg:gap-6">
           {/* Logo Column */}
           <div className="col-span-1">
             <img
@@ -77,7 +77,7 @@ export default function ChildSavingsPlanCard({
           </div>
 
           {/* Payout Column */}
-          <div className="col-span-2">
+          <div className="col-span-1 lg:col-span-2">
             <div className="space-y-3">
               <div>
                 <p className="text-xs text-slate-600">Maturity Payout to You</p>
@@ -100,7 +100,7 @@ export default function ChildSavingsPlanCard({
           </div>
 
           {/* Buttons Column */}
-          <div className="col-span-2 flex flex-col gap-2">
+          <div className="col-span-1 flex flex-col gap-2 lg:col-span-2">
             <button
               onClick={() => onViewDetails(plan)}
               className="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition-colors text-sm"
@@ -117,7 +117,7 @@ export default function ChildSavingsPlanCard({
         </div>
 
         {/* Badges Section */}
-        <div className="px-6 pb-4 flex flex-wrap gap-2 items-center">
+        <div className="flex flex-wrap items-center gap-2 px-4 pb-4 sm:px-6">
           {displayBadges.map((tag, idx) => (
             <span
               key={idx}

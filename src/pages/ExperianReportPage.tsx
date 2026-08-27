@@ -4,51 +4,69 @@ import CreditReportFlow from '../components/CreditReportFlow'
 import { CreditScoreArticles, CreditScoreDisclaimer } from '../components/credit-score/CreditScoreArticles'
 
 const scoreRows = [
-  ['800 – 900', 'Excellent', 'Your profile shows strong credit behaviour.', 'You may be better placed for credit approval and favourable terms, subject to the lender’s policy.', 'bg-emerald-600'],
-  ['750 – 799', 'Very Good', 'Experian generally considers a score above 750 to be good.', 'A healthy score can improve your chances of securing loans or credit cards.', 'bg-green-500'],
-  ['700 – 749', 'Good', 'Your score is approaching the generally preferred range.', 'Continue making timely payments and managing credit exposure carefully.', 'bg-yellow-400'],
-  ['650 – 699', 'Fair', 'Your credit profile may need improvement.', 'Lenders may review other parts of your financial profile more closely.', 'bg-orange-500'],
-  ['300 – 649', 'Needs Attention', 'Review your report and repayment habits.', 'Improving payment history and credit utilisation may support your score over time.', 'bg-red-500'],
+  ['800 – 900', 'Excellent', 'Your profile shows strong credit behaviour.', 'You may be better placed for credit approval and favourable terms, subject to the lender’s policy.', 'bg-gradient-to-r from-emerald-500 to-emerald-600'],
+  ['750 – 799', 'Very Good', 'Experian generally considers a score above 750 to be good.', 'A healthy score can improve your chances of securing loans or credit cards.', 'bg-gradient-to-r from-green-400 to-green-500'],
+  ['700 – 749', 'Good', 'Your score is approaching the generally preferred range.', 'Continue making timely payments and managing credit exposure carefully.', 'bg-gradient-to-r from-yellow-400 to-yellow-500'],
+  ['650 – 699', 'Fair', 'Your credit profile may need improvement.', 'Lenders may review other parts of your financial profile more closely.', 'bg-gradient-to-r from-orange-400 to-orange-500'],
+  ['300 – 649', 'Needs Attention', 'Review your report and repayment habits.', 'Improving payment history and credit utilisation may support your score over time.', 'bg-gradient-to-r from-red-500 to-red-600'],
 ]
 
-const BulletList = ({ items }: { items: string[] }) => <ul className="space-y-3">{items.map((item) => <li key={item} className="flex gap-3 text-sm leading-6 text-slate-700"><Check className="mt-1 h-4 w-4 shrink-0 rounded-full bg-blue-600 p-0.5 text-white" />{item}</li>)}</ul>
-const Section = ({ title, children }: { title: string; children: React.ReactNode }) => <section><h2 className="font-serif text-2xl font-bold text-navy md:text-3xl">{title}</h2><div className="mt-5">{children}</div></section>
-const Copy = ({ children }: { children: React.ReactNode }) => <p className="text-sm leading-7 text-slate-700 md:text-base">{children}</p>
+const BulletList = ({ items }: { items: string[] }) => (
+  <ul className="mt-5 space-y-4 rounded-2xl bg-slate-50/50 p-6">
+    {items.map((item) => (
+      <li key={item} className="flex gap-4 text-sm leading-7 text-slate-700">
+        <Check className="mt-1 h-5 w-5 shrink-0 rounded-full bg-blue-100 p-1 text-blue-600" />
+        {item}
+      </li>
+    ))}
+  </ul>
+)
+const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
+  <section className="scroll-mt-8">
+    <h2 className="font-sans text-2xl font-extrabold tracking-tight text-navy md:text-3xl">{title}</h2>
+    <div className="mt-5">{children}</div>
+  </section>
+)
+const Copy = ({ children }: { children: React.ReactNode }) => (
+  <p className="mt-4 text-sm leading-8 text-slate-700 md:text-base">{children}</p>
+)
 
 const ExperianReportPage: React.FC = () => {
   return (
     <div className="bg-white text-slate-800">
-      <section className="border-b border-blue-100 bg-gradient-to-br from-blue-50 via-white to-sky-50 py-10 md:py-14">
-        <div className="container-pb grid gap-9 lg:grid-cols-[1.35fr_.85fr]">
+      <section className="relative overflow-hidden border-b border-blue-100 bg-gradient-to-br from-blue-950 via-slate-900 to-indigo-950 py-12 text-white md:py-16">
+        <div className="pointer-events-none absolute -right-20 -top-20 h-96 w-96 rounded-full bg-blue-500/20 blur-3xl" />
+        <div className="container-pb relative z-10 grid gap-10 lg:grid-cols-[1.35fr_.85fr] lg:items-start">
           <div className="pt-2">
-            <span className="inline-flex items-center gap-2 rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
-              <ShieldCheck size={14} /> Experian credit profile
+            <span className="inline-flex items-center gap-2 rounded-full border border-blue-400/30 bg-blue-500/20 px-3.5 py-1.5 text-xs font-extrabold uppercase tracking-wider text-blue-300 backdrop-blur-md">
+              <ShieldCheck size={16} /> Official Experian Credit Bureau
             </span>
-            <h1 className="mt-4 font-serif text-3xl font-bold text-navy md:text-5xl">Experian Credit Score &amp; Report</h1>
-            <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600">
-              Understand how lenders may view your credit profile with a detailed Experian Credit Report and
-              take informed steps toward stronger credit health.
+            <h1 className="mt-4 font-sans text-3xl font-extrabold tracking-tight text-white md:text-5xl lg:text-6xl">
+              Experian Credit <span className="bg-gradient-to-r from-blue-400 via-indigo-300 to-sky-400 bg-clip-text text-transparent">Score &amp; Report</span>
+            </h1>
+            <p className="mt-4 max-w-2xl text-xs font-medium leading-relaxed text-slate-300 sm:text-sm md:text-base">
+              Understand how lenders view your credit profile with a detailed Experian Credit Report and take informed steps toward stronger credit health.
             </p>
 
             <div className="mt-7 grid gap-3 sm:max-w-xl">
               {['View Your 3-Digit Experian Credit Score', 'Review Loans, Credit Cards and Payment History', 'Spot Errors or Unfamiliar Credit Enquiries'].map((text) => (
-                <div key={text} className="flex items-center gap-3 rounded-xl border border-blue-100 bg-white/80 px-4 py-3 text-sm font-medium shadow-sm">
-                  <Check className="h-5 w-5 rounded-full bg-green-500 p-1 text-white" />
-                  {text}
+                <div key={text} className="flex items-center gap-3 rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-xs font-bold text-white shadow-lg backdrop-blur-md">
+                  <Check className="h-5 w-5 shrink-0 rounded-full bg-emerald-500 p-1 text-white shadow-md shadow-emerald-500/30" />
+                  <span>{text}</span>
                 </div>
               ))}
             </div>
 
-            <div className="mt-8 grid max-w-2xl grid-cols-2 overflow-hidden rounded-xl border border-blue-200 bg-white sm:grid-cols-4">
+            <div className="mt-8 grid max-w-2xl grid-cols-2 overflow-hidden rounded-2xl border border-white/15 bg-white/10 backdrop-blur-md sm:grid-cols-4">
               {[
                 ['300–900', 'Score range'],
                 ['750+', 'Generally good'],
                 ['3 digits', 'Credit score'],
                 ['1 report', 'Detailed profile'],
               ].map(([value, label]) => (
-                <div key={label} className="border-b border-r border-blue-100 p-4 text-center last:border-r-0 sm:border-b-0">
-                  <strong className="block text-xl text-navy">{value}</strong>
-                  <span className="mt-1 block text-[11px] text-slate-500">{label}</span>
+                <div key={label} className="border-b border-r border-white/10 p-4 text-center last:border-r-0 sm:border-b-0">
+                  <strong className="block text-xl font-extrabold text-white">{value}</strong>
+                  <span className="mt-1 block text-[11px] font-semibold text-slate-300">{label}</span>
                 </div>
               ))}
             </div>
@@ -77,7 +95,7 @@ const ExperianReportPage: React.FC = () => {
                 An Experian Credit Report is a detailed record of how you have handled loans and credit cards.
                 Your Experian credit score is the three-digit summary calculated from the information in that report.
               </Copy>
-              <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-5">
+              <div className="mt-6">
                 <BulletList items={[
                   'Experian credit scores range from 300 to 900, with 900 being the highest.',
                   'A score above 750 is generally considered good by Experian.',
@@ -93,32 +111,32 @@ const ExperianReportPage: React.FC = () => {
                 Experian credit scores range between 300 and 900. A higher score generally represents stronger
                 credit behaviour, but every lender applies its own approval policy and eligibility checks.
               </Copy>
-              <div className="my-7 flex overflow-hidden rounded-full text-center text-xs font-bold shadow-sm">
+              <div className="my-8 flex overflow-hidden rounded-2xl text-center text-xs font-bold shadow-md">
                 {scoreRows.map(([score, range, , , color]) => (
-                  <div key={range as string} className={`${color} flex min-h-11 flex-1 flex-col items-center justify-center px-1 ${range === 'Good' ? 'text-slate-900' : 'text-white'}`}>
-                    <span>{score}</span>
-                    <span className="hidden text-[10px] font-medium sm:block">{range}</span>
+                  <div key={range as string} className={`${color} flex min-h-16 flex-1 flex-col items-center justify-center px-1 text-white`}>
+                    <span className="text-sm">{score}</span>
+                    <span className="hidden text-[10px] font-extrabold uppercase tracking-wider sm:block">{range}</span>
                   </div>
                 ))}
               </div>
-              <div className="overflow-x-auto rounded-xl border border-slate-200">
+              <div className="overflow-x-auto rounded-2xl border border-slate-200 shadow-sm">
                 <table className="w-full min-w-[720px] text-left text-sm">
-                  <thead className="bg-[#294b8d] text-white">
-                    <tr><th className="p-4">Experian Score</th><th className="p-4">Score Range</th><th className="p-4">What It Means</th><th className="p-4">What It Signifies</th></tr>
+                  <thead className="bg-gradient-to-r from-blue-900 to-indigo-900 text-white">
+                    <tr><th className="p-5 font-semibold">Experian Score</th><th className="p-5 font-semibold">Score Range</th><th className="p-5 font-semibold">What It Means</th><th className="p-5 font-semibold">What It Signifies</th></tr>
                   </thead>
-                  <tbody>
+                  <tbody className="divide-y divide-slate-100">
                     {scoreRows.map(([score, range, means, signifies], index) => (
-                      <tr key={range as string} className={index % 2 ? 'bg-slate-50' : 'bg-white'}>
-                        <td className="border-t border-slate-200 p-4 font-medium">{score}</td>
-                        <td className={`border-t border-slate-200 p-4 font-semibold ${range === 'Good' ? 'text-yellow-500' : 'text-slate-700'}`}>{range}</td>
-                        <td className="border-t border-slate-200 p-4 leading-6">{means}</td>
-                        <td className="border-t border-slate-200 p-4 leading-6">{signifies}</td>
+                      <tr key={range as string} className={index % 2 ? 'bg-slate-50/50' : 'bg-white'}>
+                        <td className="p-5 font-bold text-navy">{score}</td>
+                        <td className={`p-5 font-extrabold ${range === 'Good' ? 'text-yellow-600' : 'text-slate-700'}`}>{range}</td>
+                        <td className="p-5 leading-7 text-slate-600">{means}</td>
+                        <td className="p-5 leading-7 text-slate-600">{signifies}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
-              <p className="mt-3 text-xs italic text-slate-500">Except for Experian’s published 300–900 scale and general 750+ guidance, the bands above are indicative; lender criteria vary.</p>
+              <p className="mt-4 text-xs font-medium text-slate-500">Except for Experian’s published 300–900 scale and general 750+ guidance, the bands above are indicative; lender criteria vary.</p>
             </Section>
 
             <Section title="Steps to Check Your Experian Credit Report">

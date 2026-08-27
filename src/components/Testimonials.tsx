@@ -5,7 +5,7 @@ import 'swiper/css'
 import 'swiper/css/pagination'
 import 'swiper/css/navigation'
 import { FaStar, FaQuoteLeft } from 'react-icons/fa'
-import { ArrowLeft, ArrowRight } from 'lucide-react'
+import { ArrowLeft, ArrowRight, MessageSquareQuote } from 'lucide-react'
 import { testimonials } from '../data/home'
 
 export default function Testimonials() {
@@ -13,35 +13,38 @@ export default function Testimonials() {
   const nextRef = useRef<HTMLButtonElement>(null)
 
   return (
-    <section id="customer-reviews" className="scroll-mt-24 bg-blueBGMuted py-14">
+    <section id="customer-reviews" className="scroll-mt-24 bg-gradient-to-b from-blue-50/40 via-slate-50 to-blue-50/60 py-12 lg:py-16">
       <div className="container-pb">
-        <div className="flex items-center justify-between">
+        <div className="flex items-end justify-between border-b border-slate-200/80 pb-4">
           <div>
-            <h2 className="text-[22px] font-medium text-navy">
+            <div className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3.5 py-1 text-xs font-bold text-brand">
+              <MessageSquareQuote size={15} /> Real Feedback
+            </div>
+            <h2 className="mt-3 text-2xl font-extrabold text-navy sm:text-3xl">
               What Our Customers Are Saying
             </h2>
-            <span className="heading-accent mt-3 block" />
+            <p className="mt-1 text-xs font-medium text-slate-500">Over 9 million satisfied policyholders trust AV Management</p>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <button
               ref={prevRef}
               aria-label="Previous testimonial"
-              className="text-slate2-muted transition-colors hover:text-slate2-secondary"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-navy shadow-md transition-all hover:bg-brand hover:text-white"
             >
-              <ArrowLeft size={22} strokeWidth={1.75} />
+              <ArrowLeft size={18} />
             </button>
             <button
               ref={nextRef}
               aria-label="Next testimonial"
-              className="text-brand transition-colors hover:text-brand/70"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-navy shadow-md transition-all hover:bg-brand hover:text-white"
             >
-              <ArrowRight size={22} strokeWidth={1.75} />
+              <ArrowRight size={18} />
             </button>
           </div>
         </div>
 
-        <div className="mt-10">
+        <div className="mt-8">
           <Swiper
             modules={[Autoplay, Pagination, Navigation]}
             autoplay={{ delay: 5000, disableOnInteraction: false }}
@@ -56,7 +59,7 @@ export default function Testimonials() {
               // @ts-expect-error swiper params typing
               swiper.params.navigation.nextEl = nextRef.current
             }}
-            spaceBetween={20}
+            spaceBetween={24}
             slidesPerView={1}
             breakpoints={{ 768: { slidesPerView: 2 }, 1024: { slidesPerView: 3 } }}
             loop
@@ -64,17 +67,33 @@ export default function Testimonials() {
           >
             {testimonials.map((t) => (
               <SwiperSlide key={t.name}>
-                <div className="flex h-full flex-col rounded-xl bg-white p-6 shadow-sm">
-                  <FaQuoteLeft size={24} className="mb-3 text-brand/20" />
-                  <p className="mb-0.5 text-[13px] font-bold text-navy">{t.name}</p>
-                  <div className="mb-2.5 flex gap-0.5">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <FaStar key={i} size={12} className="text-yellow-400" />
-                    ))}
+                <div className="group flex h-full flex-col justify-between rounded-3xl border border-slate-200/80 bg-white p-6 shadow-md transition-all duration-300 hover:-translate-y-1 hover:border-brand/40 hover:shadow-xl">
+                  <div>
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand/10 text-brand font-black text-sm">
+                        {t.name.slice(0, 1)}
+                      </div>
+                      <FaQuoteLeft size={22} className="text-blue-200 transition-colors group-hover:text-brand/40" />
+                    </div>
+
+                    <div className="mb-3 flex items-center gap-1">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <FaStar key={i} size={14} className="text-amber-400" />
+                      ))}
+                      <span className="ml-1 text-[10px] font-extrabold text-slate-400">5.0</span>
+                    </div>
+
+                    <p className="text-xs font-medium leading-relaxed text-slate-600 italic">
+                      "{t.copy}"
+                    </p>
                   </div>
-                  <p className="flex-1 text-[12px] leading-5 text-slate2-secondary">
-                    "{t.copy}"
-                  </p>
+
+                  <div className="mt-5 border-t border-slate-100 pt-3">
+                    <p className="text-xs font-extrabold text-navy transition-colors group-hover:text-brand">{t.name}</p>
+                    <p className="text-[10px] font-semibold text-emerald-600 flex items-center gap-1 mt-0.5">
+                      <span>✓ Verified Customer</span>
+                    </p>
+                  </div>
                 </div>
               </SwiperSlide>
             ))}

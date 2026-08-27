@@ -31,11 +31,26 @@ export default function LoansListPage() {
   if (!isAuthenticated) return <Navigate to="/login" replace />
 
   return (
-    <main className="min-h-screen bg-blueBGMuted pb-16">
-      <section className="border-b border-blue-100 bg-white">
-        <div className="container-pb py-9">
-          <Link to="/" className="inline-flex items-center gap-1.5 text-sm font-medium text-slate2-secondary hover:text-brand"><ArrowLeft size={16} /> Back to home</Link>
-          <div className="mt-4 flex flex-wrap items-end justify-between gap-4"><div><h1 className="font-serif text-3xl font-bold text-navy md:text-4xl">Your active loans</h1><p className="mt-2 text-sm text-slate2-secondary">Review your reported loan accounts and select any details that need correction.</p></div><Link to="/loans/disputes" className="inline-flex items-center gap-2 rounded-lg border border-slate2-border px-4 py-2.5 text-sm font-semibold text-navy hover:border-brand hover:text-brand"><FileCheck2 size={16} /> My disputes</Link></div>
+    <main className="min-h-screen bg-slate-50 pb-16">
+      <section className="relative overflow-hidden border-b border-blue-100 bg-gradient-to-br from-blue-950 via-slate-900 to-indigo-950 py-10 text-white shadow-xl shadow-blue-900/10">
+        <div className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-blue-500/20 blur-3xl" />
+        <div className="container-pb relative z-10">
+          <Link to="/" className="inline-flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-wider text-blue-300 transition hover:text-white">
+            <ArrowLeft size={16} /> Back to home
+          </Link>
+          <div className="mt-6 flex flex-wrap items-end justify-between gap-5">
+            <div>
+              <h1 className="font-sans text-3xl font-extrabold tracking-tight text-white md:text-4xl">
+                Your <span className="bg-gradient-to-r from-blue-400 to-indigo-300 bg-clip-text text-transparent">active loans</span>
+              </h1>
+              <p className="mt-3 text-sm font-medium text-slate-300">
+                Review your reported loan accounts and select any details that need correction.
+              </p>
+            </div>
+            <Link to="/loans/disputes" className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-5 py-3 text-sm font-bold text-white shadow-lg backdrop-blur-md transition hover:border-blue-400 hover:bg-blue-600">
+              <FileCheck2 size={18} /> My disputes
+            </Link>
+          </div>
         </div>
       </section>
 

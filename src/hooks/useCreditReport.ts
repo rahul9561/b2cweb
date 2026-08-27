@@ -6,6 +6,8 @@ export type ReportType = 'cibil' | 'experian' | 'equifax' | 'crif'
 
 interface GenerateReportParams {
   name: string
+  firstName?: string
+  lastName?: string
   mobile: string
   pan: string
   gender: string
@@ -23,6 +25,11 @@ export type GeneratedCreditReport = {
   mimeType: string
   creditReportLink: string
   rawResponse: unknown
+  documentDownload?: Promise<{
+    bytes: Uint8Array
+    mimeType: string
+    reportId: string
+  } | null>
 }
 
 type JsonRecord = Record<string, unknown>
@@ -170,14 +177,14 @@ const generationEndpoint = (reportType: ReportType) => ({
 const sendOtpEndpoint = (reportType: ReportType) => ({
   cibil: AppEndpoints.cibilSendOtp,
   crif: AppEndpoints.crifSendOtp,
-  equifax: AppEndpoints.equifaxSendOtp,
+  equifax: AppEndpoints.experianSendOtp,
   experian: AppEndpoints.experianSendOtp,
 })[reportType]
 
 const verifyOtpEndpoint = (reportType: ReportType) => ({
   cibil: AppEndpoints.cibilVerifyOtp,
   crif: AppEndpoints.crifVerifyOtp,
-  equifax: AppEndpoints.equifaxVerifyOtp,
+  equifax: AppEndpoints.experianVerifyOtp,
   experian: AppEndpoints.experianVerifyOtp,
 })[reportType]
 
@@ -187,6 +194,8 @@ export function useCreditReport() {
 
   const generateReport = async ({
     name,
+    firstName,
+    lastName,
     mobile,
     pan,
     gender,
@@ -212,7 +221,16 @@ export function useCreditReport() {
             mobile: mobile.trim(),
             consent: true,
           }
-        : {
+        : reportType === 'experian'
+          ? {
+              first_name: firstName?.trim(),
+              last_name: lastName?.trim(),
+              mobile: mobile.trim(),
+              pan: pan.trim().toUpperCase(),
+              gender: gender.toLowerCase(),
+              date_of_birth: dob,
+            }
+          : {
             name: name.trim(),
             mobile: mobile.trim(),
             pan: pan.trim().toUpperCase(),
@@ -230,8 +248,6 @@ export function useCreditReport() {
 
       const generationUrl = reportType === 'cibil' && import.meta.env.DEV
         ? '/b2c-cibil/generate-report/'
-        : reportType === 'experian'
-          ? 'https://apib2c.avmanagementpvtltd.com/cibil/generate-report/v2/'
         : `${API_BASE_URL}${generationEndpoint(reportType)}`
       const response = await fetch(generationUrl, {
         method: 'POST',
@@ -279,17 +295,47 @@ export function useCreditReport() {
         }
 
         const jsonReportId = textValue(findDeepValue(json, ['report_id', 'reportId', 'id']))
-        const creditReportLink = textValue(findDeepValue(json, [
+        const rawCreditReportLink = textValue(findDeepValue(json, [
           'credit_report_link',
           'creditReportLink',
           'report_url',
           'pdf_url',
           'download_url',
         ]))
+        const creditReportLink = rawCreditReportLink.replace(
+          /^http:\/\/apib2c\.avmanagementpvtltd\.com/i,
+          'https://apib2c.avmanagementpvtltd.com'
+        )
         const encodedDocument = findDeepValue(json, ['pdf_base64', 'pdf_data', 'file_content', 'document_bytes'])
         let documentBytes = documentBytesFromValue(encodedDocument)
         let mimeType = 'application/pdf'
         let downloadedReportId = ''
+
+        if (reportType === 'experian') {
+          const rootResponse = asRecord(json)
+          if (rootResponse?.status !== true) {
+            throw new ApiError(responseErrorMessage(json, 'Could not generate Experian report.'), response.status, json)
+          }
+          if (!jsonReportId) {
+            throw new ApiError('The Experian report response did not include a report ID.', response.status, json)
+          }
+          if (!creditReportLink) {
+            throw new ApiError('The Experian report response did not include a PDF link.', response.status, json)
+          }
+
+          return {
+            reportId: jsonReportId,
+            documentBytes,
+            mimeType,
+            creditReportLink,
+            rawResponse: json,
+            // Start fetching the PDF now. CreditReportFlow awaits this together
+            // with the send-OTP request so neither network call blocks the other.
+            documentDownload: documentBytes
+              ? Promise.resolve({ bytes: documentBytes, mimeType, reportId: jsonReportId })
+              : downloadDocument(creditReportLink).catch(() => null),
+          }
+        }
 
         if (!documentBytes && creditReportLink) {
           const downloaded = await downloadDocument(creditReportLink)
@@ -302,7 +348,9 @@ export function useCreditReport() {
           documentBytes = new TextEncoder().encode(JSON.stringify(json))
           mimeType = 'application/json'
         }
-        const requiresHeaderReportId = reportType === 'cibil' || reportType === 'experian'
+        // Equifax returns the generated PDF directly, with its OTP report ID
+        // exposed in the response headers in the same way as CIBIL.
+        const requiresHeaderReportId = reportType === 'cibil' || reportType === 'equifax'
         const reportId = requiresHeaderReportId
           ? headerReportId
           : headerReportId || jsonReportId || downloadedReportId || reportIdFromBytes(documentBytes)
@@ -313,7 +361,7 @@ export function useCreditReport() {
         const responseText = new TextDecoder().decode(responseBytes)
         throw new ApiError(responseErrorMessage(responseText, `Could not generate report (${response.status}).`), response.status, responseText)
       }
-      const requiresHeaderReportId = reportType === 'cibil' || reportType === 'experian'
+      const requiresHeaderReportId = reportType === 'cibil' || reportType === 'equifax'
       const reportId = requiresHeaderReportId ? headerReportId : headerReportId || reportIdFromBytes(responseBytes)
       return {
         reportId: reportId || undefined,
@@ -344,7 +392,7 @@ export function useCreditReport() {
         report_id: reportId,
       }, { auth: true })
       const response = asRecord(result)
-      if ((reportType === 'cibil' || reportType === 'experian') && (!response || response.success !== true)) {
+      if ((reportType === 'cibil' || reportType === 'experian' || reportType === 'equifax') && (!response || response.success !== true)) {
         throw new ApiError(responseErrorMessage(result, 'Could not send OTP. Please try again.'), 200, result)
       }
       return result
@@ -363,7 +411,7 @@ export function useCreditReport() {
     try {
       const result = await ApiClient.post(verifyOtpEndpoint(reportType), { report_id: reportId, otp }, { auth: true })
       const response = asRecord(result)
-      if ((reportType === 'cibil' || reportType === 'experian') && (!response || response.success !== true)) {
+      if ((reportType === 'cibil' || reportType === 'experian' || reportType === 'equifax') && (!response || response.success !== true)) {
         throw new ApiError(responseErrorMessage(result, 'OTP verification failed. Please try again.'), 200, result)
       }
       return result

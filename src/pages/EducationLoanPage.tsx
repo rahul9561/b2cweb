@@ -800,6 +800,7 @@ export default function EducationLoanPage() {
     setErrors((previous) => ({ ...previous, 'coApplicant.types': '', 'coApplicant.relation': '' }))
   }
 
+
   const updateDmcUpload = (index: number, file: File | null) => {
     setDmcUploads((previous) => previous.map((item, itemIndex) => itemIndex === index ? file : item))
     setErrors((previous) => ({ ...previous, [`dmc_${index + 1}`]: '' }))
@@ -809,6 +810,7 @@ export default function EducationLoanPage() {
     setSpouse((previous) => ({ ...previous, [key]: value }))
     setErrors((previous) => ({ ...previous, [`spouse.${key}`]: '' }))
   }
+  void updateSpouse
 
   const updateProperty = (key: keyof PropertyDetails, value: string | boolean) => {
     setProperty((previous) => ({ ...previous, [key]: value }))

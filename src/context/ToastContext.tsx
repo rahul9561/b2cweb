@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useCallback, type ReactNode } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { X } from 'lucide-react'
+import { X, Sparkles } from 'lucide-react'
 
 interface Toast {
   id: number
@@ -27,7 +27,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     setToasts((prev) => [...prev, { id, message }])
     setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== id))
-    }, 3000)
+    }, 3500)
   }, [])
 
   const dismiss = (id: number) => {
@@ -38,23 +38,27 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     <ToastContext.Provider value={{ showToast }}>
       {children}
       {/* Toast stack — fixed bottom-right */}
-      <div className="pointer-events-none fixed bottom-24 right-4 z-[70] flex flex-col-reverse gap-2">
+      <div className="pointer-events-none fixed bottom-24 right-5 z-[100] flex flex-col-reverse gap-3 max-w-sm">
         <AnimatePresence>
           {toasts.map((toast) => (
             <motion.div
               key={toast.id}
-              initial={{ opacity: 0, y: 20, scale: 0.96 }}
+              initial={{ opacity: 0, y: 20, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 20, scale: 0.96 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-              className="pointer-events-auto flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3 shadow-lg"
+              exit={{ opacity: 0, y: 20, scale: 0.95 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 28 }}
+              className="pointer-events-auto flex items-center gap-3.5 rounded-2xl border border-blue-100 bg-white/95 p-4 shadow-2xl backdrop-blur-md ring-1 ring-black/5"
             >
-              <p className="text-sm font-semibold text-navy">{toast.message}</p>
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-md shadow-blue-500/20">
+                <Sparkles size={18} />
+              </div>
+              <p className="flex-1 text-xs font-bold text-navy leading-snug">{toast.message}</p>
               <button
                 onClick={() => dismiss(toast.id)}
-                className="flex h-5 w-5 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+                aria-label="Dismiss toast"
+                className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-navy"
               >
-                <X className="h-3 w-3" />
+                <X size={14} />
               </button>
             </motion.div>
           ))}

@@ -1,58 +1,64 @@
 import { motion } from 'framer-motion'
 import { FaUsers, FaSearch, FaSmile, FaHandsHelping } from 'react-icons/fa'
+import { ShieldCheck, CheckCircle2 } from 'lucide-react'
 
 const cards = [
   {
     icon: FaUsers,
-    title: 'Over 9 million',
-    desc: 'customers trust us to secure their family\'s finances',
-    color: 'bg-brand/10',
-    iconColor: 'text-brand',
-    border: 'border-l-brand',
+    title: 'Over 9 Million',
+    desc: "customers trust us to secure their family's finances",
+    theme: 'from-blue-500 to-indigo-600 text-white shadow-blue-500/20',
+    border: 'border-l-blue-600',
   },
   {
     icon: FaSearch,
     title: '51+ Insurers',
     desc: 'partner with us, ensuring choice, transparency & simplicity',
-    color: 'bg-green-50',
-    iconColor: 'text-green-600',
-    border: 'border-l-green-500',
+    theme: 'from-emerald-500 to-teal-600 text-white shadow-emerald-500/20',
+    border: 'border-l-emerald-500',
   },
   {
     icon: FaSmile,
     title: 'Best Price',
     desc: 'for all types of insurance plans available in the market',
-    color: 'bg-orange-50',
-    iconColor: 'text-orange-500',
-    border: 'border-l-orange-400',
+    theme: 'from-amber-500 to-orange-600 text-white shadow-amber-500/20',
+    border: 'border-l-amber-500',
   },
   {
     icon: FaHandsHelping,
     title: 'Claims Support',
     desc: 'built-in with every policy; we are there for you at the last mile',
-    color: 'bg-purple-50',
-    iconColor: 'text-purple-600',
+    theme: 'from-purple-500 to-violet-600 text-white shadow-purple-500/20',
     border: 'border-l-purple-500',
   },
 ]
 
 export default function WhyChooseUs() {
   return (
-    <section className="bg-blueBGMuted py-14">
+    <section className="bg-gradient-to-b from-blue-50/60 via-slate-50 to-blue-50/40 py-12 lg:py-16">
       <div className="container-pb">
-        <div className="flex flex-col gap-10 lg:flex-row lg:items-start">
+        <div className="flex flex-col gap-10 lg:flex-row lg:items-center">
           {/* Left side */}
-          <div className="flex-1 pt-4">
-            <h2 className="text-[26px] font-medium leading-snug text-navy lg:text-[30px]">
-              What makes{' '}
-              <span className="font-bold">AV Management</span> one of India's
-              favourite places
-              <br />
-              to buy insurance?
+          <div className="flex-1">
+            <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-white px-3.5 py-1.5 text-xs font-bold text-brand shadow-sm">
+              <ShieldCheck size={16} /> India's Most Trusted Insurance Marketplace
+            </div>
+
+            <h2 className="mt-4 text-2xl font-extrabold leading-snug text-navy sm:text-3xl lg:text-4xl">
+              What makes <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">AV Management</span> one of India's favourite places to buy insurance?
             </h2>
-            <div className="relative mt-8">
-              <div className="absolute -left-4 -top-4 h-20 w-20 rounded-full bg-brand/5" />
-              <div className="absolute -bottom-2 right-10 h-14 w-14 rounded-full bg-green-50" />
+
+            <p className="mt-4 max-w-lg text-xs leading-relaxed text-slate-600 sm:text-sm">
+              We empower millions of families with 100% transparent comparison, instant digital policy delivery, zero hidden charges, and dedicated claim assistance.
+            </p>
+
+            <div className="mt-6 flex flex-wrap gap-3">
+              {['100% Unbiased Advice', 'Zero Spam Calls Guarantee', '24x7 Claim Assistance'].map((item) => (
+                <div key={item} className="flex items-center gap-1.5 rounded-xl border border-slate-200/80 bg-white px-3 py-1.5 text-xs font-semibold text-navy shadow-sm">
+                  <CheckCircle2 size={14} className="text-emerald-500" />
+                  <span>{item}</span>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -67,17 +73,17 @@ export default function WhyChooseUs() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.1, duration: 0.4 }}
-                  className={`rounded-xl border-l-4 ${c.border} bg-white p-5 shadow-sm transition-shadow hover:shadow-md`}
+                  className={`group relative overflow-hidden rounded-2xl border-l-4 ${c.border} border-t border-r border-b border-slate-200/80 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl`}
                 >
                   <div className="flex items-start gap-4">
                     <div
-                      className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${c.color}`}
+                      className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${c.theme} shadow-md transition-transform duration-300 group-hover:scale-110`}
                     >
-                      <Icon size={20} className={c.iconColor} />
+                      <Icon size={20} />
                     </div>
                     <div>
-                      <p className="text-[15px] font-bold text-navy">{c.title}</p>
-                      <p className="mt-0.5 text-[12px] leading-5 text-slate2-secondary">
+                      <p className="text-base font-extrabold text-navy transition-colors group-hover:text-brand">{c.title}</p>
+                      <p className="mt-1 text-xs leading-relaxed text-slate-500">
                         {c.desc}
                       </p>
                     </div>

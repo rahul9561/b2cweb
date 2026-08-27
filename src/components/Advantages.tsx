@@ -7,38 +7,40 @@ import {
   Headphones,
   Heart,
   X,
+  Sparkles,
+  ArrowRight,
 } from 'lucide-react'
 
 const advantages = [
   {
     icon: Coins,
-    heading: 'One of the best Prices',
-    text: 'Guaranteed',
-    theme: 'from-amber-50 to-amber-100 text-amber-600',
+    heading: 'Best Price Guarantee',
+    text: 'Guaranteed lowest rates on all plans',
+    theme: 'from-amber-400 to-orange-500 text-white shadow-amber-500/25',
   },
   {
     icon: ShieldCheck,
-    heading: 'Unbiased Advice',
-    text: 'Keeping customers first',
-    theme: 'from-blue-50 to-blue-100 text-blue-600',
+    heading: '100% Unbiased Advice',
+    text: 'Keeping customer interest first always',
+    theme: 'from-blue-500 to-indigo-600 text-white shadow-blue-500/25',
   },
   {
     icon: BadgeCheck,
-    heading: '100% Reliable',
-    text: 'Regulated by IRDAI',
-    theme: 'from-emerald-50 to-emerald-100 text-emerald-600',
+    heading: '100% Reliable & Safe',
+    text: 'Fully regulated by IRDAI',
+    theme: 'from-emerald-400 to-teal-600 text-white shadow-emerald-500/25',
   },
   {
     icon: Headphones,
-    heading: 'Claims Support',
-    text: 'Made stress-free',
-    theme: 'from-violet-50 to-violet-100 text-violet-600',
+    heading: '24x7 Claims Support',
+    text: 'Dedicated stress-free claim assistance',
+    theme: 'from-violet-500 to-purple-600 text-white shadow-violet-500/25',
   },
   {
     icon: Heart,
     heading: 'Happy to Help',
-    text: 'Every day of the week',
-    theme: 'from-rose-50 to-rose-100 text-rose-600',
+    text: 'Support team available every day',
+    theme: 'from-rose-400 to-pink-600 text-white shadow-rose-500/25',
   },
 ]
 
@@ -60,25 +62,27 @@ export default function Advantages() {
   }, [isModalOpen])
 
   return (
-    <section className="bg-blueBGMuted py-14">
+    <section className="bg-gradient-to-b from-slate-50 via-blue-50/40 to-slate-50 py-12 lg:py-16">
       <div className="container-pb">
-        <h2 className="text-center text-[22px] font-medium text-navy">AV Management Advantage</h2>
-        <span className="heading-accent mx-auto mt-2 block h-1 w-12 rounded-full bg-brand" />
-        <p className="mx-auto mt-4 max-w-3xl text-center text-[13px] leading-6 text-slate2-secondary">
-          When you buy insurance from us, you get more than just financial safety. You also get our
-          promise of simplifying complex insurance terms and conditions, quick stress-free claims,
-          instant policies from top insurers and being present for you in the toughest of times.
-        </p>
-        <div className="mt-2 text-center">
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="text-[13px] font-medium text-brand hover:underline"
-          >
-            Know More
-          </button>
+        <div className="text-center">
+          <div className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3.5 py-1 text-xs font-bold text-brand">
+            <Sparkles size={14} /> The AV Management Guarantee
+          </div>
+          <h2 className="mt-3 text-2xl font-extrabold text-navy sm:text-3xl">AV Management Advantage</h2>
+          <p className="mx-auto mt-3 max-w-3xl text-xs leading-relaxed text-slate-500 sm:text-sm">
+            When you buy insurance from us, you get more than financial safety. You get our promise of simplifying complex terms, instant paperless issuance, quick stress-free claims, and being present for you in tough times.
+          </p>
+          <div className="mt-3 text-center">
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-brand hover:underline"
+            >
+              Know More <ArrowRight size={13} />
+            </button>
+          </div>
         </div>
 
-        <div className="mt-10 grid grid-cols-2 gap-5 md:grid-cols-5">
+        <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-5">
           {advantages.map((a, i) => {
             const Icon = a.icon
             return (
@@ -88,15 +92,15 @@ export default function Advantages() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.08, duration: 0.4 }}
-                className="rounded-xl border border-slate2-border bg-white p-5 text-center shadow-sm transition-shadow duration-300 hover:shadow-md"
+                className="group flex flex-col items-center rounded-2xl border border-slate-200/80 bg-white p-5 text-center shadow-sm transition-all duration-300 hover:-translate-y-1.5 hover:border-brand/40 hover:shadow-xl"
               >
                 <div
-                  className={`mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br ${a.theme}`}
+                  className={`mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br ${a.theme} shadow-lg transition-transform duration-300 group-hover:scale-110`}
                 >
-                  <Icon size={22} strokeWidth={2} />
+                  <Icon size={24} strokeWidth={2} />
                 </div>
-                <p className="text-[13px] font-semibold leading-5 text-navy">{a.heading}</p>
-                <p className="mt-1 text-[11px] text-slate2-secondary">{a.text}</p>
+                <p className="text-xs font-extrabold leading-snug text-navy transition-colors group-hover:text-brand sm:text-sm">{a.heading}</p>
+                <p className="mt-1 text-[11px] font-medium leading-relaxed text-slate-500">{a.text}</p>
               </motion.div>
             )
           })}

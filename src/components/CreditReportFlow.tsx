@@ -51,7 +51,8 @@ interface CreditReportFlowProps {
  *   4. The user enters the OTP in OTPModal and we verify { report_id, otp }.
  *   5. On success the PDFViewer preview is shown so the report can be downloaded.
  *
- * For Equifax, four additional mandatory fields are collected:
+ * Experian collects first name, last name and date of birth to match its
+ * bureau-specific payload. Equifax collects four additional mandatory fields:
  * DOB, Address, State Code, and Pincode. These are appended to the generate-
  * report payload ONLY for equifax so the CIBIL, Experian and CRIF APIs stay untouched.
  */
@@ -59,6 +60,8 @@ const CreditReportFlow: React.FC<CreditReportFlowProps> = ({ reportType, reportN
   const navigate = useNavigate()
   const { isAuthenticated } = useAuth()
   const [fullName, setFullName] = useState('')
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
   const [phone, setPhone] = useState('')
   const [pan, setPan] = useState('')
   const [gender, setGender] = useState('')
@@ -75,8 +78,9 @@ const CreditReportFlow: React.FC<CreditReportFlowProps> = ({ reportType, reportN
   const documentBytes = React.useRef<Uint8Array | null>(null)
 
   const isEquifax = reportType === 'equifax'
+  const isExperian = reportType === 'experian'
   const isCrif = reportType === 'crif'
-  // Equifax-specific fields
+  // Date of birth is shared by Experian and Equifax; the rest are Equifax-only.
   const [dob, setDob] = useState('')
   const [address, setAddress] = useState('')
   const [stateCode, setStateCode] = useState('')
@@ -105,7 +109,7 @@ const CreditReportFlow: React.FC<CreditReportFlowProps> = ({ reportType, reportN
   }
 
   const canSubmit =
-    fullName &&
+    (isExperian ? firstName && lastName && dob : fullName) &&
     phone.length === 10 &&
     (isCrif || (pan.length === 10 && gender)) &&
     consent &&
@@ -128,7 +132,9 @@ const CreditReportFlow: React.FC<CreditReportFlowProps> = ({ reportType, reportN
     setReportId(undefined)
     try {
       const reportData = await generateReport({
-        name: fullName,
+        name: isExperian ? `${firstName} ${lastName}`.trim() : fullName,
+        firstName,
+        lastName,
         mobile: phone,
         pan,
         gender,
@@ -155,8 +161,20 @@ const CreditReportFlow: React.FC<CreditReportFlowProps> = ({ reportType, reportN
         throw new Error('OTP verification cannot start because the report service did not return a report ID. Please try again.')
       }
       setReportId(generatedReportId)
-      await reportPurchased()
-      await sendOtp(reportType, phone, generatedReportId)
+      if (isExperian) {
+        const [downloadedDocument] = await Promise.all([
+          reportData.documentDownload ?? Promise.resolve(null),
+          sendOtp(reportType, phone, generatedReportId),
+          reportPurchased(),
+        ])
+        if (downloadedDocument) {
+          documentBytes.current = downloadedDocument.bytes
+          setDocumentMimeType(downloadedDocument.mimeType)
+        }
+      } else {
+        await reportPurchased()
+        await sendOtp(reportType, phone, generatedReportId)
+      }
 
       // Step 3: Show OTP modal for user to enter & verify OTP
       setShowOTPModal(true)
@@ -238,53 +256,86 @@ const CreditReportFlow: React.FC<CreditReportFlowProps> = ({ reportType, reportN
           </button>
         </div>
       )}
-      <form onSubmit={submit} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xl shadow-blue-900/5 md:p-7">
-        <div className="mb-6 flex items-center gap-3">
-          <span className="rounded-xl bg-blue-100 p-3 text-blue-600"><FileText size={22} /></span>
-          <div>
-            <h2 className="text-2xl font-bold text-navy">Let&rsquo;s Get Started</h2>
-            <p className="text-xs text-slate-500">Complete your details to continue</p>
+      <form onSubmit={submit} className="overflow-hidden rounded-3xl border border-white/20 bg-slate-900/60 shadow-2xl shadow-black/40 backdrop-blur-xl ring-1 ring-white/10">
+        {/* Form header banner */}
+        <div className="border-b border-white/10 bg-gradient-to-r from-blue-600/30 via-indigo-600/20 to-blue-500/20 px-6 py-5 backdrop-blur-md">
+          <div className="flex items-center gap-3">
+            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-blue-400/30 bg-gradient-to-br from-blue-500/30 to-indigo-500/20 text-blue-300 shadow-inner">
+              <FileText size={20} />
+            </span>
+            <div>
+              <h2 className="font-sans text-xl font-bold tracking-tight text-white">Let&rsquo;s Get Started</h2>
+              <p className="mt-0.5 text-xs font-medium text-blue-200/80">Complete your details to continue</p>
+            </div>
           </div>
         </div>
-        <div className="space-y-4">
-          <label className="block text-sm font-medium text-slate-700">
-            Full Name
-            <input required value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Enter your full name" className="mt-1.5 w-full rounded-lg border border-slate-300 px-3 py-3 outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100" />
-          </label>
-          <label className="block text-sm font-medium text-slate-700">
+        <div className="space-y-4 p-6 sm:p-7">
+          {isExperian ? (
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-200">
+                First Name
+                <input required value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="Enter first name" className="mt-1.5 w-full rounded-xl border border-white/15 bg-white/[0.07] px-3.5 py-3 text-sm normal-case text-white placeholder:text-slate-400 outline-none transition focus:border-blue-400 focus:bg-white/[0.12] focus:ring-2 focus:ring-blue-400/25" />
+              </label>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-200">
+                Last Name
+                <input required value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Enter last name" className="mt-1.5 w-full rounded-xl border border-white/15 bg-white/[0.07] px-3.5 py-3 text-sm normal-case text-white placeholder:text-slate-400 outline-none transition focus:border-blue-400 focus:bg-white/[0.12] focus:ring-2 focus:ring-blue-400/25" />
+              </label>
+            </div>
+          ) : (
+            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-200">
+              Full Name
+              <input required value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Enter your full name" className="mt-1.5 w-full rounded-xl border border-white/15 bg-white/[0.07] px-3.5 py-3 text-sm text-white placeholder:text-slate-400 outline-none transition focus:border-blue-400 focus:bg-white/[0.12] focus:ring-2 focus:ring-blue-400/25" />
+            </label>
+          )}
+          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-200">
             Phone Number
             <div className="relative mt-1.5">
-              <Phone className="absolute left-3 top-3.5 h-4 w-4 text-slate-400" />
-              <input required type="tel" value={phone} onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))} placeholder="Enter 10-digit number" className="w-full rounded-lg border border-slate-300 py-3 pl-9 pr-3 outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100" />
+              <Phone className="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400" />
+              <input required type="tel" value={phone} onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))} placeholder="Enter 10-digit number" className="w-full rounded-xl border border-white/15 bg-white/[0.07] py-3 pl-10 pr-3 text-sm text-white placeholder:text-slate-400 outline-none transition focus:border-blue-400 focus:bg-white/[0.12] focus:ring-2 focus:ring-blue-400/25" />
             </div>
           </label>
-          {!isCrif && <label className="block text-sm font-medium text-slate-700">
+          {!isCrif && <label className="block text-xs font-semibold uppercase tracking-wider text-slate-200">
             PAN Number
-            <input required value={pan} onChange={(e) => setPan(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 10))} placeholder="Enter PAN number" className="mt-1.5 w-full rounded-lg border border-slate-300 px-3 py-3 font-mono outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100" />
+            <input required value={pan} onChange={(e) => setPan(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 10))} placeholder="Enter PAN number" className="mt-1.5 w-full rounded-xl border border-white/15 bg-white/[0.07] px-3.5 py-3 font-mono text-sm text-white placeholder:text-slate-400 outline-none transition focus:border-blue-400 focus:bg-white/[0.12] focus:ring-2 focus:ring-blue-400/25" />
           </label>}
           {!isCrif && <fieldset>
-            <legend className="text-sm font-medium text-slate-700">Gender</legend>
+            <legend className="text-xs font-semibold uppercase tracking-wider text-slate-200">Gender</legend>
             <div className="mt-2 grid grid-cols-3 gap-2">
               {['male', 'female', 'Other'].map((option) => (
-                <button type="button" onClick={() => setGender(option)} key={option} className={`rounded-lg border py-2.5 text-sm font-medium transition ${gender === option ? 'border-blue-600 bg-blue-600 text-white' : 'border-slate-300 text-slate-600 hover:border-blue-400'}`}>{option}</button>
+                <button type="button" onClick={() => setGender(option)} key={option} className={`rounded-xl border py-2.5 text-sm font-medium transition ${gender === option ? 'border-blue-500 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold shadow-md shadow-blue-500/25' : 'border-white/15 bg-white/5 text-slate-200 hover:bg-white/10 hover:border-white/25'}`}>{option}</button>
               ))}
             </div>
           </fieldset>}
 
+          {isExperian && (
+            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-200">
+              Date of Birth
+              <input
+                required
+                type="date"
+                value={dob}
+                onChange={(e) => setDob(e.target.value)}
+                max={new Date().toISOString().slice(0, 10)}
+                className="mt-1.5 w-full rounded-xl border border-white/15 bg-white/[0.07] px-3.5 py-3 text-sm text-white [color-scheme:dark] outline-none transition focus:border-blue-400 focus:bg-white/[0.12] focus:ring-2 focus:ring-blue-400/25"
+              />
+            </label>
+          )}
+
           {/* ── Equifax-specific fields: DOB, Address, State Code, Pincode ── */}
           {isEquifax && (
             <>
-              <label className="block text-sm font-medium text-slate-700">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-200">
                 Date of Birth
                 <input
                   required
                   type="date"
                   value={dob}
                   onChange={(e) => setDob(e.target.value)}
-                  className="mt-1.5 w-full rounded-lg border border-slate-300 px-3 py-3 outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
+                  max={new Date().toISOString().slice(0, 10)}
+                  className="mt-1.5 w-full rounded-xl border border-white/15 bg-white/[0.07] px-3.5 py-3 text-sm text-white [color-scheme:dark] outline-none transition focus:border-blue-400 focus:bg-white/[0.12] focus:ring-2 focus:ring-blue-400/25"
                 />
               </label>
-              <label className="block text-sm font-medium text-slate-700">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-200">
                 Address
                 <textarea
                   required
@@ -292,20 +343,20 @@ const CreditReportFlow: React.FC<CreditReportFlowProps> = ({ reportType, reportN
                   onChange={(e) => setAddress(e.target.value)}
                   placeholder="Enter your full address"
                   rows={3}
-                  className="mt-1.5 w-full rounded-lg border border-slate-300 px-3 py-2 outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
+                  className="mt-1.5 w-full rounded-xl border border-white/15 bg-white/[0.07] px-3.5 py-2 text-sm text-white placeholder:text-slate-400 outline-none transition focus:border-blue-400 focus:bg-white/[0.12] focus:ring-2 focus:ring-blue-400/25"
                 />
               </label>
-              <label className="block text-sm font-medium text-slate-700">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-200">
                 State Code
                 <input
                   required
                   value={stateCode}
                   onChange={(e) => setStateCode(e.target.value.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4))}
-                  placeholder="e.g. U.P"
-                  className="mt-1.5 w-full rounded-lg border border-slate-300 px-3 py-3 font-mono outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
+                  placeholder="e.g. UP"
+                  className="mt-1.5 w-full rounded-xl border border-white/15 bg-white/[0.07] px-3.5 py-3 font-mono text-sm text-white placeholder:text-slate-400 outline-none transition focus:border-blue-400 focus:bg-white/[0.12] focus:ring-2 focus:ring-blue-400/25"
                 />
               </label>
-              <label className="block text-sm font-medium text-slate-700">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-200">
                 Pincode
                 <input
                   required
@@ -313,43 +364,43 @@ const CreditReportFlow: React.FC<CreditReportFlowProps> = ({ reportType, reportN
                   value={pincode}
                   onChange={(e) => setPincode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                   placeholder="Enter 6-digit pincode"
-                  className="mt-1.5 w-full rounded-lg border border-slate-300 px-3 py-3 outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
+                  className="mt-1.5 w-full rounded-xl border border-white/15 bg-white/[0.07] px-3.5 py-3 text-sm text-white placeholder:text-slate-400 outline-none transition focus:border-blue-400 focus:bg-white/[0.12] focus:ring-2 focus:ring-blue-400/25"
                 />
               </label>
             </>
           )}
 
           {attempted && isEquifax && (!dob || !address || !stateCode || !pincode) && (
-            <p className="text-xs font-medium text-red-600">
+            <p className="text-xs font-medium text-red-400">
               Please fill in all the required details (DOB, Address, State Code, Pincode) to continue.
             </p>
           )}
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-slate-300">
             {isCrif ? 'Your report will be available to download after generation.' : 'An OTP will be sent to the mobile number provided.'}
           </p>
 
           {/* ── Mandatory consent ── */}
-          <label className="flex items-start gap-2.5 rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs leading-5 text-slate-600">
+          <label className="flex items-start gap-2.5 rounded-xl border border-white/15 bg-white/5 p-3 text-xs leading-5 text-slate-300 backdrop-blur-sm">
             <input
               type="checkbox"
               checked={consent}
               onChange={(e) => setConsent(e.target.checked)}
-              className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-300 accent-blue-600"
+              className="mt-0.5 h-4 w-4 shrink-0 rounded border-white/20 bg-white/10 accent-blue-500"
             />
             I authorize the deduction of {formatReportPrice(price)} from my wallet balance to generate this report.
           </label>
           {attempted && !consent && (
-            <p className="text-xs font-medium text-red-600">Please provide your consent to continue.</p>
+            <p className="text-xs font-medium text-red-400">Please provide your consent to continue.</p>
           )}
           {reportError && (
-            <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-medium text-red-600">
+            <p className="rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs font-medium text-red-300">
               {reportError}
             </p>
           )}
 
           <button
-            disabled={isSubmitting || generating || price === null || !consent || !fullName || !phone || (!isCrif && (!pan || !gender)) || (isEquifax && (!dob || !address || !stateCode || !pincode))}
-            className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 py-3.5 font-semibold text-white transition hover:bg-blue-700 disabled:opacity-60"
+            disabled={isSubmitting || generating || price === null || !consent || (isExperian ? (!firstName || !lastName || !dob) : !fullName) || !phone || (!isCrif && (!pan || !gender)) || (isEquifax && (!dob || !address || !stateCode || !pincode))}
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600 py-3.5 font-bold text-white shadow-lg shadow-blue-600/30 transition hover:shadow-blue-600/50 hover:brightness-110 active:scale-[0.99] disabled:opacity-50"
           >
             {isSubmitting || generating ? (
               <><Loader2 size={17} className="animate-spin" /> Generating report...</>
@@ -357,7 +408,7 @@ const CreditReportFlow: React.FC<CreditReportFlowProps> = ({ reportType, reportN
               <>Get {reportName} <ArrowRight size={17} /></>
             )}
           </button>
-          <p className="text-center text-[11px] leading-4 text-slate-500">By continuing, you agree to the Terms of Use and Privacy Policy.</p>
+          <p className="text-center text-[11px] leading-4 text-slate-400">By continuing, you agree to the Terms of Use and Privacy Policy.</p>
         </div>
       </form>
 

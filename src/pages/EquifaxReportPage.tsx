@@ -4,10 +4,10 @@ import CreditReportFlow from '../components/CreditReportFlow'
 import { CreditScoreArticles, CreditScoreDisclaimer } from '../components/credit-score/CreditScoreArticles'
 
 const BulletList = ({ items }: { items: string[] }) => (
-  <ul className="space-y-3">
+  <ul className="mt-5 space-y-4 rounded-2xl bg-slate-50/50 p-6">
     {items.map((item) => (
-      <li key={item} className="flex gap-3 text-sm leading-6 text-slate-700">
-        <Check className="mt-1 h-4 w-4 shrink-0 rounded-full bg-blue-600 p-0.5 text-white" />
+      <li key={item} className="flex gap-4 text-sm leading-7 text-slate-700">
+        <Check className="mt-1 h-5 w-5 shrink-0 rounded-full bg-blue-100 p-1 text-blue-600" />
         {item}
       </li>
     ))}
@@ -15,32 +15,37 @@ const BulletList = ({ items }: { items: string[] }) => (
 )
 
 const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
-  <section>
-    <h2 className="font-serif text-2xl font-bold text-navy md:text-3xl">{title}</h2>
+  <section className="scroll-mt-8">
+    <h2 className="font-sans text-2xl font-extrabold tracking-tight text-navy md:text-3xl">{title}</h2>
     <div className="mt-5">{children}</div>
   </section>
 )
 
 const Copy = ({ children }: { children: React.ReactNode }) => (
-  <p className="text-sm leading-7 text-slate-700 md:text-base">{children}</p>
+  <p className="mt-4 text-sm leading-8 text-slate-700 md:text-base">{children}</p>
 )
 
 const EquifaxReportPage: React.FC = () => {
   return (
     <div className="bg-white text-slate-800">
       {/* ── Hero section ── */}
-      <section className="border-b border-blue-100 bg-gradient-to-br from-blue-50 via-white to-sky-50 py-10 md:py-14">
-        <div className="container-pb grid gap-9 lg:grid-cols-[1.35fr_.85fr]">
+      <section className="relative overflow-hidden border-b border-blue-100 bg-gradient-to-br from-blue-950 via-slate-900 to-indigo-950 py-12 text-white md:py-16">
+        <div className="pointer-events-none absolute -right-20 -top-20 h-96 w-96 rounded-full bg-blue-500/20 blur-3xl" />
+        <div className="pointer-events-none absolute bottom-0 left-0 h-64 w-64 rounded-full bg-indigo-500/10 blur-3xl" />
+        <div className="container-pb relative z-10 grid gap-10 lg:grid-cols-[1.35fr_.85fr] lg:items-start">
           <div className="pt-2">
-            <span className="inline-flex items-center gap-2 rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
-              <ShieldCheck size={14} /> Equifax credit profile
+            <span className="inline-flex items-center gap-2 rounded-full border border-blue-400/30 bg-blue-500/20 px-3.5 py-1.5 text-xs font-extrabold uppercase tracking-wider text-blue-300 backdrop-blur-md">
+              <ShieldCheck size={16} /> Official Equifax Credit Bureau
             </span>
-            <h1 className="mt-4 font-serif text-3xl font-bold text-navy md:text-5xl">
-              Check Equifax Credit Score & Report
+            <h1 className="mt-4 font-sans text-3xl font-extrabold tracking-tight text-white md:text-5xl lg:text-6xl">
+              Equifax Credit{' '}
+              <span className="bg-gradient-to-r from-blue-400 via-indigo-300 to-sky-400 bg-clip-text text-transparent">
+                Score &amp; Report
+              </span>
             </h1>
-            <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600">
-              Your credit score helps lenders understand your credit behaviour. Review your Equifax report
-              to better understand the information used in credit decisions.
+            <p className="mt-4 max-w-2xl text-xs font-medium leading-relaxed text-slate-300 sm:text-sm md:text-base">
+              Your credit score helps lenders understand your credit behaviour. Review your Equifax report to
+              better understand the information used in credit decisions.
             </p>
 
             <div className="mt-7 grid gap-3 sm:max-w-xl">
@@ -51,33 +56,30 @@ const EquifaxReportPage: React.FC = () => {
               ].map((text) => (
                 <div
                   key={text}
-                  className="flex items-center gap-3 rounded-xl border border-blue-100 bg-white/80 px-4 py-3 text-sm font-medium shadow-sm"
+                  className="flex items-center gap-3 rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-xs font-bold text-white shadow-lg backdrop-blur-md"
                 >
-                  <Check className="h-5 w-5 shrink-0 rounded-full bg-green-500 p-1 text-white" />
-                  {text}
+                  <Check className="h-5 w-5 shrink-0 rounded-full bg-emerald-500 p-1 text-white shadow-md shadow-emerald-500/30" />
+                  <span>{text}</span>
                 </div>
               ))}
             </div>
 
-            <div className="mt-8 grid max-w-2xl grid-cols-2 overflow-hidden rounded-xl border border-blue-200 bg-white sm:grid-cols-4">
+            <div className="mt-8 grid max-w-2xl grid-cols-2 overflow-hidden rounded-2xl border border-white/15 bg-white/10 backdrop-blur-md sm:grid-cols-4">
               {[
                 ['4.5/5', 'Customer rating'],
                 ['6Cr+', 'Satisfied customers'],
                 ['4', 'Bureau coverage'],
                 ['800+', 'Cities across India'],
               ].map(([value, label]) => (
-                <div
-                  key={label}
-                  className="border-b border-r border-blue-100 p-4 text-center last:border-r-0 sm:border-b-0"
-                >
-                  <strong className="block text-xl text-navy">{value}</strong>
-                  <span className="mt-1 block text-[11px] text-slate-500">{label}</span>
+                <div key={label} className="border-b border-r border-white/10 p-4 text-center last:border-r-0 sm:border-b-0">
+                  <strong className="block text-xl font-extrabold text-white">{value}</strong>
+                  <span className="mt-1 block text-[11px] font-semibold text-slate-300">{label}</span>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* ── Form + API flow (consent, generate → send-otp → verify-otp → PDF) ── */}
+          {/* ── Form + API flow (consent → generate → send-otp → verify-otp → PDF) ── */}
           <CreditReportFlow reportType="equifax" reportName="Equifax Report" bureauName="Equifax India" />
         </div>
       </section>
@@ -105,7 +107,7 @@ const EquifaxReportPage: React.FC = () => {
                 Equifax credit scores typically range from 100 to 900, although the exact scale may vary
                 depending on the scoring model used. A higher score indicates a stronger credit profile.
               </Copy>
-              <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-5">
+              <div className="mt-6">
                 <BulletList items={[
                   '800 – 900 : Excellent – Very low credit risk, easiest to get approved.',
                   '700 – 799 : Good – Strong credit profile with minimal risk.',

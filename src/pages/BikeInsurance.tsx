@@ -59,7 +59,7 @@ export default function BikeInsurance() {
       </section>
 
       <section className="border-y bg-white py-5 shadow-[0_-6px_18px_rgba(0,0,0,0.04)]">
-        <div className="mx-auto grid max-w-4xl grid-cols-4 text-center">
+        <div className="mx-auto grid max-w-4xl grid-cols-2 gap-y-5 px-4 text-center sm:grid-cols-4 sm:gap-y-0">
           <TrustMetric title="We are rated" sub="Source - Google Review Rating" stars />
           <TrustMetric title="1.2 crore" sub="Bikes insured" />
           <TrustMetric title="1.7 crore" sub="Policies sold" />
@@ -90,7 +90,7 @@ export default function BikeInsurance() {
 
 function TrustMetric({ title, sub, stars }: { title: string; sub: string; stars?: boolean }) {
   return (
-    <div className="border-r last:border-r-0">
+    <div className="border-r even:border-r-0 sm:even:border-r sm:last:border-r-0">
       <p className="text-xl font-black">{title}</p>
       {stars && <p className="mt-1 text-yellow">{Array.from({ length: 5 }).map((_, index) => <Star key={index} className="inline h-4 w-4 fill-yellow" />)}</p>}
       <p className="mt-1 text-xs text-slate2-secondary">{sub}</p>

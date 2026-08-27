@@ -102,11 +102,26 @@ export default function CibilScoreForPersonalLoanPage() {
       </div>
 
       {/* Hero */}
-      <section className="border-b border-blue-100 bg-gradient-to-br from-blue-50 via-white to-slate-50">
-        <div className="container-pb py-10">
-          <p className="text-sm font-semibold text-blue-600">CREDIT SCORE GUIDE</p>
-          <h1 className="mt-3 max-w-4xl font-serif text-3xl font-bold leading-tight text-navy md:text-5xl">Personal/Instant Loan</h1>
-          <p className="mt-6 max-w-3xl text-lg leading-8 text-slate-600">Understand how your CIBIL score affects personal-loan approval, interest rates and loan limits — and how to strengthen your profile before applying.</p>
+      <section className="relative overflow-hidden border-b border-blue-100 bg-gradient-to-br from-blue-950 via-slate-900 to-indigo-950 py-14 text-white">
+        <div className="pointer-events-none absolute -right-20 -top-20 h-96 w-96 rounded-full bg-blue-500/20 blur-3xl" />
+        <div className="pointer-events-none absolute bottom-0 left-0 h-64 w-64 rounded-full bg-indigo-500/10 blur-3xl" />
+        <div className="container-pb relative z-10 py-2">
+          <span className="inline-flex items-center gap-2 rounded-full border border-blue-400/30 bg-blue-500/20 px-3.5 py-1.5 text-xs font-extrabold uppercase tracking-wider text-blue-300 backdrop-blur-md">
+            💳 Credit Score Guide
+          </span>
+          <h1 className="mt-4 max-w-4xl font-sans text-3xl font-extrabold tracking-tight text-white md:text-5xl">
+            Personal / <span className="bg-gradient-to-r from-blue-400 via-indigo-300 to-sky-400 bg-clip-text text-transparent">Instant Loan</span>
+          </h1>
+          <p className="mt-5 max-w-3xl text-xs font-medium leading-relaxed text-slate-300 sm:text-base md:text-lg">
+            Understand how your CIBIL score affects personal-loan approval, interest rates and loan limits — and how to strengthen your profile before applying.
+          </p>
+          <div className="mt-8 flex flex-wrap gap-3">
+            {['760+ Score recommended', 'No collateral needed', 'Instant decisions'].map((badge) => (
+              <span key={badge} className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs font-bold text-white backdrop-blur-sm">
+                <Check size={12} className="text-emerald-300" /> {badge}
+              </span>
+            ))}
+          </div>
         </div>
       </section>
 

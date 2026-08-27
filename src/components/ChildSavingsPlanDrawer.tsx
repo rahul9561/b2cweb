@@ -196,7 +196,7 @@ export default function ChildSavingsPlanDrawer({ plan, isOpen, onClose }: ChildS
                 <div className="p-6 space-y-6">
                   <div className="p-6 bg-blue-50 rounded-lg border border-blue-200">
                     <h3 className="font-bold text-navy mb-4">Fund Performance (Annual Returns)</h3>
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                       <div className="bg-white rounded p-3 border border-blue-200">
                         <p className="text-xs text-slate-600 font-medium">6 Years</p>
                         <p className="font-bold text-blue-600 text-lg mt-1">{plan.fundPerformance.year6}%</p>

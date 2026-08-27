@@ -4,10 +4,10 @@ import CreditReportFlow from '../components/CreditReportFlow'
 import { CreditScoreArticles, CreditScoreDisclaimer } from '../components/credit-score/CreditScoreArticles'
 
 const BulletList = ({ items }: { items: string[] }) => (
-  <ul className="space-y-3">
+  <ul className="mt-5 space-y-4 rounded-2xl bg-slate-50/50 p-6">
     {items.map((item) => (
-      <li key={item} className="flex gap-3 text-sm leading-6 text-slate-700">
-        <Check className="mt-1 h-4 w-4 shrink-0 rounded-full bg-blue-600 p-0.5 text-white" />
+      <li key={item} className="flex gap-4 text-sm leading-7 text-slate-700">
+        <Check className="mt-1 h-5 w-5 shrink-0 rounded-full bg-blue-100 p-1 text-blue-600" />
         {item}
       </li>
     ))}
@@ -15,30 +15,35 @@ const BulletList = ({ items }: { items: string[] }) => (
 )
 
 const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
-  <section>
-    <h2 className="font-serif text-2xl font-bold text-navy md:text-3xl">{title}</h2>
+  <section className="scroll-mt-8">
+    <h2 className="font-sans text-2xl font-extrabold tracking-tight text-navy md:text-3xl">{title}</h2>
     <div className="mt-5">{children}</div>
   </section>
 )
 
 const Copy = ({ children }: { children: React.ReactNode }) => (
-  <p className="text-sm leading-7 text-slate-700 md:text-base">{children}</p>
+  <p className="mt-4 text-sm leading-8 text-slate-700 md:text-base">{children}</p>
 )
 
 const CrifReportPage: React.FC = () => {
   return (
     <div className="bg-white text-slate-800">
       {/* ── Hero section ── */}
-      <section className="border-b border-blue-100 bg-gradient-to-br from-blue-50 via-white to-sky-50 py-10 md:py-14">
-        <div className="container-pb grid gap-9 lg:grid-cols-[1.35fr_.85fr]">
+      <section className="relative overflow-hidden border-b border-blue-100 bg-gradient-to-br from-blue-950 via-slate-900 to-indigo-950 py-12 text-white md:py-16">
+        <div className="pointer-events-none absolute -right-20 -top-20 h-96 w-96 rounded-full bg-violet-500/20 blur-3xl" />
+        <div className="pointer-events-none absolute bottom-0 left-0 h-64 w-64 rounded-full bg-indigo-500/10 blur-3xl" />
+        <div className="container-pb relative z-10 grid gap-10 lg:grid-cols-[1.35fr_.85fr] lg:items-start">
           <div className="pt-2">
-            <span className="inline-flex items-center gap-2 rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
-              <ShieldCheck size={14} /> CRIF credit profile
+            <span className="inline-flex items-center gap-2 rounded-full border border-violet-400/30 bg-violet-500/20 px-3.5 py-1.5 text-xs font-extrabold uppercase tracking-wider text-violet-300 backdrop-blur-md">
+              <ShieldCheck size={16} /> Official CRIF High Mark Bureau
             </span>
-            <h1 className="mt-4 font-serif text-3xl font-bold text-navy md:text-5xl">
-              CRIF High Mark Credit Report & Score
+            <h1 className="mt-4 font-sans text-3xl font-extrabold tracking-tight text-white md:text-5xl lg:text-6xl">
+              CRIF High Mark{' '}
+              <span className="bg-gradient-to-r from-blue-400 via-violet-300 to-sky-400 bg-clip-text text-transparent">
+                Credit Report
+              </span>
             </h1>
-            <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600">
+            <p className="mt-4 max-w-2xl text-xs font-medium leading-relaxed text-slate-300 sm:text-sm md:text-base">
               CRIF High Mark is a credit bureau that records credit information used by lenders. Use your
               report to understand your current credit profile and related score indicators.
             </p>
@@ -48,16 +53,16 @@ const CrifReportPage: React.FC = () => {
                 (text) => (
                   <div
                     key={text}
-                    className="flex items-center gap-3 rounded-xl border border-blue-100 bg-white/80 px-4 py-3 text-sm font-medium shadow-sm"
+                    className="flex items-center gap-3 rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-xs font-bold text-white shadow-lg backdrop-blur-md"
                   >
-                    <Check className="h-5 w-5 shrink-0 rounded-full bg-green-500 p-1 text-white" />
-                    {text}
+                    <Check className="h-5 w-5 shrink-0 rounded-full bg-emerald-500 p-1 text-white shadow-md shadow-emerald-500/30" />
+                    <span>{text}</span>
                   </div>
                 )
               )}
             </div>
 
-            <div className="mt-8 grid max-w-2xl grid-cols-2 overflow-hidden rounded-xl border border-blue-200 bg-white sm:grid-cols-4">
+            <div className="mt-8 grid max-w-2xl grid-cols-2 overflow-hidden rounded-2xl border border-white/15 bg-white/10 backdrop-blur-md sm:grid-cols-4">
               {[
                 ['4.5/5', 'Customer rating'],
                 ['6Cr+', 'Satisfied customers'],
@@ -66,10 +71,10 @@ const CrifReportPage: React.FC = () => {
               ].map(([value, label]) => (
                 <div
                   key={label}
-                  className="border-b border-r border-blue-100 p-4 text-center last:border-r-0 sm:border-b-0"
+                  className="border-b border-r border-white/10 p-4 text-center last:border-r-0 sm:border-b-0"
                 >
-                  <strong className="block text-xl text-navy">{value}</strong>
-                  <span className="mt-1 block text-[11px] text-slate-500">{label}</span>
+                  <strong className="block text-xl font-extrabold text-white">{value}</strong>
+                  <span className="mt-1 block text-[11px] font-semibold text-slate-300">{label}</span>
                 </div>
               ))}
             </div>
@@ -103,25 +108,25 @@ const CrifReportPage: React.FC = () => {
                 report. A score closer to 900 is generally considered more favourable for loan or credit
                 card approval.
               </Copy>
-              <div className="mt-5 overflow-x-auto rounded-xl border border-slate-200">
+              <div className="mt-8 overflow-hidden rounded-2xl border border-slate-200 shadow-sm">
                 <table className="w-full min-w-[520px] text-sm">
-                  <thead className="bg-blue-50 text-left text-navy">
+                  <thead className="bg-gradient-to-r from-blue-900 to-indigo-900 text-left text-white">
                     <tr>
-                      <th className="p-3">CRIF Score</th>
-                      <th className="p-3">Meaning</th>
+                      <th className="p-5 font-semibold">CRIF Score</th>
+                      <th className="p-5 font-semibold">Meaning</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="divide-y divide-slate-100">
                     {[
                       ['900', 'Highest possible CRIF credit score.'],
                       ['800 – 899', 'Very good credit standing.'],
                       ['650 – 799', 'Good for credit approval with scope for improvement.'],
                       ['580 – 649', 'Average score that may need improvement.'],
                       ['Below 580', 'Poor score; improve credit behaviour before applying for new credit.'],
-                    ].map(([score, meaning]) => (
-                      <tr key={score} className="border-t border-slate-200">
-                        <td className="p-3 font-semibold text-navy">{score}</td>
-                        <td className="p-3 text-slate-600">{meaning}</td>
+                    ].map(([score, meaning], i) => (
+                      <tr key={score} className={i % 2 ? 'bg-slate-50/50' : 'bg-white'}>
+                        <td className="p-5 font-bold text-navy">{score}</td>
+                        <td className="p-5 leading-7 text-slate-600">{meaning}</td>
                       </tr>
                     ))}
                   </tbody>

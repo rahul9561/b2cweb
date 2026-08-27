@@ -13,7 +13,6 @@ import {
   Plane,
   TrendingUp,
   FileText,
-  Smartphone,
   RefreshCcw,
   Briefcase,
   Home,
@@ -127,7 +126,7 @@ export default function Header() {
     navigate('/wallet')
   }
   return (
-    <header className="sticky top-0 z-50 border-b border-white/10 bg-[#05070b]/95 shadow-[0_12px_35px_rgba(2,6,23,0.24)] backdrop-blur-xl">
+    <header className="sticky top-0 z-50 border-b border-white/10 bg-[#05070b]/95 shadow-[0_12px_35px_rgba(2,6,23,0.24)] lg:backdrop-blur-xl">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-500/70 to-transparent" />
       <div className="mx-auto flex h-[60px] w-full max-w-[1920px] items-center justify-between px-3 sm:h-[74px] sm:px-5 lg:px-6 xl:px-8">
         <div className="flex min-w-0 items-center gap-2 sm:gap-7 xl:gap-10">
@@ -135,6 +134,8 @@ export default function Header() {
             className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-white/10 bg-white/[0.05] text-white/80 shadow-sm transition-all duration-300 hover:border-blue-400/50 hover:bg-blue-500/15 hover:text-white lg:hidden"
             onClick={() => setMobileOpen(true)}
             aria-label="Open menu"
+            aria-expanded={mobileOpen}
+            aria-controls="mobile-site-navigation"
           >
             <Menu size={19} />
           </button>
@@ -468,10 +469,10 @@ export default function Header() {
       </div>
 
       {mobileOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden">
+        <div id="mobile-site-navigation" className="fixed inset-0 z-50 h-dvh lg:hidden">
           <div className="absolute inset-0 bg-slate-950/70 backdrop-blur-sm" onClick={() => setMobileOpen(false)} />
-          <div className="absolute left-0 top-0 h-full w-[min(88vw,360px)] overflow-y-auto border-r border-white/10 bg-slate-50 p-5 shadow-[24px_0_70px_rgba(2,6,23,0.35)]">
-                   <div className="-mx-5 -mt-5 mb-5 flex items-center justify-between border-b border-white/10 bg-gradient-to-r from-[#05070b] to-[#0c1630] px-5 py-4 shadow-lg">
+          <div className="absolute left-0 top-0 h-dvh w-[min(92vw,380px)] overscroll-contain overflow-y-auto border-r border-white/10 bg-slate-50 p-5 pb-8 shadow-[24px_0_70px_rgba(2,6,23,0.35)]">
+                   <div className="sticky -top-5 z-10 -mx-5 -mt-5 mb-5 flex items-center justify-between border-b border-white/10 bg-gradient-to-r from-[#05070b] to-[#0c1630] px-5 py-4 shadow-lg">
   <Link to="/" onClick={() => setMobileOpen(false)}>
     <img
       src={logo}
@@ -658,11 +659,27 @@ export default function Header() {
                   <User size={14} />
                   Sign in
                 </Link> */}
-                <button className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-emerald-500 bg-emerald-500 py-3 text-[13px] font-bold text-white shadow-md shadow-emerald-500/20 transition hover:-translate-y-0.5 hover:bg-emerald-600">
-                  <Smartphone size={14} />
-                  Get App
-                </button>
+                <a
+                  href="https://play.google.com/store/search?q=av%20management&c=apps&hl=en_IN"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-emerald-500 bg-emerald-500 py-3 text-[13px] font-bold text-white shadow-md shadow-emerald-500/20 transition hover:-translate-y-0.5 hover:bg-emerald-600"
+                >
+                  <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0" aria-hidden="true">
+                    <path d="M3 2.25v19.5L13.2 12 3 2.25Z" fill="#00D7FE" />
+                    <path d="m3 2.25 12.7 7.35-2.5 2.4L3 2.25Z" fill="#00F076" />
+                    <path d="m3 21.75 12.7-7.35-2.5-2.4L3 21.75Z" fill="#FFCE00" />
+                    <path d="m15.7 9.6 4.15 2.4-4.15 2.4-2.5-2.4 2.5-2.4Z" fill="#FF3A44" />
+                  </svg>
+                  Google Play
+                </a>
               </div>
+              <a
+                href="tel:9917500023"
+                className="flex w-full items-center justify-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-3.5 py-3 text-[13px] font-bold text-blue-700 shadow-sm transition hover:border-blue-400 hover:bg-blue-100"
+              >
+                <Phone size={15} /> Talk to Expert <span className="font-semibold text-blue-500">9917500023</span>
+              </a>
             </nav>
           </div>
         </div>

@@ -157,23 +157,26 @@ export default function ProfilePage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 pb-16">
-      <section className="border-b border-blue-100 bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-        <div className="container-pb py-10 md:py-14">
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-blue-600">My account</p>
-          <h1 className="mt-2 font-serif text-3xl font-bold text-navy md:text-4xl">Your profile</h1>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">Manage your personal details and keep your account information up to date.</p>
+    <main className="min-h-screen bg-gradient-to-b from-slate-50 to-white pb-16">
+      <section className="relative overflow-hidden bg-gradient-to-br from-blue-950 via-slate-900 to-indigo-950 py-10 text-white md:py-14">
+        <div className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-blue-500/20 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-10 left-0 h-48 w-48 rounded-full bg-indigo-500/10 blur-3xl" />
+        <div className="container-pb relative z-10">
+          <p className="text-xs font-extrabold uppercase tracking-[0.22em] text-blue-300">My account</p>
+          <h1 className="mt-2 font-sans text-3xl font-extrabold tracking-tight text-white md:text-4xl">Your <span className="bg-gradient-to-r from-blue-400 to-indigo-300 bg-clip-text text-transparent">Profile</span></h1>
+          <p className="mt-3 max-w-2xl text-xs font-medium leading-relaxed text-slate-300 sm:text-sm">Manage your personal details and keep your account information up to date.</p>
         </div>
       </section>
 
       <div className="container-pb -mt-1 grid max-w-5xl gap-6 py-6 md:py-8 lg:grid-cols-[320px_minmax(0,1fr)]">
-        <aside className="h-fit overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-[0_18px_45px_rgba(15,23,42,0.08)]">
-          <div className="relative overflow-hidden bg-gradient-to-br from-blue-700 via-blue-700 to-indigo-700 px-5 py-6 text-white sm:px-6 lg:py-8">
-            <div className="absolute -right-14 -top-16 h-40 w-40 rounded-full bg-white/10" />
-            <div className="absolute -bottom-20 -left-16 h-40 w-40 rounded-full bg-indigo-400/20" />
+        <aside className="h-fit overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-[0_18px_45px_rgba(15,23,42,0.10)]">
+          <div className="relative overflow-hidden bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-800 px-5 py-6 text-white sm:px-6 lg:py-8">
+            <div className="absolute -right-14 -top-16 h-44 w-44 rounded-full bg-white/10" />
+            <div className="absolute -bottom-20 -left-16 h-44 w-44 rounded-full bg-indigo-400/20" />
+            <div className="pointer-events-none absolute left-1/2 top-1/2 h-64 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full bg-blue-400/5 blur-2xl" />
             <div className="relative flex items-center gap-4 lg:block lg:text-center">
             <div className="relative h-20 w-20 shrink-0 lg:mx-auto lg:h-28 lg:w-28">
-              <div className="grid h-full w-full place-items-center overflow-hidden rounded-full border-4 border-white/70 bg-blue-100 text-3xl font-bold text-blue-700 shadow-lg">
+              <div className="grid h-full w-full place-items-center overflow-hidden rounded-full border-4 border-white/70 bg-blue-100 text-3xl font-bold text-blue-700 shadow-xl shadow-blue-950/30">
                 {imageUrl ? <img src={imageUrl} alt="Profile" className="h-full w-full object-cover" /> : initials}
               </div>
               {editing && (
@@ -194,31 +197,31 @@ export default function ProfilePage() {
             </div>
           </div>
           <div className="p-4 sm:p-5">
-            <div className="flex items-center justify-between gap-4 rounded-2xl border border-blue-100 bg-gradient-to-r from-blue-50 to-indigo-50 p-4">
+            <div className="flex items-center justify-between gap-4 rounded-2xl border border-blue-100 bg-gradient-to-r from-blue-50 to-indigo-50 p-4 shadow-sm">
               <span className="flex min-w-0 items-center gap-3">
-                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white text-blue-600 shadow-sm"><Wallet size={18} /></span>
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-md"><Wallet size={18} /></span>
                 <span className="min-w-0">
-                  <span className="block text-sm font-semibold text-slate-700">Wallet balance</span>
-                  <span className="block text-[11px] text-slate-500">Available balance</span>
+                  <span className="block text-xs font-extrabold uppercase tracking-wider text-slate-600">Wallet Balance</span>
+                  <span className="block text-[11px] font-medium text-slate-400">Available balance</span>
                 </span>
               </span>
-              <strong className="shrink-0 text-base text-blue-700">{formatBalance(user?.wallet_balance)}</strong>
+              <strong className="shrink-0 text-base font-extrabold text-blue-700">{formatBalance(user?.wallet_balance)}</strong>
             </div>
-            <button type="button" onClick={() => setShowLogoutConfirm(true)} className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-red-200 bg-white px-4 py-3 text-sm font-semibold text-red-600 transition hover:border-red-300 hover:bg-red-50 active:scale-[0.99]">
+            <button type="button" onClick={() => setShowLogoutConfirm(true)} className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-red-200/80 bg-red-50/70 px-4 py-3 text-sm font-bold text-red-600 transition hover:border-red-300 hover:bg-red-100 active:scale-[0.99]">
               <LogOut size={17} /> Sign out
             </button>
           </div>
         </aside>
 
-        <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-blue-950/5 md:p-8">
-          <div className="flex flex-wrap items-center justify-between gap-4">
+        <section className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-2xl shadow-blue-950/8 md:p-8">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-5">
             <div>
-              <h2 className="text-xl font-bold text-navy">Personal information</h2>
-              <p className="mt-1 text-sm text-slate-500">Details associated with your account</p>
+              <h2 className="text-xl font-extrabold text-navy">Personal Information</h2>
+              <p className="mt-1 text-xs font-medium text-slate-400">Details associated with your account</p>
             </div>
             {!editing && (
-              <button type="button" onClick={() => { setEditing(true); setSuccess('') }} className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-700">
-                <Edit3 size={16} /> Edit profile
+              <button type="button" onClick={() => { setEditing(true); setSuccess('') }} className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-2.5 text-xs font-extrabold text-white shadow-lg shadow-blue-600/25 transition hover:from-blue-700 hover:to-indigo-700">
+                <Edit3 size={15} /> Edit profile
               </button>
             )}
           </div>
@@ -284,8 +287,8 @@ export default function ProfilePage() {
 
             {editing && (
               <div className="flex flex-wrap justify-end gap-3 border-t border-slate-100 pt-6">
-                {!firstLogin && <button type="button" onClick={cancelEdit} disabled={loading} className="rounded-xl border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-60">Cancel</button>}
-                <button type="submit" disabled={loading} className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-60">
+                {!firstLogin && <button type="button" onClick={cancelEdit} disabled={loading} className="rounded-2xl border border-slate-200 px-5 py-2.5 text-xs font-extrabold text-slate-700 transition hover:bg-slate-50 disabled:opacity-60">Cancel</button>}
+                <button type="submit" disabled={loading} className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-2.5 text-xs font-extrabold text-white shadow-lg shadow-blue-600/25 transition hover:from-blue-700 hover:to-indigo-700 hover:scale-[1.01] disabled:opacity-60">
                   {loading ? <><Loader2 size={17} className="animate-spin" /> Saving...</> : 'Save changes'}
                 </button>
               </div>

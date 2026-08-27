@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import { Building2 } from 'lucide-react'
 import adityaBirlaLogo from '../assets/images/aditya_birla.png'
 import edelLogo from '../assets/images/edel.png'
 import galaxyLogo from '../assets/images/galaxy.png'
@@ -8,7 +9,7 @@ import iciciLogo from '../assets/images/icici.png'
 import idfcLogo from '../assets/images/idfc_logo.svg'
 import indiaFirstLogo from '../assets/images/india_first.png'
 import indiaFirstLifeLogo from '../assets/images/india_first_life.png'
-import kotakLogo from '../assets/images/kotak.png' // rename kotak.pg -> kotak.png first
+import kotakLogo from '../assets/images/kotak.png'
 import libertyLogo from '../assets/images/liberty.png'
 import licLogo from '../assets/images/lic.png'
 import magmaLogo from '../assets/images/magma.png'
@@ -62,31 +63,39 @@ const partners: Partner[] = [
 
 export default function Partners() {
   return (
-    <section className="bg-blueBGMuted py-14">
+    <section className="bg-slate-50 py-12 lg:py-16">
       <div className="container-pb">
-        <h2 className="text-center text-[22px] font-medium text-navy">Our Partners</h2>
-        <p className="mt-1 text-center text-[13px] text-slate2-secondary">
-          Leading insurers for your financial freedom
-        </p>
-        <span className="heading-accent mx-auto mt-3 block h-1 w-12 rounded-full bg-brand" />
+        <div className="text-center">
+          <div className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3.5 py-1 text-xs font-bold text-brand">
+            <Building2 size={15} /> 51+ Insurance Partners
+          </div>
+          <h2 className="mt-3 text-2xl font-extrabold text-navy sm:text-3xl">Our Trusted Insurers</h2>
+          <p className="mx-auto mt-2 max-w-xl text-xs font-medium text-slate-500">
+            Leading insurance companies partner with us to offer choice, transparency &amp; best market rates.
+          </p>
+        </div>
 
-        <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7">
+        <div className="mt-10 grid grid-cols-2 gap-3.5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7">
           {partners.map((p, i) => (
             <motion.div
               key={p.name}
               initial={{ opacity: 0, y: 12 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: (i % 7) * 0.05, duration: 0.35 }}
+              transition={{ delay: (i % 7) * 0.04, duration: 0.35 }}
               whileHover={{ y: -3 }}
-              className="group flex h-24 cursor-pointer flex-col items-center justify-center gap-1.5 rounded-xl border border-slate2-border bg-white px-3 py-3 shadow-sm transition-all duration-300 hover:border-brand/40 hover:shadow-lg"
+              className="group flex h-24 cursor-pointer flex-col items-center justify-center gap-1.5 rounded-2xl border border-slate-200/80 bg-white px-3 py-3 shadow-sm transition-all duration-300 hover:border-brand/40 hover:shadow-lg"
             >
               <img
                 src={p.logoUrl}
                 alt={p.name}
-                className="h-8 w-auto max-w-[80%] object-contain grayscale opacity-70 transition-all duration-300 group-hover:grayscale-0 group-hover:opacity-100"
+                className="h-8 w-auto max-w-[85%] object-contain opacity-80 transition-all duration-300 group-hover:scale-105 group-hover:opacity-100"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement
+                  target.style.display = 'none'
+                }}
               />
-              <span className="text-center text-[10px] font-semibold leading-tight text-slate2-secondary transition-colors duration-300 group-hover:text-navy">
+              <span className="text-center text-[10px] font-bold leading-tight text-slate-600 transition-colors duration-300 group-hover:text-brand">
                 {p.name}
               </span>
             </motion.div>

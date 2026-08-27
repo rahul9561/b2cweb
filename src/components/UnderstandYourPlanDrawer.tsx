@@ -187,7 +187,7 @@ function PlanBenefitsTab({ plan }: { plan: GuaranteedPlan }) {
           <h3 className="text-sm font-bold text-navy">Key Features</h3>
         </div>
 
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           {/* Life Cover Card */}
           <div className="rounded-lg bg-blue-50 p-3 border border-blue-100">
             <p className="text-xs font-bold text-blue-900">₹{plan.lifeCover.toFixed(2)} Lac</p>
@@ -504,7 +504,7 @@ function CompareWithFDTab({ plan }: { plan: GuaranteedPlan }) {
           <div className="space-y-2">
             <div className="relative">
               <div className="border-l-2 border-b-2 border-slate-300 rounded-bl pl-2 pr-2 py-2">
-                <div className="grid grid-cols-3 gap-1 mb-1">
+                <div className="mb-1 grid grid-cols-1 gap-1 sm:grid-cols-3">
                   {Object.entries(plan.fdComparison.postTaxRates).map(([slab, rate]) => (
                     <div
                       key={slab}

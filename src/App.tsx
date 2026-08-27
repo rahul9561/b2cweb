@@ -151,6 +151,7 @@ export default function App() {
     <WalletProvider>
     <LoansProvider>
     <ToastProvider>
+    <ScrollToTop />
     <FirstLoginGuard />
     <UserProfileProvider>
       <FiltersProvider>

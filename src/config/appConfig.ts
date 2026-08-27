@@ -16,13 +16,13 @@ export const AppEndpoints = {
   // Credit bureau report generation (paid — deducts wallet balance).
   cibilGenerateReport: '/cibil/generate-report/',
   
-  experianGenerateReport: '/cibil/generate-report/v2/',
+  experianGenerateReport: '/cibil/generate-report/experien/',
   cibilOnlyScoreReport: '/cibil/only-score/',
   cibilAdvancedReport: '/cibil/generate-report/v2/',
   cibilSendOtp: '/cibil/send-otp/',
   cibilVerifyOtp: '/cibil/verify-otp/',
   // Bureau-specific generation routes and their OTP endpoint aliases.
-  equifaxGenerateReport:  '/cibil/generate-report/v2/',
+  equifaxGenerateReport:  '/cibil/generate-report/',
   crifGenerateReport: '/cibil/generate-report/crif/',
   experianSendOtp: '/cibil/send-otp/',
   experianVerifyOtp: '/cibil/verify-otp/',

@@ -93,17 +93,17 @@ export default function ChildSavingsDetailsPage() {
           <img src={logo} alt="AV Management" className="h-10 w-auto object-contain" />
           <button className="flex items-center gap-2 text-blue-400 hover:text-blue-300 font-bold text-sm">
             <Headphones size={16} />
-            Expert Help
+            <span className="hidden sm:inline">Expert Help</span>
           </button>
         </div>
       </header>
 
       {/* Main Content */}
-      <div className="mx-auto max-w-6xl px-5 py-8">
-        <div className="grid grid-cols-3 gap-8">
+      <div className="mx-auto max-w-6xl px-4 py-6 sm:px-5 sm:py-8">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-8">
           {/* Left: Form */}
-          <div className="col-span-2">
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
+          <div className="col-span-1 lg:col-span-2">
+            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-8">
               {/* Progress Indicator */}
               <div className="flex gap-4 mb-8">
                 <div className={`flex-1 h-1 rounded-full ${step >= 1 ? 'bg-blue-600' : 'bg-slate-300'}`} />

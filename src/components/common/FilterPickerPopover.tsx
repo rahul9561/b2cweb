@@ -54,7 +54,7 @@ export default function FilterPickerPopover({
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -8, scale: 0.98 }}
           transition={{ duration: 0.2, ease: 'easeOut' }}
-          className={`absolute top-full left-0 mt-2 z-50 ${variant === 'dropdown' ? 'w-[280px]' : 'w-[680px] max-w-[calc(100vw-2rem)]'} rounded-2xl border border-gray-200 bg-white shadow-2xl overflow-hidden`}
+          className={`absolute left-0 top-full z-50 mt-2 ${variant === 'dropdown' ? 'w-[280px] max-w-[calc(100vw-2rem)]' : 'w-[680px] max-w-[calc(100vw-2rem)]'} overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl max-sm:fixed max-sm:inset-x-4 max-sm:top-20 max-sm:w-auto max-sm:max-w-none`}
         >
           {/* Header */}
           <div className="flex items-center justify-between border-b border-gray-100 px-5 py-3">
@@ -85,9 +85,9 @@ export default function FilterPickerPopover({
               })}
             </div>
           ) : (
-            <div className="flex min-h-[380px]">
+            <div className="flex max-h-[calc(100vh-9rem)] min-h-0 flex-col overflow-y-auto sm:min-h-[380px] sm:flex-row sm:overflow-visible">
               {/* Left column — scrollable list */}
-              <div className="w-[220px] border-r border-gray-100 bg-gray-50 flex flex-col">
+              <div className="flex max-h-44 w-full flex-col border-b border-gray-100 bg-gray-50 sm:max-h-none sm:w-[220px] sm:border-b-0 sm:border-r">
                 <div className="flex-1 overflow-y-auto py-2 scrollbar-hide">
                   {leftList.map((opt) => {
                     const active = currentValue === opt

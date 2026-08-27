@@ -54,19 +54,19 @@ export default function ChildSavingsPaymentPage() {
       <header className="sticky top-0 z-30 border-b-2 border-slate-900 bg-slate-900 shadow-md">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5">
           <img src={logo} alt="AV Management" className="h-10 w-auto object-contain" />
-          <div className="flex items-center gap-6">
-            <span className="text-sm text-yellow-400 font-bold">Session expires in <span className="text-lg">14:58</span></span>
+          <div className="flex items-center gap-2 sm:gap-6">
+            <span className="text-xs font-bold text-yellow-400 sm:text-sm">Session <span className="hidden sm:inline">expires in </span><span className="text-sm sm:text-lg">14:58</span></span>
             <button className="flex items-center gap-2 text-blue-400 hover:text-blue-300 font-bold text-sm">
               <Headphones size={16} />
-              Talk to an Expert
+              <span className="hidden sm:inline">Talk to an Expert</span>
             </button>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <div className="mx-auto max-w-6xl px-5 py-8">
-        <div className="grid grid-cols-4 gap-8">
+      <div className="mx-auto max-w-6xl px-4 py-6 sm:px-5 sm:py-8">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-4 lg:gap-8">
           {/* Left: Payment Methods Sidebar */}
           <div className="col-span-1">
             <div className="bg-gradient-to-b from-blue-50 to-blue-100 rounded-2xl shadow-sm border border-blue-200 p-4 sticky top-24">
@@ -121,7 +121,7 @@ export default function ChildSavingsPaymentPage() {
           </div>
 
           {/* Right: Payment Form & Summary */}
-          <div className="col-span-3 space-y-8">
+          <div className="col-span-1 space-y-8 lg:col-span-3">
             {/* Payment Status */}
             <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl shadow-sm border border-green-200 p-4">
               <div className="flex items-center justify-between">

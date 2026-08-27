@@ -62,29 +62,29 @@ export default function ChildSavingsReviewPage() {
           <img src={logo} alt="AV Management" className="h-10 w-auto object-contain" />
           <button className="flex items-center gap-2 text-blue-400 hover:text-blue-300 font-bold text-sm">
             <Headphones size={16} />
-            Expert Help
+            <span className="hidden sm:inline">Expert Help</span>
           </button>
         </div>
       </header>
 
       {/* Main Content */}
-      <div className="mx-auto max-w-6xl px-5 py-8">
-        <div className="grid grid-cols-3 gap-8">
+      <div className="mx-auto max-w-6xl px-4 py-6 sm:px-5 sm:py-8">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-8">
           {/* Left: Review Details */}
-          <div className="col-span-2">
+          <div className="col-span-1 lg:col-span-2">
             <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
               {/* Title */}
-              <div className="sticky top-16 z-20 border-b-2 border-blue-200 bg-white px-8 py-6">
+              <div className="sticky top-16 z-20 border-b-2 border-blue-200 bg-white px-4 py-5 sm:px-8 sm:py-6">
                 <h2 className="text-2xl font-bold text-navy mb-2">Review below details before proceeding</h2>
                 <p className="text-sm text-amber-600 italic">These details cannot be changed at a later stage</p>
               </div>
 
               {/* Content */}
-              <div className="p-8 space-y-8">
+              <div className="space-y-8 p-4 sm:p-8">
                 {/* Personal Details */}
                 <section>
                   <h3 className="font-bold text-navy mb-4 text-lg">Personal Details</h3>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <ReviewBox label="Name" value={details.name} />
                     <ReviewBox label="Gender" value={details.gender.charAt(0).toUpperCase() + details.gender.slice(1)} />
                     <ReviewBox label="Date of Birth" value={details.dateOfBirth} />
@@ -96,10 +96,10 @@ export default function ChildSavingsReviewPage() {
                 {/* Address Details */}
                 <section className="border-t pt-8">
                   <h3 className="font-bold text-navy mb-4 text-lg">Address Details</h3>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <ReviewBox label="Pincode" value={details.pincode} />
                     <ReviewBox label="City" value={details.city} />
-                    <ReviewBox label="Nationality" value={details.nationality} className="col-span-2" />
+                    <ReviewBox label="Nationality" value={details.nationality} className="col-span-1 sm:col-span-2" />
                   </div>
                 </section>
 
@@ -155,7 +155,7 @@ export default function ChildSavingsReviewPage() {
               </div>
 
               {/* Sticky Footer */}
-              <div className="sticky bottom-0 border-t-2 border-slate-200 bg-white px-8 py-4 flex gap-4">
+              <div className="sticky bottom-0 flex flex-col gap-3 border-t-2 border-slate-200 bg-white px-4 py-4 sm:flex-row sm:gap-4 sm:px-8">
                 <button
                   onClick={() => navigate(-1)}
                   className="flex-1 px-6 py-3 border-2 border-slate-300 text-navy font-bold rounded-lg hover:bg-slate-50 transition-colors"

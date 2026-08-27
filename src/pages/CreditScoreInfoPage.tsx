@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowRight, BarChart3, Check, ChevronDown, ChevronUp, CircleAlert, FileText, Gauge, Lightbulb, Loader2, RefreshCw, ShieldCheck, Sparkles, TrendingUp, X } from 'lucide-react'
+import { ArrowLeft, ArrowRight, ArrowUpRight, BarChart3, Check, CheckCircle2, ChevronDown, ChevronUp, CircleAlert, Clock, FileText, Gauge, Lightbulb, Loader2, RefreshCw, ShieldCheck, Sparkles, TrendingUp, X } from 'lucide-react'
 import OTPModal from '../components/OTPModal'
 import PDFViewer from '../components/PDFViewer'
 import { CreditScoreArticles, CreditScoreDisclaimer } from '../components/credit-score/CreditScoreArticles'
@@ -188,10 +188,10 @@ const configs: Record<PageKind, {
 }
 
 const Field = ({ label, error, children }: { label: string; error?: string; children: ReactNode }) => (
-  <label className="block text-sm font-medium text-slate-700">
+  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-200">
     {label}
     {children}
-    {error && <span className="mt-1.5 flex items-center gap-1 text-xs font-medium text-red-600"><CircleAlert size={13} />{error}</span>}
+    {error && <span className="mt-1.5 flex items-center gap-1 text-xs font-medium text-red-400"><CircleAlert size={13} />{error}</span>}
   </label>
 )
 
@@ -213,17 +213,79 @@ const isAuthenticationError = (error: unknown) => {
 }
 
 function BlockedReportScreen({ blockedUntil }: { blockedUntil: Date }) {
+  const navigate = useNavigate()
   return (
-    <div className="flex min-h-[70vh] items-center justify-center bg-gradient-to-b from-slate-50 via-blue-50/40 to-white px-4 py-12">
-      <div className="w-full max-w-lg rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-2xl shadow-blue-950/10">
-        <span className="mx-auto inline-flex h-20 w-20 items-center justify-center rounded-full bg-blue-100 text-blue-600">
-          <RefreshCw size={36} />
-        </span>
-        <h1 className="mt-6 font-serif text-2xl font-bold text-navy">Report Already in Progress</h1>
-        <p className="mt-3 text-sm leading-6 text-slate-600">
-          You have already submitted an analysis request. Please check back after{' '}
-          <strong className="font-semibold text-navy">{formatBlockedDate(blockedUntil)}</strong> to generate your next report.
+    <div className="relative flex min-h-[75vh] items-center justify-center overflow-hidden bg-gradient-to-br from-[#0c1b33] via-[#0f284e] to-[#0a1628] px-4 py-16 text-white">
+      {/* Background glow effects */}
+      <div className="pointer-events-none absolute -right-24 -top-24 h-96 w-96 rounded-full bg-blue-500/20 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-24 -left-24 h-96 w-96 rounded-full bg-indigo-500/20 blur-3xl" />
+
+      <div className="relative z-10 w-full max-w-xl rounded-3xl border border-white/20 bg-slate-900/60 p-8 text-center shadow-2xl shadow-black/50 backdrop-blur-xl ring-1 ring-white/10 sm:p-10">
+        {/* Status Chip */}
+        <div className="inline-flex items-center gap-2 rounded-full border border-amber-400/30 bg-amber-400/10 px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider text-amber-300">
+          <span className="h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
+          Request Under Processing
+        </div>
+
+        {/* Center Animated Icon Container */}
+        <div className="relative mx-auto mt-6 flex h-24 w-24 items-center justify-center">
+          <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-blue-500/30 to-indigo-500/30 blur-lg" />
+          <div className="relative flex h-20 w-20 items-center justify-center rounded-2xl border border-blue-400/30 bg-gradient-to-br from-blue-600/30 to-indigo-600/30 text-blue-300 shadow-inner">
+            <RefreshCw size={36} className="animate-spin text-blue-400" style={{ animationDuration: '8s' }} />
+          </div>
+        </div>
+
+        <h1 className="mt-6 font-sans text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
+          Report Already in Progress
+        </h1>
+
+        <p className="mt-3 text-sm leading-relaxed text-slate-300">
+          You have already submitted a CIBIL analysis request. Credit bureaus refresh official scoring records periodically.
         </p>
+
+        {/* Date highlight card */}
+        <div className="mt-6 rounded-2xl border border-white/15 bg-white/[0.06] p-5 backdrop-blur-md">
+          <div className="flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-wider text-blue-300">
+            <Clock size={15} />
+            Next Eligible Generation Date
+          </div>
+          <div className="mt-2 text-xl font-extrabold tracking-tight text-white sm:text-2xl">
+            {formatBlockedDate(blockedUntil)}
+          </div>
+          <p className="mt-2 text-xs text-slate-300">
+            Please check back after this date to run your next credit health analysis.
+          </p>
+        </div>
+
+        {/* Helpful bullet hints */}
+        <div className="mt-6 space-y-2.5 text-left">
+          <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-xs text-slate-200">
+            <CheckCircle2 size={16} className="shrink-0 text-emerald-400" />
+            <span>Existing analysis request is safely queued &amp; being evaluated</span>
+          </div>
+          <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-xs text-slate-200">
+            <CheckCircle2 size={16} className="shrink-0 text-blue-400" />
+            <span>Bureau records typically refresh within 30-45 day cycles</span>
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+          <button
+            type="button"
+            onClick={() => navigate('/')}
+            className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-600/30 transition hover:shadow-blue-600/50 hover:brightness-110 active:scale-[0.99]"
+          >
+            <ArrowLeft size={16} /> Back to Home
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate('/cibil-score')}
+            className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 py-3.5 text-sm font-semibold text-white transition hover:bg-white/15 hover:border-white/30"
+          >
+            View Cibil Score <ArrowUpRight size={16} />
+          </button>
+        </div>
       </div>
     </div>
   )
@@ -396,14 +458,16 @@ export default function CreditScoreInfoPage({ kind }: { kind: PageKind }) {
           </button>
         </div>
       )}
-      <section className="border-b border-blue-100 bg-gradient-to-br from-blue-50 via-white to-slate-50 py-12">
-        <div className="container-pb grid gap-9 lg:grid-cols-[1.2fr_.8fr]">
+      <section className="relative overflow-hidden border-b border-blue-100 bg-gradient-to-br from-blue-950 via-slate-900 to-indigo-950 py-12 text-white">
+        <div className="pointer-events-none absolute -right-20 -top-20 h-96 w-96 rounded-full bg-blue-500/20 blur-3xl" />
+        <div className="pointer-events-none absolute bottom-0 left-0 h-64 w-64 rounded-full bg-indigo-500/10 blur-3xl" />
+        <div className="container-pb relative z-10 grid gap-9 lg:grid-cols-[1.2fr_.8fr] lg:items-start">
           <div className="pt-2">
-            <span className="inline-flex items-center gap-2 rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
+            <span className="inline-flex items-center gap-2 rounded-full border border-blue-400/30 bg-blue-500/20 px-3.5 py-1.5 text-xs font-extrabold uppercase tracking-wider text-blue-300 backdrop-blur-md">
               <Sparkles size={14} /> {config.eyebrow}
             </span>
-            <h1 className="mt-4 max-w-3xl font-serif text-3xl font-bold text-navy md:text-5xl">{config.title}</h1>
-            <p className="mt-5 max-w-2xl text-base leading-7 text-slate-600">{config.intro}</p>
+            <h1 className="mt-4 max-w-3xl font-sans text-3xl font-extrabold tracking-tight text-white md:text-5xl">{config.title}</h1>
+            <p className="mt-5 max-w-2xl text-xs font-medium leading-relaxed text-slate-300 sm:text-base">{config.intro}</p>
             <div className="mt-7 grid gap-3 sm:max-w-xl">
               {(isImprove
                 ? ['PAN-based CIBIL analysis', 'Detailed credit review', 'Personalised guidance from experts']
@@ -411,100 +475,151 @@ export default function CreditScoreInfoPage({ kind }: { kind: PageKind }) {
                   ? ['Instant CIBIL score by PAN', 'No OTP required', 'Secure and protected']
                   : ['Secure OTP verification', 'Clear report summary and PDF download', 'Credit education and practical guidance']
               ).map((item) => (
-                <div key={item} className="flex items-center gap-3 rounded-xl border border-blue-100 bg-white/80 px-4 py-3 text-sm font-medium text-slate-700">
-                  <Check className="h-5 w-5 rounded-full bg-emerald-500 p-1 text-white" />
-                  {item}
+                <div key={item} className="flex items-center gap-3 rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-xs font-bold text-white shadow-lg backdrop-blur-md">
+                  <Check className="h-5 w-5 shrink-0 rounded-full bg-emerald-500 p-1 text-white shadow-md shadow-emerald-500/30" />
+                  <span>{item}</span>
                 </div>
               ))}
             </div>
             <div className="mt-8 grid max-w-xl grid-cols-3 gap-3">
-              <div className="rounded-xl bg-white p-4 text-center shadow-sm"><Gauge className="mx-auto text-blue-600" /><strong className="mt-2 block text-navy">Credit Insights</strong></div>
-              <div className="rounded-xl bg-white p-4 text-center shadow-sm"><BarChart3 className="mx-auto text-indigo-600" /><strong className="mt-2 block text-navy">Profile Review</strong></div>
-              <div className="rounded-xl bg-white p-4 text-center shadow-sm"><ShieldCheck className="mx-auto text-emerald-600" /><strong className="mt-2 block text-navy">Protected</strong></div>
+              <div className="rounded-2xl border border-white/15 bg-white/10 p-4 text-center backdrop-blur-sm"><Gauge className="mx-auto text-blue-300" /><strong className="mt-2 block text-xs font-extrabold text-white">Credit Insights</strong></div>
+              <div className="rounded-2xl border border-white/15 bg-white/10 p-4 text-center backdrop-blur-sm"><BarChart3 className="mx-auto text-indigo-300" /><strong className="mt-2 block text-xs font-extrabold text-white">Profile Review</strong></div>
+              <div className="rounded-2xl border border-white/15 bg-white/10 p-4 text-center backdrop-blur-sm"><ShieldCheck className="mx-auto text-emerald-300" /><strong className="mt-2 block text-xs font-extrabold text-white">Protected</strong></div>
             </div>
           </div>
 
           {/* ── Let's Get Started form ── */}
-          <form onSubmit={submit} noValidate className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xl shadow-blue-950/5">
+          <form onSubmit={submit} noValidate className="rounded-3xl border border-white/20 bg-slate-900/60 p-7 shadow-2xl shadow-black/40 backdrop-blur-xl ring-1 ring-white/10 sm:p-8">
             <div className="flex items-center gap-3">
-              <span className="rounded-xl bg-blue-100 p-3 text-blue-600"><FileText size={22} /></span>
+              <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-blue-400/30 bg-gradient-to-br from-blue-500/30 to-indigo-500/20 text-blue-300 shadow-inner">
+                <FileText size={22} />
+              </span>
               <div>
-                <h2 className="text-2xl font-bold text-navy">Let&rsquo;s Get Started</h2>
-                <p className="text-xs text-slate-500">Complete your details to continue</p>
+                <h2 className="font-sans text-2xl font-bold tracking-tight text-white">Let&rsquo;s Get Started</h2>
+                <p className="text-xs font-medium text-blue-200/80">Complete your details to continue</p>
               </div>
             </div>
             <div className="mt-6 space-y-4">
               {kind === 'pan' && (
                 <>
                   <Field label="First Name" error={submitted ? errors.firstName : ''}>
-                    <input value={data.firstName} onChange={(e) => update('firstName', e.target.value)} className="mt-1.5 w-full rounded-lg border border-slate-300 px-3 py-3 outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100" placeholder="Enter your first name" />
+                    <input
+                      value={data.firstName}
+                      onChange={(e) => update('firstName', e.target.value)}
+                      className="mt-1.5 w-full rounded-xl border border-white/15 bg-white/[0.07] px-3.5 py-3 text-sm text-white placeholder:text-slate-400 outline-none transition focus:border-blue-400 focus:bg-white/[0.12] focus:ring-2 focus:ring-blue-400/25"
+                      placeholder="Enter your first name"
+                    />
                   </Field>
 
                   <Field label="Last Name" error={submitted ? errors.lastName : ''}>
-                    <input value={data.lastName} onChange={(e) => update('lastName', e.target.value)} className="mt-1.5 w-full rounded-lg border border-slate-300 px-3 py-3 outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100" placeholder="Enter your last name" />
+                    <input
+                      value={data.lastName}
+                      onChange={(e) => update('lastName', e.target.value)}
+                      className="mt-1.5 w-full rounded-xl border border-white/15 bg-white/[0.07] px-3.5 py-3 text-sm text-white placeholder:text-slate-400 outline-none transition focus:border-blue-400 focus:bg-white/[0.12] focus:ring-2 focus:ring-blue-400/25"
+                      placeholder="Enter your last name"
+                    />
                   </Field>
 
                   <Field label="DOB" error={submitted ? errors.dob : ''}>
-                    <input type="date" value={data.dob} onChange={(e) => update('dob', e.target.value)} className="mt-1.5 w-full rounded-lg border border-slate-300 px-3 py-3 outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100" />
+                    <input
+                      type="date"
+                      value={data.dob}
+                      onChange={(e) => update('dob', e.target.value)}
+                      className="mt-1.5 w-full rounded-xl border border-white/15 bg-white/[0.07] px-3.5 py-3 text-sm text-white [color-scheme:dark] outline-none transition focus:border-blue-400 focus:bg-white/[0.12] focus:ring-2 focus:ring-blue-400/25"
+                    />
                   </Field>
 
                   <Field label="Pin Code" error={submitted ? errors.pincode : ''}>
-                    <input value={data.pincode} onChange={(e) => update('pincode', e.target.value.replace(/\D/g, '').slice(0, 6))} inputMode="numeric" className="mt-1.5 w-full rounded-lg border border-slate-300 px-3 py-3 outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100" placeholder="Enter 6-digit pin code" />
+                    <input
+                      value={data.pincode}
+                      onChange={(e) => update('pincode', e.target.value.replace(/\D/g, '').slice(0, 6))}
+                      inputMode="numeric"
+                      className="mt-1.5 w-full rounded-xl border border-white/15 bg-white/[0.07] px-3.5 py-3 text-sm text-white placeholder:text-slate-400 outline-none transition focus:border-blue-400 focus:bg-white/[0.12] focus:ring-2 focus:ring-blue-400/25"
+                      placeholder="Enter 6-digit pin code"
+                    />
                   </Field>
                 </>
               )}
 
               {kind !== 'pan' && (
                 <Field label="Full Name" error={submitted ? errors.name : ''}>
-                  <input value={data.name} onChange={(e) => update('name', e.target.value)} className="mt-1.5 w-full rounded-lg border border-slate-300 px-3 py-3 outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100" placeholder="Enter your full name" />
+                  <input
+                    value={data.name}
+                    onChange={(e) => update('name', e.target.value)}
+                    className="mt-1.5 w-full rounded-xl border border-white/15 bg-white/[0.07] px-3.5 py-3 text-sm text-white placeholder:text-slate-400 outline-none transition focus:border-blue-400 focus:bg-white/[0.12] focus:ring-2 focus:ring-blue-400/25"
+                    placeholder="Enter your full name"
+                  />
                 </Field>
               )}
 
               <Field label="Phone Number" error={submitted ? errors.phone : ''}>
-                <input value={data.phone} onChange={(e) => update('phone', e.target.value.replace(/\D/g, '').slice(0, 10))} inputMode="numeric" className="mt-1.5 w-full rounded-lg border border-slate-300 px-3 py-3 outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100" placeholder="Enter 10-digit phone number" />
+                <input
+                  value={data.phone}
+                  onChange={(e) => update('phone', e.target.value.replace(/\D/g, '').slice(0, 10))}
+                  inputMode="numeric"
+                  className="mt-1.5 w-full rounded-xl border border-white/15 bg-white/[0.07] px-3.5 py-3 text-sm text-white placeholder:text-slate-400 outline-none transition focus:border-blue-400 focus:bg-white/[0.12] focus:ring-2 focus:ring-blue-400/25"
+                  placeholder="Enter 10-digit phone number"
+                />
               </Field>
 
               <Field label="PAN Number" error={submitted ? errors.pan : ''}>
-                <input value={data.pan} onChange={(e) => update('pan', e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 10))} className="mt-1.5 w-full rounded-lg border border-slate-300 px-3 py-3 font-mono outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100" placeholder="Enter PAN number" />
+                <input
+                  value={data.pan}
+                  onChange={(e) => update('pan', e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 10))}
+                  className="mt-1.5 w-full rounded-xl border border-white/15 bg-white/[0.07] px-3.5 py-3 font-mono text-sm text-white placeholder:text-slate-400 outline-none transition focus:border-blue-400 focus:bg-white/[0.12] focus:ring-2 focus:ring-blue-400/25"
+                  placeholder="Enter PAN number"
+                />
               </Field>
 
               {kind !== 'pan' && (
                 <Field label="Gender" error={submitted ? errors.gender : ''}>
                   <div className="mt-2 grid grid-cols-3 gap-2">
                     {['Male', 'Female', 'Other'].map((option) => (
-                      <button key={option} type="button" onClick={() => update('gender', option)} className={`rounded-lg border py-2.5 text-sm font-medium transition ${data.gender === option ? 'border-blue-600 bg-blue-600 text-white' : 'border-slate-300 text-slate-600 hover:border-blue-400'}`}>{option}</button>
+                      <button
+                        key={option}
+                        type="button"
+                        onClick={() => update('gender', option)}
+                        className={`rounded-xl border py-2.5 text-sm font-medium transition ${data.gender === option ? 'border-blue-500 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold shadow-md shadow-blue-500/25' : 'border-white/15 bg-white/5 text-slate-200 hover:bg-white/10 hover:border-white/25'}`}
+                      >
+                        {option}
+                      </button>
                     ))}
                   </div>
                 </Field>
               )}
 
               {!isImprove && kind !== 'pan' && (
-                <p className="text-xs text-slate-500">An OTP will be sent to your mobile number.</p>
+                <p className="text-xs text-slate-300">An OTP will be sent to your mobile number.</p>
               )}
 
               {isImprove && (
-                <label className="flex items-start gap-2.5 rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs leading-5 text-slate-600">
-                  <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-300 accent-blue-600" />
+                <label className="flex items-start gap-2.5 rounded-xl border border-white/15 bg-white/5 p-3 text-xs leading-5 text-slate-300 backdrop-blur-sm">
+                  <input
+                    type="checkbox"
+                    checked={consent}
+                    onChange={(e) => setConsent(e.target.checked)}
+                    className="mt-0.5 h-4 w-4 shrink-0 rounded border-white/20 bg-white/10 accent-blue-500"
+                  />
                   I authorize the deduction of ₹299 from my wallet balance to generate this report.
                 </label>
               )}
 
               {submitted && isImprove && !consent && (
-                <p className="text-xs font-medium text-red-600">Please check the consent box to continue.</p>
+                <p className="text-xs font-medium text-red-400">Please check the consent box to continue.</p>
               )}
 
               {analysisError && (
-                <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-medium text-red-600">{analysisError}</p>
+                <p className="rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs font-medium text-red-300">{analysisError}</p>
               )}
 
               {scoreError && (
-                <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-medium text-red-600">{scoreError}</p>
+                <p className="rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs font-medium text-red-300">{scoreError}</p>
               )}
 
               <button
                 type="submit"
                 disabled={analysisLoading || scoreLoading}
-                className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 py-3.5 font-semibold text-white transition hover:bg-blue-700 disabled:opacity-60"
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600 py-3.5 font-bold text-white shadow-lg shadow-blue-600/30 transition hover:shadow-blue-600/50 hover:brightness-110 active:scale-[0.99] disabled:opacity-60"
               >
                 {analysisLoading ? (
                   <><Loader2 size={17} className="animate-spin" /> Generating report...</>

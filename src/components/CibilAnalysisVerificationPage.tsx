@@ -1,6 +1,29 @@
 import { useMemo, useState, type ReactNode } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { ArrowLeft, ArrowRight, Briefcase, CheckCircle2, CreditCard, FileSearch, Landmark, Loader2, ShieldCheck, User, XCircle } from 'lucide-react'
+import {
+  ArrowLeft,
+  ArrowRight,
+  Briefcase,
+  Building2,
+  Calendar,
+  Check,
+  CheckCircle2,
+  CreditCard,
+  FileSearch,
+  FileText,
+  HelpCircle,
+  Landmark,
+  Loader2,
+  MapPin,
+  Phone,
+  ShieldAlert,
+  ShieldCheck,
+  Sparkles,
+  User,
+  Wallet,
+  X,
+  XCircle,
+} from 'lucide-react'
 import { useCreditAnalysis } from '../hooks/useCreditAnalysis'
 import { saveCibilAnalysisSession } from '../lib/cibilAnalysisSession'
 
@@ -32,6 +55,7 @@ interface FieldItem {
 interface LoanCard {
   loanId: string
   heading: string
+  bankName: string
   fields: FieldItem[]
 }
 
@@ -82,10 +106,11 @@ function extractValue(value: unknown): string {
 /** Reads a loan field regardless of whether the API uses snake_case or camelCase. */
 function getLoanField(loan: Record<string, unknown>, key: string): unknown {
   const aliases: Record<string, string[]> = {
-    bank_name: ['bank_name', 'bankName'],
-    loan_type: ['loan_type', 'loanType'],
-    loan_amount: ['loan_amount', 'loanAmount'],
-    current_balance: ['current_balance', 'currentBalance'],
+    bank_name: ['bank_name', 'bankName', 'bank'],
+    loan_type: ['loan_type', 'loanType', 'type'],
+    loan_amount: ['loan_amount', 'loanAmount', 'amount'],
+    current_balance: ['current_balance', 'currentBalance', 'balance'],
+    emi: ['emi', 'monthly_emi', 'monthlyEmi'],
   }
 
   for (const alias of aliases[key] ?? [key]) {
@@ -99,11 +124,11 @@ function extractSections(data: Record<string, unknown>, reportId = getReportId(d
 
   // ── Personal Details ──
   const personalFieldKeys: Array<[string, string]> = [
-    ['name', 'Name'],
+    ['name', 'Full Name'],
     ['mobile', 'Phone Number'],
     ['dob', 'Date of Birth'],
     ['pan', 'PAN Number'],
-    ['address', 'Address'],
+    ['address', 'Current Address'],
   ]
 
   const personalFields: FieldItem[] = []
@@ -169,8 +194,8 @@ function extractSections(data: Record<string, unknown>, reportId = getReportId(d
     sections.push({
       type: 'personal_details',
       title: 'Personal Details',
-      icon: <User size={20} />,
-      cards: [{ loanId: reportId, heading: '', fields: personalFields }],
+      icon: <User size={18} />,
+      cards: [{ loanId: reportId, heading: 'Applicant Information', bankName: '', fields: personalFields }],
     })
   }
 
@@ -180,171 +205,125 @@ function extractSections(data: Record<string, unknown>, reportId = getReportId(d
     type: string
     title: string
     icon: ReactNode
-    fieldDefs: Array<[string, string]>
-    alternateKeys: string[]
+    keys: Array<[string, string]>
   }> = [
     {
       key: 'active_loans',
-      type: 'active_loan',
+      type: 'active_loans',
       title: 'Active Loans',
-      icon: <CreditCard size={20} />,
-      fieldDefs: [
+      icon: <CreditCard size={18} />,
+      keys: [
         ['bank_name', 'Bank Name'],
         ['loan_type', 'Loan Type'],
         ['current_balance', 'Current Balance'],
         ['loan_amount', 'Loan Amount'],
-        ['emi', 'EMI'],
+        ['emi', 'Monthly EMI'],
       ],
-      alternateKeys: ['active_loan', 'active', 'loans', 'activeLoans'],
     },
     {
-      key: 'close_loans',
-      type: 'close_loan',
+      key: 'closed_loans',
+      type: 'closed_loans',
       title: 'Closed Loans',
-      icon: <Briefcase size={20} />,
-      fieldDefs: [
+      icon: <Briefcase size={18} />,
+      keys: [
         ['bank_name', 'Bank Name'],
         ['loan_type', 'Loan Type'],
         ['loan_amount', 'Loan Amount'],
       ],
-      alternateKeys: ['close_loan', 'closed_loans', 'closed_loan', 'closed', 'closeLoans', 'closedLoans'],
     },
   ]
 
-  const findLoanRaw = (def: (typeof loanSectionDefs)[number]): unknown => {
-    // Top level
-    if (data[def.key] !== undefined && data[def.key] !== null) return data[def.key]
-    for (const alt of def.alternateKeys) {
-      if (data[alt] !== undefined && data[alt] !== null) return data[alt]
-    }
-    // Nested wrappers
-    for (const wrap of ['data', 'result', 'details', 'response', 'verification_data']) {
-      const wrapObj = data[wrap]
-      if (wrapObj && typeof wrapObj === 'object') {
-        const w = wrapObj as Record<string, unknown>
-        if (w[def.key] !== undefined && w[def.key] !== null) return w[def.key]
-        for (const alt of def.alternateKeys) {
-          if (w[alt] !== undefined && w[alt] !== null) return w[alt]
-        }
-      }
-    }
-    return undefined
-  }
-
   for (const def of loanSectionDefs) {
-    const raw = findLoanRaw(def)
-    if (raw === undefined || raw === null) continue
-
-    // Normalize into an array of loan objects. Some responses group loans under
-    // their bank name, so also unwrap those bank-keyed arrays.
-    let loanArray: unknown[] = []
-    if (Array.isArray(raw)) {
-      loanArray = raw
-    } else if (typeof raw === 'object') {
-      const obj = raw as Record<string, unknown>
-      if (Array.isArray(obj.loans)) loanArray = obj.loans
-      else if (Array.isArray(obj.data)) loanArray = obj.data
-      else if (Array.isArray(obj.loan)) loanArray = obj.loan
-      else {
-        const bankGroupedLoans = Object.values(obj).filter(Array.isArray).flat()
-        loanArray = bankGroupedLoans.length > 0 ? bankGroupedLoans : [obj]
-      }
+    let loanArray: Array<Record<string, unknown>> = []
+    if (Array.isArray(data[def.key])) {
+      loanArray = data[def.key] as Array<Record<string, unknown>>
+    } else if (Array.isArray(data[def.type])) {
+      loanArray = data[def.type] as Array<Record<string, unknown>>
     }
 
-    // Group loans by bank name (case-insensitive)
-    const grouped = new Map<string, Array<Record<string, unknown>>>()
-    loanArray.forEach((loan) => {
-      if (!loan || typeof loan !== 'object') return
-      const loanObj = loan as Record<string, unknown>
-      const bank = (extractValue(getLoanField(loanObj, 'bank_name')) || 'Bank').toUpperCase()
-      if (!grouped.has(bank)) grouped.set(bank, [])
-      grouped.get(bank)!.push(loanObj)
-    })
+    if (loanArray.length > 0) {
+      const cards: LoanCard[] = []
+      loanArray.forEach((loan, idx) => {
+        const bankName = extractValue(getLoanField(loan, 'bank_name'))
+        const cardHeading = `Loan ${idx + 1}${bankName ? ` from ${bankName}` : ''}`
+        const loanId = String(loan.id ?? loan.loan_id ?? `${def.type}_${idx}`)
+        const cardFields: FieldItem[] = []
 
-    const cards: LoanCard[] = []
-    let loanNumber = 0
-    grouped.forEach((loans, bankName) => {
-      loans.forEach((loanObj, index) => {
-        loanNumber += 1
-        const loanId = String(
-          loanObj.loan_id ?? loanObj.loanId ?? loanObj.id ?? `${def.type}_${bankName}_${index}`
-        )
-        const fields: FieldItem[] = []
-        for (const [key, label] of def.fieldDefs) {
-          const text = extractValue(getLoanField(loanObj, key))
-          if (text) {
-            fields.push({
-              uniqueKey: `${def.type}_${loanId}_${key}`,
-              fieldKey: key,
-              label,
-              value: text,
+        for (const [fKey, fLabel] of def.keys) {
+          const val = extractValue(getLoanField(loan, fKey))
+          if (val) {
+            cardFields.push({
+              uniqueKey: `${def.type}_${idx}_${fKey}`,
+              fieldKey: fKey,
+              label: fLabel,
+              value: val,
               sectionType: def.type,
               loanId,
             })
           }
         }
-        if (fields.length > 0) {
-          const displayBank = extractValue(getLoanField(loanObj, 'bank_name')) || bankName
+
+        if (cardFields.length > 0) {
           cards.push({
             loanId,
-            heading: `Loan ${loanNumber} from ${displayBank}`,
-            fields,
+            heading: cardHeading,
+            bankName,
+            fields: cardFields,
           })
         }
       })
-    })
 
-    if (cards.length > 0) {
-      sections.push({
-        type: def.type,
-        title: def.title,
-        icon: def.icon,
-        cards,
-      })
+      if (cards.length > 0) {
+        sections.push({
+          type: def.type,
+          title: def.title,
+          icon: def.icon,
+          cards,
+        })
+      }
     }
   }
 
   return sections
 }
 
-/** Builds the nested payload required by the verification endpoint. */
 function buildVerificationPayload(
   reportId: string,
-  data: Record<string, unknown>,
-  fields: FieldItem[],
-  answers: Record<string, 'yes' | 'no'>
-): Record<string, unknown> {
-  const personalSource =
-    data.personal_details && typeof data.personal_details === 'object'
-      ? (data.personal_details as Record<string, unknown>)
-      : {}
-  const personalDetails: Record<string, unknown> = { ...personalSource }
+  verificationData: Record<string, unknown>,
+  allFields: FieldItem[],
+  verification: Record<string, 'yes' | 'no'>
+) {
+  const isVerified = (uniqueKey: string) => verification[uniqueKey] === 'yes'
 
-  for (const field of fields.filter((item) => item.sectionType === 'personal_details')) {
-    const source = personalSource[field.fieldKey]
-    personalDetails[field.fieldKey] = {
-      ...(source && typeof source === 'object' ? (source as Record<string, unknown>) : { value: field.value }),
-      verified: answers[field.uniqueKey] === 'yes',
-    }
-  }
-
-  const buildLoans = (sourceKey: 'active_loans' | 'closed_loans', sectionType: string) => {
-    const sourceLoans = Array.isArray(data[sourceKey]) ? data[sourceKey] : []
-    return sourceLoans.map((source) => {
-      if (!source || typeof source !== 'object') return source
-      const loan = source as Record<string, unknown>
-      const loanId = String(loan.id ?? loan.loan_id ?? loan.loanId ?? '')
-      const verified =
-        loan.verified && typeof loan.verified === 'object'
-          ? { ...(loan.verified as Record<string, unknown>) }
-          : {}
-
-      for (const field of fields) {
-        if (field.sectionType === sectionType && field.loanId === loanId) {
-          verified[field.fieldKey] = answers[field.uniqueKey] === 'yes'
-        }
+  // Personal details
+  const personalDetails: Record<string, { value: string; verified: boolean }> = {}
+  allFields
+    .filter((f) => f.sectionType === 'personal_details')
+    .forEach((f) => {
+      personalDetails[f.fieldKey] = {
+        value: f.value,
+        verified: isVerified(f.uniqueKey),
       }
-      return { ...loan, verified }
+    })
+
+  // Helper for loans
+  const buildLoans = (sectionType: string, alias: string) => {
+    const rawLoans = (verificationData[sectionType] ?? verificationData[alias] ?? []) as Array<Record<string, unknown>>
+    if (!Array.isArray(rawLoans)) return []
+
+    return rawLoans.map((loan, idx) => {
+      const output: Record<string, unknown> = { ...loan }
+      const matchingFields = allFields.filter(
+        (f) => f.sectionType === sectionType && f.uniqueKey.startsWith(`${sectionType}_${idx}_`)
+      )
+
+      matchingFields.forEach((f) => {
+        output[f.fieldKey] = {
+          value: f.value,
+          verified: isVerified(f.uniqueKey),
+        }
+      })
+      return output
     })
   }
 
@@ -359,23 +338,30 @@ function buildVerificationPayload(
   }
 }
 
+function getFieldIcon(key: string) {
+  const k = key.toLowerCase()
+  if (k.includes('bank')) return <Building2 size={15} className="text-blue-600" />
+  if (k.includes('type')) return <FileText size={15} className="text-indigo-600" />
+  if (k.includes('balance') || k.includes('amount')) return <Wallet size={15} className="text-emerald-600" />
+  if (k.includes('emi')) return <CreditCard size={15} className="text-purple-600" />
+  if (k.includes('phone') || k.includes('mobile')) return <Phone size={15} className="text-blue-600" />
+  if (k.includes('dob') || k.includes('birth')) return <Calendar size={15} className="text-amber-600" />
+  if (k.includes('address')) return <MapPin size={15} className="text-rose-600" />
+  return <Sparkles size={15} className="text-slate-400" />
+}
+
 export default function CibilCrossVerifyPage() {
   const location = useLocation()
   const navigate = useNavigate()
 
   const rawData = (location.state?.apiData ?? location.state?.data ?? {}) as Record<string, unknown>
-  // The analysis endpoint returns the loan and personal values inside
-  // `verification_data`; retain the outer response separately for report_id.
   const verificationData =
     rawData.verification_data && typeof rawData.verification_data === 'object'
       ? (rawData.verification_data as Record<string, unknown>)
       : rawData
   const reportId = String(location.state?.reportId ?? getReportId(rawData) ?? '')
   const sections = useMemo(() => extractSections(verificationData, reportId), [verificationData, reportId])
-  const allFields = useMemo(
-    () => sections.flatMap((s) => s.cards.flatMap((c) => c.fields)),
-    [sections]
-  )
+  const allFields = useMemo(() => sections.flatMap((s) => s.cards.flatMap((c) => c.fields)), [sections])
 
   const [verification, setVerification] = useState<Record<string, 'yes' | 'no'>>({})
   const [activeSectionIndex, setActiveSectionIndex] = useState(0)
@@ -396,10 +382,31 @@ export default function CibilCrossVerifyPage() {
     allFields.length > 0 &&
     allFields.every((field) => verification[field.uniqueKey] === 'yes' || verification[field.uniqueKey] === 'no')
 
-  const isSectionAnswered = (section: VerificationSection) =>
-    section.cards.every((card) => card.fields.every((field) =>
-      verification[field.uniqueKey] === 'yes' || verification[field.uniqueKey] === 'no'
-    ))
+  const isCardAnswered = (card: LoanCard) =>
+    card.fields.every((field) => verification[field.uniqueKey] === 'yes' || verification[field.uniqueKey] === 'no')
+
+  const getCardAnswer = (card: LoanCard): 'yes' | 'no' | null => {
+    if (!card.fields.length) return null
+    const first = verification[card.fields[0].uniqueKey]
+    if (first && card.fields.every((f) => verification[f.uniqueKey] === first)) return first
+    return null
+  }
+
+  const isSectionAnswered = (section: VerificationSection) => section.cards.every(isCardAnswered)
+
+  const answeredCardsCount = useMemo(() => {
+    let count = 0
+    sections.forEach((s) => {
+      s.cards.forEach((c) => {
+        if (isCardAnswered(c)) count++
+      })
+    })
+    return count
+  }, [sections, verification])
+
+  const totalCardsCount = useMemo(() => {
+    return sections.reduce((acc, s) => acc + s.cards.length, 0)
+  }, [sections])
 
   const currentSection = sections[Math.min(activeSectionIndex, sections.length - 1)]
   const currentSectionAnswered = currentSection ? isSectionAnswered(currentSection) : false
@@ -410,7 +417,6 @@ export default function CibilCrossVerifyPage() {
     setSubmitting(true)
     try {
       await submitVerification(buildVerificationPayload(reportId, verificationData, allFields, verification))
-
       saveCibilAnalysisSession()
       navigate('/increase-cibil-score/success', { replace: true })
     } catch {
@@ -429,20 +435,20 @@ export default function CibilCrossVerifyPage() {
 
   if (allFields.length === 0) {
     return (
-      <div className="flex min-h-[60vh] items-center justify-center bg-slate-50 px-4">
+      <div className="flex min-h-[70vh] items-center justify-center bg-slate-50 px-4 py-16">
         <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-xl shadow-blue-950/5">
-          <span className="mx-auto inline-flex rounded-2xl bg-amber-100 p-4 text-amber-600">
-            <FileSearch size={30} />
+          <span className="mx-auto inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-100 text-amber-600">
+            <FileSearch size={32} />
           </span>
-          <h1 className="mt-6 font-serif text-2xl font-bold text-navy">No Data to Verify</h1>
+          <h1 className="mt-6 font-sans text-2xl font-bold text-slate-900">No Data to Verify</h1>
           <p className="mt-3 text-sm leading-6 text-slate-600">
-            We could not find any data returned from the analysis API. Please go back and try again.
+            We could not find any active data returned from the analysis API. Please restart the analysis flow.
           </p>
           <button
             onClick={() => navigate('/increase-cibil-score', { replace: true })}
-            className="mt-7 w-full rounded-xl bg-blue-600 py-3.5 font-semibold text-white transition hover:bg-blue-700"
+            className="mt-7 w-full rounded-xl bg-blue-600 py-3.5 font-bold text-white shadow-lg shadow-blue-600/25 transition hover:bg-blue-700"
           >
-            Back to Form
+            Back to Analysis Form
           </button>
         </div>
       </div>
@@ -450,158 +456,300 @@ export default function CibilCrossVerifyPage() {
   }
 
   return (
-    <section className="min-h-screen bg-gradient-to-b from-slate-50 via-blue-50/40 to-white py-10 md:py-14">
-      <div className="mx-auto max-w-6xl px-4">
-        {/* Heading */}
+    <section className="min-h-screen bg-gradient-to-b from-[#f3f7fd] via-[#f9fbff] to-white py-10 md:py-14 text-slate-800">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+        {/* Header Banner */}
         <div className="mb-8 text-center">
-          <span className="inline-flex items-center gap-2 rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
-            <ShieldCheck size={14} /> Verification step {activeSectionIndex + 1} of {sections.length}
-          </span>
-          <h1 className="mt-4 font-serif text-3xl font-bold text-navy md:text-4xl">Cross Verify Information</h1>
-          <p className="mt-3 text-sm leading-6 text-slate-600">
-            Please confirm that the details returned from your PAN and mobile number are correct.
+          <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-white px-4 py-1.5 text-xs font-bold text-blue-700 shadow-sm">
+            <ShieldCheck size={15} className="text-blue-600" /> Step 2 of 2 · Cross Verification
+          </div>
+          <h1 className="mt-4 font-sans text-3xl font-black tracking-tight text-slate-900 md:text-4xl">
+            Cross Verify Your Credit Records
+          </h1>
+          <p className="mx-auto mt-2.5 max-w-2xl text-sm font-medium leading-6 text-slate-600">
+            Confirm whether the accounts and personal data retrieved from the credit bureau are recognized by you. This ensures accurate dispute resolution.
           </p>
+
+          {/* Progress Overview Bar */}
+          <div className="mx-auto mt-5 max-w-md">
+            <div className="flex items-center justify-between text-xs font-bold text-slate-600 mb-1.5">
+              <span>Overall Progress</span>
+              <span className="text-blue-600">
+                {answeredCardsCount} of {totalCardsCount} cards answered
+              </span>
+            </div>
+            <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 transition-all duration-500"
+                style={{ width: `${(answeredCardsCount / (totalCardsCount || 1)) * 100}%` }}
+              />
+            </div>
+          </div>
         </div>
 
-        <div id="verification-workspace" className="scroll-mt-24 grid items-start gap-6 lg:grid-cols-[250px_minmax(0,1fr)]">
-          <aside className="overflow-x-auto rounded-2xl border border-slate-200 bg-white p-2 shadow-xl shadow-blue-950/5 lg:sticky lg:top-24 lg:overflow-visible lg:p-3">
-            <p className="hidden px-3 pb-2 pt-1 text-[10px] font-bold uppercase tracking-widest text-slate-400 lg:block">Verification sections</p>
-            <nav className="flex min-w-max gap-1 lg:min-w-0 lg:flex-col" aria-label="Verification sections">
+        {/* Workspace Layout */}
+        <div id="verification-workspace" className="scroll-mt-24 grid items-start gap-8 lg:grid-cols-[280px_minmax(0,1fr)]">
+          {/* Left Sidebar */}
+          <aside className="rounded-3xl border border-slate-200/80 bg-white p-3 shadow-xl shadow-blue-950/5 lg:sticky lg:top-24">
+            <div className="px-4 py-3 border-b border-slate-100">
+              <p className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">
+                Verification Steps
+              </p>
+              <p className="text-xs text-slate-500 mt-0.5">Select a category to review</p>
+            </div>
+            <nav className="mt-2 space-y-1.5" aria-label="Verification sections">
               {sections.map((section, index) => {
                 const complete = isSectionAnswered(section)
                 const selected = index === activeSectionIndex
                 const accessible = index <= activeSectionIndex || sections.slice(0, index).every(isSectionAnswered)
+
                 return (
                   <button
                     key={section.type}
                     type="button"
                     onClick={() => accessible && goToSection(index)}
                     disabled={!accessible}
-                    className={`flex items-center gap-3 rounded-xl px-3 py-3 text-left text-xs font-semibold transition lg:w-full ${selected ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20' : accessible ? 'text-slate-600 hover:bg-blue-50 hover:text-blue-700' : 'cursor-not-allowed text-slate-300'}`}
+                    className={`group flex w-full items-center gap-3 rounded-2xl px-3.5 py-3.5 text-left text-xs font-bold transition-all duration-200 ${
+                      selected
+                        ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-600/25'
+                        : accessible
+                        ? 'text-slate-700 hover:bg-blue-50/80 hover:text-blue-700'
+                        : 'cursor-not-allowed text-slate-300 opacity-60'
+                    }`}
                   >
-                    <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg ${selected ? 'bg-white/15' : complete ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100'}`}>
-                      {complete && !selected ? <CheckCircle2 size={17} /> : section.icon}
+                    <span
+                      className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl transition-colors ${
+                        selected
+                          ? 'bg-white/20 text-white'
+                          : complete
+                          ? 'bg-emerald-100 text-emerald-600'
+                          : 'bg-slate-100 text-slate-500'
+                      }`}
+                    >
+                      {complete && !selected ? <CheckCircle2 size={18} /> : section.icon}
                     </span>
-                    <span className="whitespace-nowrap">{section.title}</span>
-                    <span className="ml-auto hidden text-[10px] lg:block">{complete ? 'Done' : index + 1}</span>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-xs font-bold">{section.title}</p>
+                      <p className={`text-[10px] ${selected ? 'text-blue-100' : 'text-slate-400'}`}>
+                        {section.cards.length} {section.cards.length === 1 ? 'record' : 'records'}
+                      </p>
+                    </div>
+                    {complete ? (
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-[10px] font-extrabold ${
+                          selected ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-700'
+                        }`}
+                      >
+                        Done
+                      </span>
+                    ) : (
+                      <span className={`text-[11px] font-semibold ${selected ? 'text-blue-200' : 'text-slate-400'}`}>
+                        {index + 1}/{sections.length}
+                      </span>
+                    )}
                   </button>
                 )
               })}
             </nav>
+
+            <div className="mt-4 rounded-2xl bg-blue-50/60 p-3.5 text-xs text-blue-900 border border-blue-100/80">
+              <p className="flex items-center gap-1.5 font-bold">
+                <HelpCircle size={14} className="text-blue-600" /> Need Help?
+              </p>
+              <p className="mt-1 text-[11px] text-slate-600 leading-4">
+                Marking "No" flags disputed or unrecognized loans for bureau correction.
+              </p>
+            </div>
           </aside>
 
-          <div className="space-y-5">
-          {currentSection && (
-            <div
-              key={currentSection.type}
-              className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl shadow-blue-950/5"
-            >
-              {/* Section heading */}
-              <header className="flex items-center gap-3 border-b border-slate-200 bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-5">
-                <span className="rounded-xl bg-white p-2.5 text-blue-600 shadow-sm">
-                  {currentSection.icon}
-                </span>
-                <div>
-                  <h2 className="text-xl font-bold text-navy">{currentSection.title}</h2>
-                  <p className="text-xs text-slate-500">Confirm each detail below as Yes or No</p>
-                </div>
-              </header>
-
-              {/* Cards within the section */}
-              <div className="space-y-4 p-4 md:p-6">
-                {currentSection.cards.map((card) => (
-                  <div
-                    key={`${card.loanId}_${card.heading || 'details'}`}
-                    className="overflow-hidden rounded-2xl border border-slate-200 shadow-sm"
-                  >
-                    {card.heading && (
-                      <div className="flex items-center gap-2 border-b border-slate-100 bg-white px-5 py-3">
-                        <Landmark size={16} className="shrink-0 text-blue-600" />
-                        <h4 className="text-sm font-bold text-navy">{card.heading}</h4>
-                      </div>
-                    )}
-                    <div className="divide-y divide-slate-100">
-                      {card.fields.map((field) => (
-                        <div key={field.uniqueKey} className="px-5 py-4">
-                          <div className="min-w-0">
-                            <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">{field.label}</p>
-                            <p className="mt-1 break-words text-base font-semibold text-navy">{field.value}</p>
-                          </div>
-                        </div>
-                      ))}
-                      <div className="flex flex-col gap-3 bg-slate-50/70 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-                        <p className="text-sm font-semibold text-navy">Are these details correct?</p>
-                        <div className="flex shrink-0 gap-2.5">
-                          <button
-                            type="button"
-                            onClick={() => setCardAnswer(card.fields, 'yes')}
-                            className={`flex items-center gap-1.5 rounded-xl border px-5 py-2.5 text-sm font-semibold transition ${
-                              verification[card.fields[0].uniqueKey] === 'yes'
-                                ? 'border-emerald-500 bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
-                                : 'border-slate-300 bg-white text-slate-600 hover:border-emerald-400 hover:bg-emerald-50'
-                            }`}
-                          >
-                            <CheckCircle2 size={16} /> Yes
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setCardAnswer(card.fields, 'no')}
-                            className={`flex items-center gap-1.5 rounded-xl border px-5 py-2.5 text-sm font-semibold transition ${
-                              verification[card.fields[0].uniqueKey] === 'no'
-                                ? 'border-red-500 bg-red-500 text-white shadow-lg shadow-red-500/20'
-                                : 'border-slate-300 bg-white text-slate-600 hover:border-red-400 hover:bg-red-50'
-                            }`}
-                          >
-                            <XCircle size={16} /> No
-                          </button>
-                        </div>
-                      </div>
+          {/* Right Main Cards Section */}
+          <div className="space-y-6">
+            {currentSection && (
+              <div className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-xl shadow-blue-950/5">
+                {/* Section Header */}
+                <header className="flex flex-col gap-2 border-b border-slate-100 bg-gradient-to-r from-slate-900 via-blue-950 to-indigo-950 px-6 py-6 text-white sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-center gap-3.5">
+                    <span className="grid h-12 w-12 place-items-center rounded-2xl bg-white/10 text-white backdrop-blur-sm border border-white/15">
+                      {currentSection.icon}
+                    </span>
+                    <div>
+                      <h2 className="text-xl font-black tracking-tight text-white">{currentSection.title}</h2>
+                      <p className="text-xs text-blue-200">
+                        {currentSection.cards.length} {currentSection.cards.length === 1 ? 'item' : 'items'} to verify in this category
+                      </p>
                     </div>
                   </div>
-                ))}
+                  <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-white/10 px-3.5 py-1 text-xs font-semibold backdrop-blur-sm border border-white/10">
+                    <Sparkles size={13} className="text-amber-300" /> Section {activeSectionIndex + 1} of {sections.length}
+                  </span>
+                </header>
+
+                {/* Cards List */}
+                <div className="space-y-6 p-6 md:p-8">
+                  {currentSection.cards.map((card, cIdx) => {
+                    const cardStatus = getCardAnswer(card)
+
+                    return (
+                      <div
+                        key={`${card.loanId}_${card.heading || 'details'}`}
+                        className={`overflow-hidden rounded-2xl border transition-all duration-300 ${
+                          cardStatus === 'yes'
+                            ? 'border-emerald-300 bg-emerald-50/10 shadow-md shadow-emerald-500/5'
+                            : cardStatus === 'no'
+                            ? 'border-rose-300 bg-rose-50/10 shadow-md shadow-rose-500/5'
+                            : 'border-slate-200/90 bg-white hover:border-slate-300 shadow-sm'
+                        }`}
+                      >
+                        {/* Card Title Banner */}
+                        <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/90 px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <span className="grid h-8 w-8 place-items-center rounded-lg bg-blue-100 text-blue-700 font-bold text-xs">
+                              {cIdx + 1}
+                            </span>
+                            <div className="flex items-center gap-2">
+                              {card.bankName ? (
+                                <Landmark size={17} className="text-blue-600" />
+                              ) : (
+                                <User size={17} className="text-blue-600" />
+                              )}
+                              <h3 className="text-sm font-black text-slate-900">
+                                {card.heading || 'Personal Profile'}
+                              </h3>
+                            </div>
+                          </div>
+
+                          {/* Status Badge */}
+                          {cardStatus === 'yes' && (
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-800">
+                              <CheckCircle2 size={14} /> Verified Correct
+                            </span>
+                          )}
+                          {cardStatus === 'no' && (
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-100 px-3 py-1 text-xs font-bold text-rose-800">
+                              <XCircle size={14} /> Reported Discrepancy
+                            </span>
+                          )}
+                          {cardStatus === null && (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-slate-200/80 px-2.5 py-0.5 text-[11px] font-semibold text-slate-600">
+                              Pending Action
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Fields Grid */}
+                        <div className="p-6">
+                          <div className="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
+                            {card.fields.map((field) => (
+                              <div
+                                key={field.uniqueKey}
+                                className="rounded-xl border border-slate-100 bg-slate-50/70 p-3.5 transition hover:bg-slate-50"
+                              >
+                                <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                                  {getFieldIcon(field.fieldKey)}
+                                  <span>{field.label}</span>
+                                </div>
+                                <p className="mt-1 font-sans text-sm font-bold text-slate-900 break-words">
+                                  {field.value}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+
+                          {/* Action Verification Question Bar */}
+                          <div className="mt-6 flex flex-col items-center justify-between gap-4 rounded-2xl border border-slate-200/80 bg-gradient-to-r from-slate-50 to-blue-50/40 p-4 sm:flex-row">
+                            <div>
+                              <p className="text-sm font-extrabold text-slate-900">
+                                Do these details belong to you and look accurate?
+                              </p>
+                              <p className="text-xs text-slate-500">
+                                Select Yes if correct, or No if you do not recognize this record.
+                              </p>
+                            </div>
+
+                            <div className="flex shrink-0 items-center gap-3">
+                              <button
+                                type="button"
+                                onClick={() => setCardAnswer(card.fields, 'yes')}
+                                className={`flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold transition-all duration-200 ${
+                                  cardStatus === 'yes'
+                                    ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30 scale-105'
+                                    : 'border border-slate-300 bg-white text-slate-700 hover:border-emerald-400 hover:bg-emerald-50 hover:text-emerald-700'
+                                }`}
+                              >
+                                <Check size={16} strokeWidth={3} /> Yes, Correct
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => setCardAnswer(card.fields, 'no')}
+                                className={`flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold transition-all duration-200 ${
+                                  cardStatus === 'no'
+                                    ? 'bg-rose-600 text-white shadow-lg shadow-rose-600/30 scale-105'
+                                    : 'border border-slate-300 bg-white text-slate-700 hover:border-rose-400 hover:bg-rose-50 hover:text-rose-700'
+                                }`}
+                              >
+                                <X size={16} strokeWidth={3} /> No, Disputed
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
               </div>
-            </div>
-          )}
-
-        {!currentSectionAnswered && (
-          <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-700">
-            Please confirm every card in this section before continuing.
-          </p>
-        )}
-
-        {submitError && isLastSection && (
-          <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-600">
-            {submitError}
-          </p>
-        )}
-
-        {/* Submit Verification button — outside the container */}
-        <div className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-xl shadow-blue-950/5">
-          <button
-            type="button"
-            onClick={() => goToSection(activeSectionIndex - 1)}
-            disabled={activeSectionIndex === 0 || submitting || loading}
-            className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-blue-400 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            <ArrowLeft size={17} /> Back
-          </button>
-          <button
-            type="button"
-            onClick={() => isLastSection ? void handleSubmit() : goToSection(activeSectionIndex + 1)}
-            disabled={!currentSectionAnswered || (isLastSection && !allAnswered) || submitting || loading}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-600/20 transition hover:-translate-y-0.5 hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {submitting || loading ? (
-              <><Loader2 size={19} className="animate-spin" /> Submitting…</>
-            ) : isLastSection ? (
-              <>Submit <ShieldCheck size={17} /></>
-            ) : (
-              <>Next <ArrowRight size={17} /></>
             )}
-          </button>
+
+            {/* Incomplete warning if any card unconfirmed */}
+            {!currentSectionAnswered && (
+              <div className="flex items-center gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs font-semibold text-amber-900">
+                <ShieldAlert size={20} className="shrink-0 text-amber-600" />
+                <span>Please confirm every card in this section as "Yes" or "No" before moving to the next step.</span>
+              </div>
+            )}
+
+            {submitError && isLastSection && (
+              <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm font-medium text-rose-700">
+                {submitError}
+              </div>
+            )}
+
+            {/* Bottom Floating Navigation Toolbar */}
+            <div className="flex items-center justify-between gap-4 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xl shadow-blue-950/5">
+              <button
+                type="button"
+                onClick={() => goToSection(activeSectionIndex - 1)}
+                disabled={activeSectionIndex === 0 || submitting || loading}
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition hover:border-slate-400 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <ArrowLeft size={16} /> Previous Section
+              </button>
+
+              <button
+                type="button"
+                onClick={() => (isLastSection ? void handleSubmit() : goToSection(activeSectionIndex + 1))}
+                disabled={!currentSectionAnswered || (isLastSection && !allAnswered) || submitting || loading}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-7 py-3 text-sm font-extrabold text-white shadow-lg shadow-blue-600/25 transition hover:from-blue-700 hover:to-indigo-700 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {submitting || loading ? (
+                  <>
+                    <Loader2 size={18} className="animate-spin" /> Submitting Verification...
+                  </>
+                ) : isLastSection ? (
+                  <>
+                    <span>Submit Full Verification</span>
+                    <ShieldCheck size={18} />
+                  </>
+                ) : (
+                  <>
+                    <span>Next Section</span>
+                    <ArrowRight size={18} />
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
-      </div>
       </div>
     </section>
   )

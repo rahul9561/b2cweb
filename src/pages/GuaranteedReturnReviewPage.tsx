@@ -92,7 +92,7 @@ export default function GuaranteedReturnReviewPage() {
             <div className="p-6 space-y-6">
               <div>
                 <h4 className="font-bold text-navy mb-3 text-sm uppercase tracking-wide">Investment Details</h4>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                   <DetailBox label="You Give" value={`₹${plan.youGive} L`} />
                   <DetailBox label="Period" value={`${plan.youGiveYears} Years`} />
                   <DetailBox label="You Get" value={`₹${plan.youGet.toFixed(1)} L`} highlight />
